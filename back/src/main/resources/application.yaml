@@ -67,3 +67,6 @@ custom:
   accessToken:
     expirationSeconds: "#{60*20}"
   systemMemberApiKey: ${CUSTOM__JWT__SECRET_KEY}
+  cache:
+    ttl-seconds: 3600
+    ttl-overrides: { }
