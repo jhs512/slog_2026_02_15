@@ -1,0 +1,69 @@
+server:
+  port: 8080
+  shutdown: graceful
+  forward-headers-strategy: native
+spring:
+  web:
+    resources:
+      add-mappings: false
+  threads:
+    virtual:
+      enabled: true
+  application:
+    name: back
+  config:
+    import: optional:file:.env[.properties]
+  profiles:
+    active: dev
+  output:
+    ansi:
+      enabled: always
+  sql:
+    init:
+      mode: always
+  datasource:
+    hikari:
+      auto-commit: false
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: com.back.global.jpa.config.CustomPostgreSQLDialect
+        format_sql: true
+        highlight_sql: true
+        use_sql_comments: true
+        default_batch_fetch_size: 100
+        jdbc:
+          batch_size: 128 # 2의 거듭제곱 형태
+          order_inserts: true
+    open-in-view: false
+logging:
+  level:
+    com.back: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.orm.jdbc.extract: TRACE
+    org.hibernate.orm.jdbc.batch: TRACE
+    org.springframework.transaction.interceptor: TRACE
+custom:
+  dev:
+    cookieDomain: localhost
+    frontUrl: "http://${custom.dev.cookieDomain}:3000"
+    backUrl: "http://${custom.dev.cookieDomain}:8080"
+  prod:
+    cookieDomain: slog0-2026-02-15.oa.gg
+    frontUrl: "https://www.${custom.prod.cookieDomain}"
+    backUrl: "https://api.${custom.prod.cookieDomain}"
+  site:
+    cookieDomain: "${custom.dev.cookieDomain}"
+    frontUrl: "${custom.dev.frontUrl}"
+    backUrl: "${custom.dev.backUrl}"
+  jwt:
+    secretKey: ${CUSTOM__JWT__SECRET_KEY}
+  accessToken:
+    expirationSeconds: "#{60*20}"
+  systemMemberApiKey: ${CUSTOM__JWT__SECRET_KEY}
