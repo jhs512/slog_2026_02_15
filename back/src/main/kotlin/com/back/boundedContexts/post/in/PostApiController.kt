@@ -15,11 +15,11 @@ class PostApiController(
 ) {
     @GetMapping
     fun search(
-        @RequestParam("q") keyword: String,
-        @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam("kw") keyword: String,
+        @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam("pageSize", defaultValue = "10") size: Int,
     ): Page<PostSearchDto> {
-        val safePage = if (page >= 0) page else 0
+        val safePage = if (page > 1) page - 1 else 0
         val safeSize = when {
             size <= 0 -> 10
             size > 100 -> 100

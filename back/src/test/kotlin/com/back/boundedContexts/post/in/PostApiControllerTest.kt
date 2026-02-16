@@ -40,9 +40,9 @@ class PostApiControllerTest {
 
         mvc.perform(
             get("/post/api/v1/posts")
-                .param("q", keyword)
-                .param("page", "0")
-                .param("size", "10")
+                .param("kw", keyword)
+                .param("page", "1")
+                .param("pageSize", "10")
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isOk)
@@ -60,9 +60,9 @@ class PostApiControllerTest {
 
         mvc.perform(
             get("/post/api/v1/posts")
-                .param("q", "코끼리 OR 호랑이")
-                .param("page", "0")
-                .param("size", "10")
+                .param("kw", "코끼리 OR 호랑이")
+                .param("page", "1")
+                .param("pageSize", "10")
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isOk)
@@ -80,9 +80,9 @@ class PostApiControllerTest {
 
         mvc.perform(
             get("/post/api/v1/posts")
-                .param("q", "안드로이드 AND 개발")
-                .param("page", "0")
-                .param("size", "10")
+                .param("kw", "안드로이드 AND 개발")
+                .param("page", "1")
+                .param("pageSize", "10")
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isOk)
@@ -100,9 +100,9 @@ class PostApiControllerTest {
 
         mvc.perform(
             get("/post/api/v1/posts")
-                .param("q", "검색")
-                .param("page", "0")
-                .param("size", "10")
+                .param("kw", "검색")
+                .param("page", "1")
+                .param("pageSize", "10")
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isOk)
