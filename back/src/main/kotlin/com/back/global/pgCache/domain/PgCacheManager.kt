@@ -1,24 +1,22 @@
-package com.back.global.cache
+package com.back.global.pgCache.domain
 
+import jakarta.persistence.EntityManager
 import org.springframework.cache.Cache
 import org.springframework.cache.support.AbstractCacheManager
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.databind.ObjectMapper
 import java.time.Duration
 
 class PgCacheManager(
-    private val jdbcTemplate: JdbcTemplate,
+    private val em: EntityManager,
     private val objectMapper: ObjectMapper,
     private val defaultTtl: Duration,
     private val ttlOverrides: Map<String, Duration>,
-    private val transactionTemplate: TransactionTemplate,
 ) : AbstractCacheManager() {
 
     override fun loadCaches(): Collection<Cache> = emptyList()
 
     override fun getMissingCache(name: String): Cache {
         val ttl = ttlOverrides[name] ?: defaultTtl
-        return PgCache(name, jdbcTemplate, objectMapper, ttl, transactionTemplate)
+        return PgCache(name, em, objectMapper, ttl)
     }
 }

@@ -32,7 +32,7 @@ class MemberNotProdInitData(
     fun makeBaseMembers() {
         if (memberFacade.count() > 0) return
 
-        val memberSystem = memberFacade.join(Member.newId(6), "system", "1234", "시스템")
+        val memberSystem = memberFacade.join(Member.newId(), "system", "1234", "시스템")
         memberSystem.modifyApiKey(memberSystem.username)
 
         val memberHolding = memberFacade.join(Member.newId(), "holding", "1234", "홀딩")

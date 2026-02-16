@@ -3,45 +3,46 @@ server:
   shutdown: graceful
   forward-headers-strategy: native
 spring:
-  web:
-    resources:
-      add-mappings: false
-  threads:
-    virtual:
-      enabled: true
   application:
     name: back
-  config:
-    import: optional:file:.env[.properties]
   profiles:
     active: dev
+  config:
+    import: optional:file:.env[.properties]
   output:
     ansi:
       enabled: always
-  sql:
-    init:
-      mode: always
-  datasource:
-    hikari:
-      auto-commit: false
+  threads:
+    virtual:
+      enabled: true
+  web:
+    resources:
+      add-mappings: false
   jackson:
     serialization:
       fail-on-empty-beans: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${custom.site.dbName}?reWriteBatchedInserts=true
+    username: admin
+    password: lldj123414
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      auto-commit: false
   jpa:
-    show-sql: true
+    open-in-view: false
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
         dialect: com.back.global.jpa.config.CustomPostgreSQLDialect
+        default_batch_fetch_size: 128
+        jdbc:
+          batch_size: 128
+          order_inserts: true
         format_sql: true
         highlight_sql: true
         use_sql_comments: true
-        default_batch_fetch_size: 100
-        jdbc:
-          batch_size: 128 # 2의 거듭제곱 형태
-          order_inserts: true
-    open-in-view: false
+    show-sql: true
 logging:
   level:
     com.back: DEBUG
@@ -53,15 +54,23 @@ custom:
   dev:
     cookieDomain: localhost
     frontUrl: "http://${custom.dev.cookieDomain}:3000"
-    backUrl: "http://${custom.dev.cookieDomain}:8080"
+    backUrl: "http://${custom.dev.cookieDomain}:${server.port}"
+    dbName: slog_dev
+  test:
+    cookieDomain: ${custom.dev.cookieDomain}
+    frontUrl: ${custom.dev.frontUrl}
+    backUrl: ${custom.dev.backUrl}
+    dbName: slog_test
   prod:
-    cookieDomain: slog0-2026-02-15.oa.gg
+    cookieDomain: slog-2026-02-15.oa.gg
     frontUrl: "https://www.${custom.prod.cookieDomain}"
     backUrl: "https://api.${custom.prod.cookieDomain}"
+    dbName: slog_prod
   site:
     cookieDomain: "${custom.dev.cookieDomain}"
     frontUrl: "${custom.dev.frontUrl}"
     backUrl: "${custom.dev.backUrl}"
+    dbName: "${custom.dev.dbName}"
   jwt:
     secretKey: ${CUSTOM__JWT__SECRET_KEY}
   accessToken:

@@ -66,7 +66,7 @@ feat: add cache_store_unlogged table DDL
 **Step 1: PgCache 구현**
 
 ```kotlin
-package com.back.global.cache
+package com.back.global.pgCache
 
 import org.springframework.cache.Cache
 import org.springframework.cache.Cache.ValueWrapper
@@ -186,7 +186,7 @@ feat: implement PgCache (Spring Cache interface over PostgreSQL)
 **Step 1: PgCacheManager 구현**
 
 ```kotlin
-package com.back.global.cache
+package com.back.global.pgCache
 
 import org.springframework.cache.Cache
 import org.springframework.cache.support.AbstractCacheManager
@@ -242,10 +242,10 @@ custom:
 **Step 2: PgCacheConfig 구현**
 
 ```kotlin
-package com.back.global.cache.config
+package com.back.global.pgCache.config
 
-import com.back.global.cache.PgCache
-import com.back.global.cache.PgCacheManager
+import com.back.global.pgCache.PgCache
+import com.back.global.pgCache.PgCacheManager
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.EnableCaching
@@ -292,7 +292,7 @@ feat: add PgCacheConfig with @EnableCaching
 **Step 1: 테스트 작성**
 
 ```kotlin
-package com.back.global.cache
+package com.back.global.pgCache
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -404,7 +404,7 @@ class PgCacheIntegrationTest {
 
 **Step 2: 테스트 실행**
 
-Run: `./gradlew test --tests "com.back.global.cache.PgCacheIntegrationTest"`
+Run: `./gradlew test --tests "com.back.global.pgCache.PgCacheIntegrationTest"`
 Expected: 모든 테스트 PASS
 
 **Step 3: Commit**

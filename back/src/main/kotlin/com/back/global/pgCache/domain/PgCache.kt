@@ -1,10 +1,9 @@
-package com.back.global.cache
+package com.back.global.pgCache.domain
 
+import jakarta.persistence.EntityManager
 import org.springframework.cache.Cache
 import org.springframework.cache.Cache.ValueWrapper
 import org.springframework.cache.support.SimpleValueWrapper
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.databind.DefaultTyping
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.json.JsonMapper
@@ -14,10 +13,9 @@ import java.util.concurrent.Callable
 
 class PgCache(
     private val cacheName: String,
-    private val jdbcTemplate: JdbcTemplate,
+    private val em: EntityManager,
     private val objectMapper: ObjectMapper,
     private val ttl: Duration,
-    private val transactionTemplate: TransactionTemplate,
 ) : Cache {
 
     companion object {
@@ -37,17 +35,17 @@ class PgCache(
 
     override fun getNativeCache(): Any = this
 
+    @Suppress("UNCHECKED_CAST")
     override fun get(key: Any): ValueWrapper? {
-        return transactionTemplate.execute {
-            val json = jdbcTemplate.query(
-                "SELECT value FROM cache_store_unlogged WHERE cache_key = ? AND expired_at > now()",
-                { rs, _ -> rs.getString("value") },
-                cacheKey(key),
-            ).firstOrNull() ?: return@execute null
+        val results = em.createNativeQuery(
+            "SELECT CAST(value AS text) FROM cache_item_unlogged WHERE cache_key = :key AND expired_at > now()"
+        )
+            .setParameter("key", cacheKey(key))
+            .resultList as List<String>
 
-            val value = objectMapper.readValue(json, Any::class.java)
-            SimpleValueWrapper(value)
-        }
+        val json = results.firstOrNull() ?: return null
+        val value = objectMapper.readValue(json, Any::class.java)
+        return SimpleValueWrapper(value)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -74,36 +72,29 @@ class PgCache(
 
         val json = objectMapper.writeValueAsString(value)
 
-        transactionTemplate.executeWithoutResult {
-            jdbcTemplate.update(
-                """
-                INSERT INTO cache_store_unlogged (cache_key, value, expired_at)
-                VALUES (?, ?::jsonb, now() + ?::interval)
-                ON CONFLICT (cache_key)
-                DO UPDATE SET value = EXCLUDED.value, expired_at = EXCLUDED.expired_at
-                """.trimIndent(),
-                cacheKey(key),
-                json,
-                "${ttl.seconds} seconds",
-            )
-        }
+        em.createNativeQuery(
+            """
+            INSERT INTO cache_item_unlogged (cache_key, value, expired_at)
+            VALUES (:key, CAST(:value AS jsonb), now() + CAST(:ttl AS interval))
+            ON CONFLICT (cache_key)
+            DO UPDATE SET value = EXCLUDED.value, expired_at = EXCLUDED.expired_at
+            """.trimIndent()
+        )
+            .setParameter("key", cacheKey(key))
+            .setParameter("value", json)
+            .setParameter("ttl", "${ttl.seconds} seconds")
+            .executeUpdate()
     }
 
     override fun evict(key: Any) {
-        transactionTemplate.executeWithoutResult {
-            jdbcTemplate.update(
-                "DELETE FROM cache_store_unlogged WHERE cache_key = ?",
-                cacheKey(key),
-            )
-        }
+        em.createNativeQuery("DELETE FROM cache_item_unlogged WHERE cache_key = :key")
+            .setParameter("key", cacheKey(key))
+            .executeUpdate()
     }
 
     override fun clear() {
-        transactionTemplate.executeWithoutResult {
-            jdbcTemplate.update(
-                "DELETE FROM cache_store_unlogged WHERE cache_key LIKE ?",
-                "$cacheName::%",
-            )
-        }
+        em.createNativeQuery("DELETE FROM cache_item_unlogged WHERE cache_key LIKE :pattern")
+            .setParameter("pattern", "$cacheName::%")
+            .executeUpdate()
     }
 }

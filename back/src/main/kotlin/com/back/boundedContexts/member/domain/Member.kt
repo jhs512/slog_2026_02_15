@@ -4,15 +4,17 @@ import com.back.global.jpa.domain.BaseTime
 import com.back.global.jpa.domain.IdSource
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.SequenceGenerator
 import jakarta.persistence.Table
 import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.annotations.NaturalId
 
 @Entity
 @Table(name = "member")
+@SequenceGenerator(name = "member_id_seq_gen", sequenceName = "member_id_seq", allocationSize = 1)
 @DynamicUpdate
 class Member(
-    id: Long = 0,
+    id: Long,
     @field:NaturalId
     @field:Column(unique = true)
     val username: String,

@@ -5,5 +5,5 @@ import com.back.global.app.app.AppFacade
 interface IdSource {
     val entityName: String
 
-    fun newId(count: Int = 1): Long = AppFacade.idGenerator.genId(entityName, count)
+    fun newId(): Long = AppFacade.idGenerator.genId(entityName)
 }

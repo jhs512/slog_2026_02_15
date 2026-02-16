@@ -1,12 +1,13 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/slog_test?reWriteBatchedInserts=true
-    username: admin
-    password: lldj123414
-    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: create
     properties:
       hibernate:
         dialect: com.back.global.jpa.config.CustomTestPostgreSQLDialect
+custom:
+  site:
+    cookieDomain: "${custom.test.cookieDomain}"
+    frontUrl: "${custom.test.frontUrl}"
+    backUrl: "${custom.test.backUrl}"
+    dbName: "${custom.test.dbName}"

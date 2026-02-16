@@ -8,7 +8,7 @@ import org.hibernate.tool.schema.internal.StandardTableExporter
 import org.hibernate.tool.schema.spi.Exporter
 
 class CustomTestPostgreSQLDialect : PostgreSQLDialect() {
-    private val unloggedTableExporter = object : StandardTableExporter(this) {
+    private val tableExporter = object : StandardTableExporter(this) {
         override fun getSqlCreateStrings(
             table: Table,
             metadata: Metadata,
@@ -22,5 +22,5 @@ class CustomTestPostgreSQLDialect : PostgreSQLDialect() {
         }
     }
 
-    override fun getTableExporter(): Exporter<Table> = unloggedTableExporter
+    override fun getTableExporter(): Exporter<Table> = tableExporter
 }

@@ -1,6 +1,6 @@
-package com.back.global.cache
+package com.back.global.pgCache
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -10,6 +10,7 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -36,6 +37,7 @@ class TestCacheService {
 
 @ActiveProfiles("test")
 @SpringBootTest
+@Transactional
 class CacheableAnnotationTest {
 
     @Autowired
@@ -49,9 +51,6 @@ class CacheableAnnotationTest {
 
     @BeforeEach
     fun setUp() {
-        transactionTemplate.executeWithoutResult {
-            jdbcTemplate.update("DELETE FROM cache_store_unlogged")
-        }
         testCacheService.callCount.set(0)
     }
 

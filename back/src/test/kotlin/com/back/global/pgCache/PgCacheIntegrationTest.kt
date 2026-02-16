@@ -1,12 +1,12 @@
-package com.back.global.cache
+package com.back.global.pgCache
 
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
+import jakarta.persistence.EntityManager
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cache.CacheManager
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 
@@ -19,12 +19,7 @@ class PgCacheIntegrationTest {
     lateinit var cacheManager: CacheManager
 
     @Autowired
-    lateinit var jdbcTemplate: JdbcTemplate
-
-    @BeforeEach
-    fun setUp() {
-        jdbcTemplate.update("DELETE FROM cache_store_unlogged")
-    }
+    lateinit var em: EntityManager
 
     @Test
     fun `put and get`() {
@@ -87,10 +82,11 @@ class PgCacheIntegrationTest {
         val cache = cacheManager.getCache("test")!!
         cache.put("key1", "hello")
 
-        jdbcTemplate.update(
-            "UPDATE cache_store_unlogged SET expired_at = now() - interval '1 second' WHERE cache_key = ?",
-            "test::key1",
+        em.createNativeQuery(
+            "UPDATE cache_item_unlogged SET expired_at = now() - interval '1 second' WHERE cache_key = :key"
         )
+            .setParameter("key", "test::key1")
+            .executeUpdate()
 
         assertNull(cache.get("key1"))
     }
