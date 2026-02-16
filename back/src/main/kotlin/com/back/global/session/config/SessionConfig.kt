@@ -16,20 +16,25 @@ class SessionConfig {
         dataSource.connection.use { conn ->
             val tables = listOf("spring_session", "spring_session_attributes")
             for (table in tables) {
-                val isUnlogged = conn.prepareStatement(
+                val persistence = conn.prepareStatement(
                     """
-                    SELECT relpersistence = 'u'
+                    SELECT relpersistence
                     FROM pg_class
                     WHERE relname = ?
                     """.trimIndent()
                 ).use { stmt ->
                     stmt.setString(1, table)
                     stmt.executeQuery().use { rs ->
-                        rs.next() && rs.getBoolean(1)
+                        if (rs.next()) rs.getString(1) else null
                     }
                 }
 
-                if (!isUnlogged) {
+                if (persistence == null) {
+                    log.info("테이블 {}이 존재하지 않아 건너뜁니다.", table)
+                    continue
+                }
+
+                if (persistence != "u") {
                     conn.createStatement().use { stmt ->
                         stmt.execute("ALTER TABLE $table SET UNLOGGED")
                     }
