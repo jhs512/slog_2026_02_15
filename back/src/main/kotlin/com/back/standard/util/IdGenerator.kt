@@ -11,6 +11,7 @@ class IdGenerator(
 ) {
     private val pools = ConcurrentHashMap<String, ConcurrentLinkedQueue<Long>>()
     private val locks = ConcurrentHashMap<String, Any>()
+    private val initializedSeqs = ConcurrentHashMap.newKeySet<String>()
     private val defaultPoolSize = 100
 
     fun genId(name: String): Long {
@@ -25,9 +26,16 @@ class IdGenerator(
             // 대기 중 다른 쓰레드가 이미 충전했을 수 있음
             pool.poll()?.let { return it }
 
+            val seqName = "${name}_id_seq"
+
+            if (initializedSeqs.add(seqName)) {
+                em.createNativeQuery("CREATE SEQUENCE IF NOT EXISTS $seqName")
+                    .executeUpdate()
+            }
+
             @Suppress("UNCHECKED_CAST")
             val ids = em.createNativeQuery(
-                "SELECT nextval('${name}_id_seq') FROM generate_series(1, :count)"
+                "SELECT nextval('$seqName') FROM generate_series(1, :count)"
             )
                 .setParameter("count", defaultPoolSize)
                 .resultList as List<Long>
