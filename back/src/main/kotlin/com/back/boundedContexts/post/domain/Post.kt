@@ -16,6 +16,7 @@ class Post(
     @field:ManyToOne(fetch = FetchType.LAZY)
     val author: Member,
     var title: String,
+    @field:Basic(fetch = FetchType.LAZY)
     @field:Column(columnDefinition = "TEXT")
     var body: String,
     var published: Boolean = true,

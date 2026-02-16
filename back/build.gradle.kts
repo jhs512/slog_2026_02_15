@@ -74,6 +74,8 @@ allOpen {
 hibernate {
     enhancement {
         enableLazyInitialization = true
+        enableDirtyTracking = true
+        enableAssociationManagement = false
     }
 }
 
