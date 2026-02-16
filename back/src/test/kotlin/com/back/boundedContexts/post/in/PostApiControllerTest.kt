@@ -6,7 +6,6 @@ import com.back.boundedContexts.post.domain.Post
 import com.back.boundedContexts.post.`in`.PostApiController
 import com.back.boundedContexts.post.out.PostRepository
 import org.hamcrest.Matchers
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,15 +33,6 @@ class PostApiControllerTest {
 
     @Autowired
     private lateinit var postRepository: PostRepository
-
-    private var memberSeq = 1L
-    private var postSeq = 1L
-
-    @BeforeEach
-    fun setUp() {
-        memberSeq = 30_000L
-        postSeq = 40_000L
-    }
 
     @Test
     @DisplayName("GET /post/api/v1/posts?q= - 제목 또는 내용에서 검색")
@@ -145,23 +135,21 @@ class PostApiControllerTest {
     }
 
     private fun saveMember(nameSuffix: String): Member {
-        val seq = memberSeq++
         return memberRepository.save(
             Member(
-                id = seq,
-                username = "user-search-$nameSuffix-$seq",
+                id = Member.newId(),
+                username = "user-search-$nameSuffix",
                 password = "1234",
-                nickname = "유저-$nameSuffix-$seq",
-                apiKey = "key-search-$nameSuffix-$seq",
+                nickname = "유저-$nameSuffix",
+                apiKey = "key-search-$nameSuffix",
             )
         )
     }
 
     private fun savePost(author: Member, title: String, body: String): Post {
-        val seq = postSeq++
         return postRepository.save(
             Post(
-                id = seq,
+                id = Post.newId(),
                 author = author,
                 title = title,
                 body = body,

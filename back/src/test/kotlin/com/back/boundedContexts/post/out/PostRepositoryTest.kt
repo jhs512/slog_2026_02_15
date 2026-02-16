@@ -6,7 +6,6 @@ import com.back.boundedContexts.post.domain.Post
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.PageRequest
@@ -23,15 +22,6 @@ class PostRepositoryTest {
 
     @Autowired
     private lateinit var postRepository: PostRepository
-
-    private var memberSeq = 1L
-    private var postSeq = 1L
-
-    @BeforeEach
-    fun setUp() {
-        memberSeq = 10_000L
-        postSeq = 20_000L
-    }
 
     @Test
     @DisplayName("검색어로 제목 또는 내용에서 조회")
@@ -93,23 +83,21 @@ class PostRepositoryTest {
     }
 
     private fun saveMember(nameSuffix: String): Member {
-        val seq = memberSeq++
         return memberRepository.save(
             Member(
-                id = seq,
-                username = "user-$nameSuffix-$seq",
+                id = Member.newId(),
+                username = "user-$nameSuffix",
                 password = "1234",
-                nickname = "유저-$nameSuffix-$seq",
-                apiKey = "key-$nameSuffix-$seq",
+                nickname = "유저-$nameSuffix",
+                apiKey = "key-$nameSuffix",
             )
         )
     }
 
     private fun savePost(author: Member, title: String, body: String): Post {
-        val seq = postSeq++
         return postRepository.save(
             Post(
-                id = seq,
+                id = Post.newId(),
                 author = author,
                 title = title,
                 body = body,
