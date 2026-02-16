@@ -21,6 +21,9 @@ spring:
   jackson:
     serialization:
       fail-on-empty-beans: false
+  session:
+    jdbc:
+      initialize-schema: always
   datasource:
     url: jdbc:postgresql://localhost:5432/${custom.site.dbName}?reWriteBatchedInserts=true
     username: admin
