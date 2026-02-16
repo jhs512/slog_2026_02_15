@@ -14,7 +14,7 @@ class SessionConfig {
     @Bean
     fun sessionTableUnloggedRunner(dataSource: DataSource) = ApplicationRunner {
         dataSource.connection.use { conn ->
-            val tables = listOf("spring_session", "spring_session_attributes")
+            val tables = listOf("spring_session_attributes", "spring_session")
             for (table in tables) {
                 val persistence = conn.prepareStatement(
                     """
