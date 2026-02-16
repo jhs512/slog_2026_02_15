@@ -1,5 +1,6 @@
 package com.back.standard.util
 
+import org.springframework.beans.factory.annotation.Value
 import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
@@ -8,6 +9,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
 @Component
 class IdGenerator(
     private val em: EntityManager,
+    @Value("\${spring.jpa.hibernate.ddl-auto:none}")
+    private val ddlAuto: String = "none",
 ) {
     private val pools = ConcurrentHashMap<String, ConcurrentLinkedQueue<Long>>()
     private val locks = ConcurrentHashMap<String, Any>()
@@ -27,10 +30,22 @@ class IdGenerator(
             pool.poll()?.let { return it }
 
             val seqName = "${name}_id_seq"
+            val isCreateMode = ddlAuto.equals("create", ignoreCase = true) ||
+                ddlAuto.equals("create-drop", ignoreCase = true)
 
             if (initializedSeqs.add(seqName)) {
+                if (isCreateMode) {
+                    em.createNativeQuery("DROP SEQUENCE IF EXISTS $seqName")
+                        .executeUpdate()
+                }
+
                 em.createNativeQuery("CREATE SEQUENCE IF NOT EXISTS $seqName")
                     .executeUpdate()
+
+                if (isCreateMode) {
+                    em.createNativeQuery("ALTER SEQUENCE $seqName RESTART WITH 1")
+                        .executeUpdate()
+                }
             }
 
             @Suppress("UNCHECKED_CAST")
