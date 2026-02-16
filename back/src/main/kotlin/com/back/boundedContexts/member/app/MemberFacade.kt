@@ -13,6 +13,12 @@ class MemberFacade(
     @Transactional(readOnly = true)
     fun count(): Long = memberRepository.count()
 
+    @Transactional(readOnly = true)
+    fun findByUsername(username: String): Member? = memberRepository.findByUsername(username)
+
+    @Transactional(readOnly = true)
+    fun findByApiKey(apiKey: String): Member? = memberRepository.findByApiKey(apiKey)
+
     @Transactional
     fun join(id: Long, username: String, password: String?, nickname: String): Member {
         memberRepository.findByUsername(username)
@@ -27,5 +33,9 @@ class MemberFacade(
                 UUID.randomUUID().toString()
             )
         )
+    }
+
+    fun checkPassword(member: Member, rawPassword: String): Boolean {
+        return member.password == rawPassword
     }
 }
