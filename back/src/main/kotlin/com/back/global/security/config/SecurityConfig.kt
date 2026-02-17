@@ -6,6 +6,7 @@ import com.back.global.app.app.AppFacade
 import com.back.global.dto.RsData
 import com.back.global.security.config.oauth2.CustomOAuth2AuthorizationRequestResolver
 import com.back.global.security.config.oauth2.CustomOAuth2LoginSuccessHandler
+import com.back.global.security.config.oauth2.CustomOAuth2UserService
 import com.back.standard.util.Ut
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -24,6 +25,7 @@ class SecurityConfig(
     private val customAuthenticationFilter: CustomAuthenticationFilter,
     private val customOAuth2LoginSuccessHandler: CustomOAuth2LoginSuccessHandler,
     private val customOAuth2AuthorizationRequestResolver: CustomOAuth2AuthorizationRequestResolver,
+    private val customOAuth2UserService: CustomOAuth2UserService,
     private val postSecurityConfig: PostSecurityConfig,
     private val memberSecurityConfig: MemberSecurityConfig,
 ) {
@@ -77,6 +79,10 @@ class SecurityConfig(
 
                 authorizationEndpoint {
                     authorizationRequestResolver = customOAuth2AuthorizationRequestResolver
+                }
+
+                userInfoEndpoint {
+                    userService = customOAuth2UserService
                 }
             }
 
