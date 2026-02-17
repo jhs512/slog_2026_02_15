@@ -9,6 +9,6 @@ class MemberAppConfig(
     memberAttrRepository: MemberAttrRepository,
 ) {
     init {
-        Member.Companion.attrRepository_ = memberAttrRepository
+        Member.attrRepository_ = memberAttrRepository
     }
 }

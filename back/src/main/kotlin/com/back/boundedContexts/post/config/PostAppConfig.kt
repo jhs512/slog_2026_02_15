@@ -13,8 +13,8 @@ class PostAppConfig(
     postCommentRepository: PostCommentRepository,
 ) {
     init {
-        Post.Companion.postLikeRepository_ = postLikeRepository
-        Post.Companion.postAttrRepository_ = postAttrRepository
-        Post.Companion.postCommentRepository_ = postCommentRepository
+        Post.postLikeRepository_ = postLikeRepository
+        Post.postAttrRepository_ = postAttrRepository
+        Post.postCommentRepository_ = postCommentRepository
     }
 }

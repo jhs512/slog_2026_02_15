@@ -1,7 +1,7 @@
 package com.back.boundedContexts.post.domain
 
 import com.back.boundedContexts.member.domain.shared.HasMember
-import com.back.boundedContexts.member.domain.shared.Member.Companion.attrRepository
+import com.back.boundedContexts.member.domain.shared.Member.attrRepository
 import com.back.boundedContexts.member.domain.shared.MemberAttr
 
 private const val POSTS_COUNT = "postsCount"
