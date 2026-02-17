@@ -21,9 +21,9 @@ class PostRepositoryTest {
 
     @Test
     @DisplayName("findQPagedByKw")
-    fun `title 키워드 검색이 동작한다`() {
+    fun `통합 검색으로 title 또는 content 키워드 검색이 동작한다`() {
         val postPage = postRepository.findQPagedByKw(
-            PostSearchKeywordType1.TITLE,
+            PostSearchKeywordType1.ALL,
             "제목",
             PageRequest.of(
                 0,
@@ -35,28 +35,6 @@ class PostRepositoryTest {
         val content = postPage.content
 
         assertThat(content).isNotEmpty
-    }
-
-
-    @Test
-    @DisplayName("findQPagedByKw, kwType=PostSearchKeywordType1.AUTHOR_NICKNAME")
-    fun `authorName 키워드 검색이 동작한다`() {
-        val postPage = postRepository.findQPagedByKw(
-            PostSearchKeywordType1.AUTHOR_NAME,
-            "유저",
-            PageRequest.of(
-                0,
-                10,
-                PostSearchSortType1.ID.sortBy
-            ),
-        )
-
-        val content = postPage.content
-
-        assertThat(content).isNotEmpty
-
-        assertThat(content).allMatch { post ->
-            post.author.name.contains("유저", ignoreCase = true)
-        }
+        assertThat(content).anyMatch { it.title.contains("제목") || it.content.contains("제목") }
     }
 }

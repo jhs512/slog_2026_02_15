@@ -17,17 +17,11 @@ class PostRepositoryImpl(
         val builder = BooleanBuilder()
 
         if (kw.isNotBlank()) {
-            when (kwType) {
-                PostSearchKeywordType1.TITLE -> builder.and(post.title.containsIgnoreCase(kw))
-                PostSearchKeywordType1.CONTENT -> builder.and(post.content.containsIgnoreCase(kw))
-                PostSearchKeywordType1.AUTHOR_NAME -> builder.and(post.author.nickname.containsIgnoreCase(kw))
-                PostSearchKeywordType1.ALL ->
-                    builder.and(
-                        post.title.containsIgnoreCase(kw)
-                            .or(post.content.containsIgnoreCase(kw))
-                            .or(post.author.nickname.containsIgnoreCase(kw))
-                    )
-            }
+            // 정책: 글 검색은 title + content 통합 검색만 허용
+            builder.and(
+                post.title.containsIgnoreCase(kw)
+                    .or(post.content.containsIgnoreCase(kw))
+            )
         }
 
         val query = queryFactory

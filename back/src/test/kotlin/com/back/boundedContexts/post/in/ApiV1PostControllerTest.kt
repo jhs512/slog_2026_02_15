@@ -464,7 +464,7 @@ class ApiV1PostControllerTest {
         fun `성공 - 키워드 검색`() {
             val resultActions = mvc
                 .perform(
-                    get("/post/api/v1/posts?page=1&pageSize=5&kwType=TITLE&kw=제목 1")
+                    get("/post/api/v1/posts?page=1&pageSize=5&kw=제목 1")
                 )
                 .andDo(print())
 
