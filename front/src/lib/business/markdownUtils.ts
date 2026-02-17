@@ -22,7 +22,10 @@ export function convertCodeBlocksToDiagramSyntax(content: string): string {
 
   let result = content;
   for (const [pattern, tag] of rules) {
-    result = result.replace(pattern, (_, code) => `$$${tag}\n${code.trim()}\n$$`);
+    result = result.replace(
+      pattern,
+      (_, code) => `$$${tag}\n${code.trim()}\n$$`,
+    );
   }
 
   return result;

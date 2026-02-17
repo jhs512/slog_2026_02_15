@@ -276,7 +276,6 @@ export default withLogin(function Page({
           </Form>
         </CardContent>
       </Card>
-
     </div>
   );
 });

@@ -29,5 +29,9 @@ export function filterObjectKeys(
 
 export function isExternalUrl(url: string): boolean {
   if (!url) return false;
-  return url.startsWith("http://") || url.startsWith("https://") || url.startsWith("//");
+  return (
+    url.startsWith("http://") ||
+    url.startsWith("https://") ||
+    url.startsWith("//")
+  );
 }

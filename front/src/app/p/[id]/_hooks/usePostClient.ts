@@ -180,13 +180,15 @@ export default function usePostClient(initialPost: PostWithContentDto) {
     const handleOnline = () => fetchLatest();
 
     // STOMP 구독
-    stompSubscribe(`/topic/posts/${initialPost.id}/modified`, onMessage).then((sub) => {
-      if (cancelled) {
-        sub.unsubscribe();
-      } else {
-        subscription = sub;
-      }
-    });
+    stompSubscribe(`/topic/posts/${initialPost.id}/modified`, onMessage).then(
+      (sub) => {
+        if (cancelled) {
+          sub.unsubscribe();
+        } else {
+          subscription = sub;
+        }
+      },
+    );
 
     // WebSocket reconnect 시 놓친 변경사항 fetch
     const unsubscribeReconnect = onReconnect(fetchLatest);
