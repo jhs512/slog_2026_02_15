@@ -35,6 +35,64 @@ class ApiV1AdmMemberControllerTest {
     @DisplayName("GET /member/api/v1/adm/members — 회원 다건조회")
     inner class GetItems {
         @Test
+        @DisplayName("성공: page/pageSize 기본값으로 조회")
+        @WithUserDetails("admin")
+        fun `성공 - 기본값 조회`() {
+            val resultActions = mvc
+                .perform(
+                    get("/member/api/v1/adm/members")
+                )
+                .andDo(print())
+
+            val members = memberFacade.findPaged(1, 5).content
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(members.size))
+        }
+
+        @Test
+        @DisplayName("성공: page/pageSize 경계값은 보정되어 조회")
+        @WithUserDetails("admin")
+        fun `성공 - page와 pageSize 경계 보정 조회`() {
+            val resultActions = mvc
+                .perform(
+                    get("/member/api/v1/adm/members?page=0&pageSize=31")
+                )
+                .andDo(print())
+
+            val members = memberFacade.findPaged(1, 5).content
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(members.size))
+        }
+
+        @Test
+        @DisplayName("성공: 공백 키워드는 전체 조회로 처리")
+        @WithUserDetails("admin")
+        fun `성공 - 공백 키워드 검색`() {
+            val resultActions = mvc
+                .perform(
+                    get("/member/api/v1/adm/members")
+                        .param("kw", "   ")
+                )
+                .andDo(print())
+
+            val members = memberFacade.findPaged(1, 5).content
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(members.size))
+        }
+
+        @Test
         @DisplayName("성공: 관리자가 조회")
         @WithUserDetails("admin")
         fun `성공`() {

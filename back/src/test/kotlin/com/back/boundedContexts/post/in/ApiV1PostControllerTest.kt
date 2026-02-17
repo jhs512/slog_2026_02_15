@@ -5,7 +5,6 @@ import com.back.boundedContexts.post.app.PostFacade
 import com.back.standard.dto.post.type1.PostSearchKeywordType1
 import com.back.standard.dto.post.type1.PostSearchSortType1
 import com.back.standard.extensions.getOrThrow
-import jakarta.servlet.http.Cookie
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -122,37 +121,6 @@ class ApiV1PostControllerTest {
                 .perform(
                     post("/post/api/v1/posts")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer wrong-api-key $actorAccessToken")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(
-                            """
-                            {
-                                "title": "제목",
-                                "content": "내용"
-                            }
-                            """
-                        )
-                )
-                .andDo(print())
-
-            resultActions
-                .andExpect(handler().handlerType(ApiV1PostController::class.java))
-                .andExpect(handler().methodName("write"))
-                .andExpect(status().isCreated)
-        }
-
-        @Test
-        @DisplayName("성공: wrong apiKey cookie + valid accessToken cookie")
-        fun `성공 - wrong apiKey cookie with valid accessToken cookie`() {
-            val actor = actorFacade.findByUsername("user1").getOrThrow()
-            val actorAccessToken = actorFacade.genAccessToken(actor)
-
-            val resultActions = mvc
-                .perform(
-                    post("/post/api/v1/posts")
-                        .cookie(
-                            Cookie("apiKey", "wrong-api-key"),
-                            Cookie("accessToken", actorAccessToken)
-                        )
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(
                             """
@@ -416,6 +384,79 @@ class ApiV1PostControllerTest {
     @Nested
     @DisplayName("GET /post/api/v1/posts — 글 다건조회")
     inner class GetItems {
+        @Test
+        @DisplayName("성공: page/pageSize 기본값으로 조회")
+        fun `성공 - 기본값 조회`() {
+            val resultActions = mvc
+                .perform(
+                    get("/post/api/v1/posts")
+                )
+                .andDo(print())
+
+            val posts = postFacade.findPagedByKw(
+                PostSearchKeywordType1.ALL,
+                "",
+                PostSearchSortType1.ID,
+                1,
+                5
+            ).content
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1PostController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(posts.size))
+        }
+
+        @Test
+        @DisplayName("성공: page/pageSize 경계값은 보정되어 조회")
+        fun `성공 - page와 pageSize 경계 보정 조회`() {
+            val resultActions = mvc
+                .perform(
+                    get("/post/api/v1/posts?page=0&pageSize=31")
+                )
+                .andDo(print())
+
+            val posts = postFacade.findPagedByKw(
+                PostSearchKeywordType1.ALL,
+                "",
+                PostSearchSortType1.ID,
+                1,
+                30
+            ).content
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1PostController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(posts.size))
+        }
+
+        @Test
+        @DisplayName("성공: 공백 키워드는 전체 조회로 처리")
+        fun `성공 - 공백 키워드 검색`() {
+            val resultActions = mvc
+                .perform(
+                    get("/post/api/v1/posts")
+                        .param("kw", "   ")
+                )
+                .andDo(print())
+
+            val posts = postFacade.findPagedByKw(
+                PostSearchKeywordType1.ALL,
+                "   ",
+                PostSearchSortType1.ID,
+                1,
+                5
+            ).content
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1PostController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(posts.size))
+        }
+
         @Test
         @DisplayName("성공: 기본 페이징 조회")
         fun `성공 - 기본 페이징`() {

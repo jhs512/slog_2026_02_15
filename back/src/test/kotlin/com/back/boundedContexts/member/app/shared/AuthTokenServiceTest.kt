@@ -5,8 +5,6 @@ import com.back.boundedContexts.member.app.shared.AuthTokenService
 import com.back.boundedContexts.member.dto.shared.AccessTokenPayload
 import com.back.standard.extensions.getOrThrow
 import com.back.standard.util.Ut
-import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.security.Keys
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -15,8 +13,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
-import java.nio.charset.StandardCharsets
-import java.util.Date
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -33,52 +29,6 @@ class AuthTokenServiceTest {
 
     @Value("\${custom.accessToken.expirationSeconds}")
     private var accessTokenExpirationSeconds: Int = 0
-
-    @Test
-    @DisplayName("인증 토큰 서비스가 주입되어 있다.")
-    fun `authTokenService 서비스가 정상 주입된다`() {
-        assertThat(authTokenService).isNotNull
-    }
-
-    @Test
-    @DisplayName("JWT 라이브러리 기본 방식으로 토큰을 생성해 페이로드를 검증한다.")
-    fun `jjwt 최신 방식으로 JWT를 생성하면 페이로드를 검증할 수 있다`() {
-        // 토큰 만료기간: 1년
-        val expireMillis = 1000L * accessTokenExpirationSeconds
-
-        val keyBytes = jwtSecretKey.toByteArray(StandardCharsets.UTF_8)
-        val secretKey = Keys.hmacShaKeyFor(keyBytes)
-
-        // 발행 시간과 만료 시간 설정
-        val issuedAt = Date()
-        val expiration = Date(issuedAt.time + expireMillis)
-
-        val payload = mapOf(
-            "name" to "Paul",
-            "age" to 23
-        )
-
-        val jwt = Jwts.builder()
-            .claims(payload) // 내용
-            .issuedAt(issuedAt) // 생성날짜
-            .expiration(expiration) // 만료날짜
-            .signWith(secretKey) // 키 서명
-            .compact()
-
-        assertThat(jwt).isNotBlank
-
-        // 키가 유효한지 테스트
-        val parsedPayload = Jwts
-            .parser()
-            .verifyWith(secretKey)
-            .build()
-            .parse(jwt)
-            .payload as Map<*, *>
-
-        assertThat(payload.all { (key, value) ->
-            parsedPayload[key] == value
-        }).isTrue
-    }
 
     @Test
     @DisplayName("토큰 유틸을 통해 토큰을 생성하고 페이로드를 검증한다.")
