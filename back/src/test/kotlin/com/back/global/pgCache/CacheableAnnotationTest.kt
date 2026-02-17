@@ -7,11 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.transaction.support.TransactionTemplate
 import java.util.concurrent.atomic.AtomicInteger
 
 @Service
@@ -42,12 +40,6 @@ class CacheableAnnotationTest {
 
     @Autowired
     lateinit var testCacheService: TestCacheService
-
-    @Autowired
-    lateinit var jdbcTemplate: JdbcTemplate
-
-    @Autowired
-    lateinit var transactionTemplate: TransactionTemplate
 
     @BeforeEach
     fun setUp() {

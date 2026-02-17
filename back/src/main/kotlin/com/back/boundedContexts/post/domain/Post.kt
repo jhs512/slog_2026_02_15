@@ -7,9 +7,9 @@ import com.back.boundedContexts.post.out.PostLikeRepository
 import com.back.global.pgroonga.annotation.PGroongaIndex
 import com.back.global.jpa.domain.BaseTime
 import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
-import jakarta.persistence.Lob
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToOne
 import org.hibernate.annotations.DynamicUpdate
@@ -21,6 +21,7 @@ class Post(
     @field:ManyToOne(fetch = FetchType.LAZY)
     val author: Member,
     var title: String,
+    @field:Column(columnDefinition = "TEXT")
     content: String,
     var published: Boolean = false,
     var listed: Boolean = false,
@@ -57,7 +58,6 @@ class Post(
     // ================================
     // 기본 데이터 조작
     // ================================
-    @field:Lob
     var content: String = content
         set(value) {
             if (field != value) {

@@ -8,14 +8,12 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.data.domain.PageRequest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 
 @ActiveProfiles("test")
 @SpringBootTest
-@AutoConfigureMockMvc
 @Transactional
 class PostRepositoryTest {
     @Autowired
@@ -23,7 +21,7 @@ class PostRepositoryTest {
 
     @Test
     @DisplayName("findQPagedByKw")
-    fun t1() {
+    fun `title 키워드 검색이 동작한다`() {
         val postPage = postRepository.findQPagedByKw(
             PostSearchKeywordType1.TITLE,
             "제목",
@@ -42,7 +40,7 @@ class PostRepositoryTest {
 
     @Test
     @DisplayName("findQPagedByKw, kwType=PostSearchKeywordType1.AUTHOR_NICKNAME")
-    fun t2() {
+    fun `authorName 키워드 검색이 동작한다`() {
         val postPage = postRepository.findQPagedByKw(
             PostSearchKeywordType1.AUTHOR_NAME,
             "유저",

@@ -14,7 +14,9 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.handler
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 
 @ActiveProfiles("test")
@@ -64,8 +66,97 @@ class ApiV1AdmMemberControllerTest {
                     )
                     .andExpect(jsonPath("$.content[$i].name").value(member.name))
                     .andExpect(jsonPath("$.content[$i].username").value(member.username))
-                    .andExpect(jsonPath("$.content[$i].isAdmin").value(member.isAdmin))
+                .andExpect(jsonPath("$.content[$i].isAdmin").value(member.isAdmin))
             }
+        }
+
+        @Test
+        @DisplayName("성공: 다건 조회 - USERNAME 키워드(bigram) 검색")
+        @WithUserDetails("admin")
+        fun `성공 - username 키워드 검색`() {
+            makeMemberSearchFixture()
+
+            val resultActions = mvc
+                .perform(
+                    get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=USERNAME&kw=android")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(
+                    jsonPath("$.content[*].username")
+                        .value(Matchers.containsInAnyOrder("android-a", "android-guide"))
+                )
+        }
+
+        @Test
+        @DisplayName("성공: 다건 조회 - NICKNAME 키워드(bigram) 검색")
+        @WithUserDetails("admin")
+        fun `성공 - nickname 키워드 검색`() {
+            makeMemberSearchFixture()
+
+            val resultActions = mvc
+                .perform(
+                    get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=NICKNAME&kw=안드로이드")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(
+                    jsonPath("$.content[*].name")
+                        .value(Matchers.containsInAnyOrder("안드로이드 가이드", "안드로이드 레시피"))
+                )
+        }
+
+        @Test
+        @DisplayName("성공: 다건 조회 - ALL + AND/OR 키워드 검색")
+        @WithUserDetails("admin")
+        fun `성공 - all with and or 검색`() {
+            makeMemberSearchFixture()
+
+            val andResult = mvc
+                .perform(
+                    get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=ALL&kw=안드로이드 AND 가이드")
+                )
+                .andDo(print())
+
+            andResult
+                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(
+                    jsonPath("$.content[*].name")
+                        .value(Matchers.contains("안드로이드 가이드"))
+                )
+
+            val orResult = mvc
+                .perform(
+                    get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=ALL&kw=안드로이드 OR 가이드")
+                )
+                .andDo(print())
+
+            orResult
+                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(3))
+                .andExpect(
+                    jsonPath("$.content[*].name")
+                        .value(Matchers.containsInAnyOrder(
+                            "안드로이드 가이드",
+                            "안드로이드 레시피",
+                            "개발 가이드"
+                        ))
+                )
         }
 
         @Test
@@ -82,6 +173,29 @@ class ApiV1AdmMemberControllerTest {
                 .andExpect(status().isForbidden)
                 .andExpect(jsonPath("$.resultCode").value("403-1"))
                 .andExpect(jsonPath("$.msg").value("권한이 없습니다."))
+        }
+
+        @Test
+        @DisplayName("실패: 일반 사용자가 검색 조회 → 403")
+        @WithUserDetails("user1")
+        fun `실패 - 일반 사용자 검색`() {
+            val resultActions = mvc
+                .perform(
+                    get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=ALL&kw=android")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(status().isForbidden)
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."))
+        }
+
+        private fun makeMemberSearchFixture() {
+            memberFacade.join("android-a", "1234", "안드로이드 가이드")
+            memberFacade.join("guide-search", "1234", "안드로이드 레시피")
+            memberFacade.join("dev-guide", "1234", "개발 가이드")
+            memberFacade.join("android-guide", "1234", "일반 사용자")
         }
     }
 

@@ -13,15 +13,13 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 import java.nio.charset.StandardCharsets
-import java.util.*
+import java.util.Date
 
 @SpringBootTest
 @ActiveProfiles("test")
-@AutoConfigureMockMvc
 @Transactional
 class AuthTokenServiceTest {
     @Autowired
@@ -38,13 +36,13 @@ class AuthTokenServiceTest {
 
     @Test
     @DisplayName("authTokenService 서비스가 존재한다.")
-    fun t1() {
+    fun `authTokenService 서비스가 정상 주입된다`() {
         assertThat(authTokenService).isNotNull
     }
 
     @Test
     @DisplayName("jjwt 최신 방식으로 JWT 생성, {name=\"Paul\", age=23}")
-    fun t2() {
+    fun `jjwt 최신 방식으로 JWT를 생성하면 페이로드를 검증할 수 있다`() {
         // 토큰 만료기간: 1년
         val expireMillis = 1000L * accessTokenExpirationSeconds
 
@@ -84,7 +82,7 @@ class AuthTokenServiceTest {
 
     @Test
     @DisplayName("Ut.jwt.toString 를 통해서 JWT 생성, {name=\"Paul\", age=23}")
-    fun t3() {
+    fun `Ut JWT toString 으로 토큰을 발급하면 페이로드를 검증할 수 있다`() {
         val payload = mapOf("name" to "Paul", "age" to 23)
 
         val jwt = Ut.JWT.toString(
@@ -106,7 +104,7 @@ class AuthTokenServiceTest {
 
     @Test
     @DisplayName("authTokenService.genAccessToken(member);")
-    fun t4() {
+    fun `genAccessToken 으로 생성한 JWT를 검증할 수 있다`() {
         val memberUser1 = actorFacade.findByUsername("user1").getOrThrow()
 
         val accessToken = authTokenService.genAccessToken(memberUser1)

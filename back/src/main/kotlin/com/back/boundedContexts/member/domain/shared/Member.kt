@@ -2,6 +2,7 @@ package com.back.boundedContexts.member.domain.shared
 
 import com.back.boundedContexts.member.out.shared.MemberAttrRepository
 import com.back.boundedContexts.post.domain.PostMember
+import com.back.global.pgroonga.annotation.PGroongaIndex
 import com.back.global.jpa.domain.BaseTime
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -15,6 +16,8 @@ private const val PROFILE_IMG_URL = "profileImgUrl"
 
 @Entity
 @DynamicUpdate
+@PGroongaIndex(columns = ["username"])
+@PGroongaIndex(columns = ["nickname"])
 class Member(
     id: Int,
     @field:NaturalId
@@ -126,4 +129,3 @@ class Member(
     val authorities: Collection<GrantedAuthority>
         get() = authoritiesAsStringList.map { SimpleGrantedAuthority(it) }
 }
-
