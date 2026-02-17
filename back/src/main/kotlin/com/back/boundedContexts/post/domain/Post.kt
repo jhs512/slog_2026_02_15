@@ -6,6 +6,7 @@ import com.back.boundedContexts.post.out.PostCommentRepository
 import com.back.boundedContexts.post.out.PostLikeRepository
 import com.back.global.pgroonga.annotation.PGroongaIndex
 import com.back.global.jpa.domain.BaseTime
+import jakarta.persistence.Basic
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -58,6 +59,7 @@ class Post(
     // ================================
     // 기본 데이터 조작
     // ================================
+    @Basic(fetch = FetchType.LAZY)
     var content: String = content
         set(value) {
             if (field != value) {
