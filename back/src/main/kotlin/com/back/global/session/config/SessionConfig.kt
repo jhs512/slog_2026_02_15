@@ -1,48 +1,48 @@
 package com.back.global.session.config
 
-import org.slf4j.LoggerFactory
-import org.springframework.boot.ApplicationRunner
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import javax.sql.DataSource
+import org.springframework.session.web.http.CookieHttpSessionIdResolver
+import org.springframework.session.web.http.HttpSessionIdResolver
 
 @Configuration
 class SessionConfig {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     @Bean
-    fun sessionTableUnloggedRunner(dataSource: DataSource) = ApplicationRunner {
-        dataSource.connection.use { conn ->
-            conn.autoCommit = true
+    fun httpSessionIdResolver(): HttpSessionIdResolver {
+        val delegate = CookieHttpSessionIdResolver()
 
-            val tables = listOf("spring_session_attributes", "spring_session")
-            for (table in tables) {
-                val persistence = conn.prepareStatement(
-                    """
-                    SELECT relpersistence
-                    FROM pg_class
-                    WHERE relname = ?
-                    """.trimIndent()
-                ).use { stmt ->
-                    stmt.setString(1, table)
-                    stmt.executeQuery().use { rs ->
-                        if (rs.next()) rs.getString(1) else null
-                    }
-                }
+        return object : HttpSessionIdResolver {
+            override fun resolveSessionIds(request: HttpServletRequest): MutableList<String> {
+                if (!shouldUseSession(request.requestURI)) return mutableListOf()
 
-                if (persistence == null) {
-                    log.info("테이블 {}이 존재하지 않아 건너뜁니다.", table)
-                    continue
-                }
+                return delegate.resolveSessionIds(request)
+            }
 
-                if (persistence != "u") {
-                    conn.createStatement().use { stmt ->
-                        stmt.execute("ALTER TABLE $table SET UNLOGGED")
-                    }
-                    log.info("테이블 {}을 unlogged로 전환했습니다.", table)
-                }
+            override fun setSessionId(request: HttpServletRequest, response: HttpServletResponse, sessionId: String) {
+                if (!shouldUseSession(request.requestURI)) return
+
+                delegate.setSessionId(request, response, sessionId)
+            }
+
+            override fun expireSession(request: HttpServletRequest, response: HttpServletResponse) {
+                if (!shouldUseSession(request.requestURI)) return
+
+                delegate.expireSession(request, response)
+            }
+
+            private fun shouldUseSession(uri: String): Boolean {
+                if (sessionPathsPrefixes.any { uri.startsWith(it) }) return true
+
+                return false
             }
         }
     }
+
+    private val sessionPathsPrefixes = listOf(
+        "/oauth2/",
+        "/login/oauth2/"
+    )
 }
