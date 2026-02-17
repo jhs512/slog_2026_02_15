@@ -20,8 +20,8 @@ class PostRepositoryTest {
     private lateinit var postRepository: PostRepository
 
     @Test
-    @DisplayName("findQPagedByKw")
-    fun `통합 검색으로 title 또는 content 키워드 검색이 동작한다`() {
+    @DisplayName("제목 또는 본문 통합 검색이 동작한다")
+    fun `통합 검색으로 제목 또는 본문 키워드 검색이 동작한다`() {
         val postPage = postRepository.findQPagedByKw(
             PostSearchKeywordType1.ALL,
             "제목",
