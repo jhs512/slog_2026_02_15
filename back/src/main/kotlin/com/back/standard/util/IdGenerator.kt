@@ -1,13 +1,15 @@
 package com.back.standard.util
 
-import org.springframework.beans.factory.annotation.Value
 import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
 @Component
 class IdGenerator(
+    @field:PersistenceContext
     private val em: EntityManager,
     @Value("\${spring.jpa.hibernate.ddl-auto:none}")
     private val ddlAuto: String = "none",

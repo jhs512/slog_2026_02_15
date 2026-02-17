@@ -3,15 +3,15 @@ package com.back.boundedContexts.member.out.shared
 import com.back.boundedContexts.member.domain.shared.Member
 import com.back.standard.dto.member.type1.MemberSearchKeywordType1
 import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
-import org.springframework.stereotype.Repository
 
-@Repository
-class MemberRepositoryImpl(
-    private val entityManager: EntityManager,
-) : MemberRepositoryCustom {
+class MemberRepositoryImpl : MemberRepositoryCustom {
+    @field:PersistenceContext
+    private lateinit var entityManager: EntityManager
+
     override fun findByUsername(username: String): Member? {
         return entityManager
             .createNativeQuery("SELECT * FROM member WHERE username = :username", Member::class.java)

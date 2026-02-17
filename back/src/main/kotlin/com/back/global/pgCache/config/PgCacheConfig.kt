@@ -3,6 +3,7 @@ package com.back.global.pgCache.config
 import com.back.global.pgCache.domain.PgCache
 import com.back.global.pgCache.domain.PgCacheManager
 import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.EnableCaching
@@ -20,6 +21,7 @@ import java.time.Duration
 @EnableScheduling
 @EnableConfigurationProperties(PgCacheProperties::class)
 class PgCacheConfig(
+    @field:PersistenceContext
     private val em: EntityManager,
     private val properties: PgCacheProperties,
 ) {
