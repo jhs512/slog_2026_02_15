@@ -4,16 +4,19 @@ import com.back.boundedContexts.member.domain.shared.Member
 import com.back.boundedContexts.post.out.PostAttrRepository
 import com.back.boundedContexts.post.out.PostCommentRepository
 import com.back.boundedContexts.post.out.PostLikeRepository
+import com.back.global.pgroonga.annotation.PGroongaIndex
 import com.back.global.jpa.domain.BaseTime
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
+import jakarta.persistence.Lob
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToOne
 import org.hibernate.annotations.DynamicUpdate
 
 @Entity
 @DynamicUpdate
+@PGroongaIndex(columns = ["title", "content"])
 class Post(
     @field:ManyToOne(fetch = FetchType.LAZY)
     val author: Member,
@@ -22,9 +25,6 @@ class Post(
     var published: Boolean = false,
     var listed: Boolean = false,
 ) : BaseTime() {
-    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE])
-    var body: PostBody = PostBody(content)
-
     @field:OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE])
     var likesCountAttr: PostAttr? = null
 
@@ -57,12 +57,11 @@ class Post(
     // ================================
     // 기본 데이터 조작
     // ================================
-
-    var content: String
-        get() = body.content
+    @field:Lob
+    var content: String = content
         set(value) {
-            if (body.content != value) {
-                body.content = value
+            if (field != value) {
+                field = value
                 updateModifiedAt()
             }
         }

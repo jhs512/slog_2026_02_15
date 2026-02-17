@@ -19,12 +19,12 @@ class PostRepositoryImpl(
         if (kw.isNotBlank()) {
             when (kwType) {
                 PostSearchKeywordType1.TITLE -> builder.and(post.title.containsIgnoreCase(kw))
-                PostSearchKeywordType1.CONTENT -> builder.and(post.body.content.containsIgnoreCase(kw))
+                PostSearchKeywordType1.CONTENT -> builder.and(post.content.containsIgnoreCase(kw))
                 PostSearchKeywordType1.AUTHOR_NAME -> builder.and(post.author.nickname.containsIgnoreCase(kw))
                 PostSearchKeywordType1.ALL ->
                     builder.and(
                         post.title.containsIgnoreCase(kw)
-                            .or(post.body.content.containsIgnoreCase(kw))
+                            .or(post.content.containsIgnoreCase(kw))
                             .or(post.author.nickname.containsIgnoreCase(kw))
                     )
             }
