@@ -2,6 +2,7 @@ package com.back.boundedContexts.post.out
 
 import com.back.boundedContexts.post.domain.Post
 import com.back.boundedContexts.post.domain.QPost.post
+import com.back.standard.dto.post.type1.PostSearchKeywordType1
 import com.back.standard.util.QueryDslUtil
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
@@ -10,14 +11,22 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.support.PageableExecutionUtils
 
 class PostRepositoryImpl(
-    private val queryFactory: JPAQueryFactory,
+    private val queryFactory: JPAQueryFactory
 ) : PostRepositoryCustom {
-    override fun findByKeyword(keyword: String, pageable: Pageable): Page<Post> {
+    override fun findQPagedByKw(kwType: PostSearchKeywordType1, kw: String, pageable: Pageable): Page<Post> {
         val builder = BooleanBuilder()
 
-        if (keyword.isNotBlank()) {
-            findByKeywordCondition(keyword).let { condition ->
-                if (condition != null) builder.and(condition)
+        if (kw.isNotBlank()) {
+            when (kwType) {
+                PostSearchKeywordType1.TITLE -> builder.and(post.title.containsIgnoreCase(kw))
+                PostSearchKeywordType1.CONTENT -> builder.and(post.body.content.containsIgnoreCase(kw))
+                PostSearchKeywordType1.AUTHOR_NAME -> builder.and(post.author.nickname.containsIgnoreCase(kw))
+                PostSearchKeywordType1.ALL ->
+                    builder.and(
+                        post.title.containsIgnoreCase(kw)
+                            .or(post.body.content.containsIgnoreCase(kw))
+                            .or(post.author.nickname.containsIgnoreCase(kw))
+                    )
             }
         }
 
@@ -28,12 +37,12 @@ class PostRepositoryImpl(
         QueryDslUtil.applySorting(query, pageable) { property ->
             when (property) {
                 "id" -> post.id
-                "createdAt" -> post.createdAt
+                "authorName" -> post.author.nickname
                 else -> null
             }
         }
 
-        val content = query
+        val results = query
             .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())
             .fetch()
@@ -43,37 +52,8 @@ class PostRepositoryImpl(
             .from(post)
             .where(builder)
 
-        return PageableExecutionUtils.getPage(content, pageable) {
-            totalQuery.fetchOne() ?: 0L
+        return PageableExecutionUtils.getPage(results, pageable) {
+            totalQuery.fetchFirst() ?: 0L
         }
-    }
-
-    private fun findByKeywordCondition(keyword: String): BooleanBuilder? {
-        val orPatterns = Regex("\\s+OR\\s+", RegexOption.IGNORE_CASE)
-        val andPatterns = Regex("\\s+AND\\s+", RegexOption.IGNORE_CASE)
-
-        val orBuilder = BooleanBuilder()
-
-        val orGroups = keyword.split(orPatterns).map { it.trim() }.filter { it.isNotBlank() }
-        if (orGroups.isEmpty()) return null
-
-        orGroups.forEach { orGroup ->
-            val andTerms = orGroup.split(andPatterns).map { it.trim() }.filter { it.isNotBlank() }
-            if (andTerms.isEmpty()) return@forEach
-
-            val andBuilder = BooleanBuilder()
-            andTerms.forEach { term ->
-                andBuilder.and(
-                    post.title.containsIgnoreCase(term)
-                        .or(post.body.containsIgnoreCase(term))
-                )
-            }
-
-            if (andBuilder.value != null) {
-                orBuilder.or(andBuilder)
-            }
-        }
-
-        return if (orBuilder.value != null) orBuilder else null
     }
 }

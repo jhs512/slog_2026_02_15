@@ -1,7 +1,7 @@
 package com.back.boundedContexts.member.`in`
 
 import com.back.boundedContexts.member.app.MemberFacade
-import com.back.boundedContexts.member.domain.Member
+import com.back.global.app.app.CustomConfigProperties
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 @Configuration
 class MemberNotProdInitData(
     private val memberFacade: MemberFacade,
+    private val customConfigProperties: CustomConfigProperties,
 ) {
     @Lazy
     @Autowired
@@ -32,22 +33,32 @@ class MemberNotProdInitData(
     fun makeBaseMembers() {
         if (memberFacade.count() > 0) return
 
-        val memberSystem = memberFacade.join(Member.newId(), "system", "1234", "시스템")
+        val memberSystem = memberFacade.join("system", "1234", "시스템")
         memberSystem.modifyApiKey(memberSystem.username)
 
-        val memberHolding = memberFacade.join(Member.newId(), "holding", "1234", "홀딩")
+        val memberHolding = memberFacade.join("holding", "1234", "홀딩")
         memberHolding.modifyApiKey(memberHolding.username)
 
-        val memberAdmin = memberFacade.join(Member.newId(), "admin", "1234", "관리자")
+        val memberAdmin = memberFacade.join("admin", "1234", "관리자")
         memberAdmin.modifyApiKey(memberAdmin.username)
 
-        val memberUser1 = memberFacade.join(Member.newId(), "user1", "1234", "유저1")
+        val memberUser1 = memberFacade.join("user1", "1234", "유저1")
         memberUser1.modifyApiKey(memberUser1.username)
 
-        val memberUser2 = memberFacade.join(Member.newId(), "user2", "1234", "유저2")
+        val memberUser2 = memberFacade.join("user2", "1234", "유저2")
         memberUser2.modifyApiKey(memberUser2.username)
 
-        val memberUser3 = memberFacade.join(Member.newId(), "user3", "1234", "유저3")
+        val memberUser3 = memberFacade.join("user3", "1234", "유저3")
         memberUser3.modifyApiKey(memberUser3.username)
+
+        customConfigProperties.notProdMembers.forEach { notProdMember ->
+            val socialMember = memberFacade.join(
+                notProdMember.username,
+                null,
+                notProdMember.nickname,
+                notProdMember.profileImgUrl
+            )
+            socialMember.modifyApiKey(notProdMember.apiKey)
+        }
     }
 }
