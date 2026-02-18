@@ -4,7 +4,6 @@ package com.back.boundedContexts.post.out
 import com.back.standard.dto.post.type1.PostSearchKeywordType1
 import com.back.standard.dto.post.type1.PostSearchSortType1
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -20,7 +19,6 @@ class PostRepositoryTest {
     private lateinit var postRepository: PostRepository
 
     @Test
-    @DisplayName("제목 또는 본문 통합 검색이 동작한다")
     fun `통합 검색으로 제목 또는 본문 키워드 검색이 동작한다`() {
         val postPage = postRepository.findQPagedByKw(
             PostSearchKeywordType1.ALL,

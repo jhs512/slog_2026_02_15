@@ -23,17 +23,33 @@ data class PostDto @JsonCreator constructor(
     var actorHasLiked: Boolean = false,
 ) {
     constructor(post: Post) : this(
-        id = post.id,
-        createdAt = post.createdAt,
-        modifiedAt = post.modifiedAt,
-        authorId = post.author.id,
-        authorName = post.author.name,
-        authorProfileImgUrl = post.author.redirectToProfileImgUrlOrDefault,
-        title = post.title,
-        published = post.published,
-        listed = post.listed,
-        likesCount = post.likesCount,
-        commentsCount = post.commentsCount,
-        hitCount = post.hitCount,
+        post.id,
+        post.createdAt,
+        post.modifiedAt,
+        post.author.id,
+        post.author.name,
+        post.author.redirectToProfileImgUrlOrDefault,
+        post.title,
+        post.published,
+        post.listed,
+        post.likesCount,
+        post.commentsCount,
+        post.hitCount,
+    )
+
+    fun forEventLog() = PostDto(
+        id,
+        createdAt,
+        modifiedAt,
+        authorId,
+        authorName,
+        authorProfileImgUrl,
+        "",
+        published,
+        listed,
+        likesCount,
+        commentsCount,
+        hitCount,
+        actorHasLiked
     )
 }

@@ -13,7 +13,7 @@ private enum class OAuth2Provider {
 
     companion object {
         fun from(registrationId: String): OAuth2Provider =
-            entries.firstOrNull { it.name.equals(registrationId, ignoreCase = true) }
+            entries.firstOrNull { it.name.equals(registrationId, true) }
                 ?: error("Unsupported provider: $registrationId")
     }
 }

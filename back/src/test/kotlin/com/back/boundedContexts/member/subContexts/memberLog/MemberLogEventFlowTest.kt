@@ -17,7 +17,6 @@ import com.back.boundedContexts.post.event.PostModifiedEvent
 import com.back.boundedContexts.post.event.PostWrittenEvent
 import com.back.standard.extensions.getOrThrow
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -36,90 +35,89 @@ class MemberLogEventFlowTest {
     private lateinit var memberLogRepository: MemberLogRepository
 
     @Test
-    @DisplayName("글/댓글/좋아요 액션마다 MemberLog가 하나씩 남는다")
-    fun `MemberLog 기록 확인`() {
+    fun `회원 이벤트가 발생하면 해당 회원 로그가 기록되어 남는지 확인한다`() {
         val actor = actorFacade.findByUsername("user1").getOrThrow()
 
         val post = verifyAction(
-            action = { postFacade.write(actor, "로그 테스트 글", "로그 테스트 내용", published = true, listed = true) },
-            expectedType = PostWrittenEvent::class.simpleName!!,
-            expectedPrimaryType = Post::class.simpleName!!,
-            expectedPrimaryId = { it.id },
-            expectedSecondaryType = Member::class.simpleName!!,
-            expectedSecondaryId = { actor.id },
-            expectedActorId = actor.id
+            { postFacade.write(actor, "로그 테스트 글", "로그 테스트 내용", true, true) },
+            PostWrittenEvent::class.simpleName!!,
+            Post::class.simpleName!!,
+            { it.id },
+            Member::class.simpleName!!,
+            { actor.id },
+            actor.id
         )
 
         verifyAction(
-            action = { postFacade.modify(actor, post, "로그 테스트 글 수정", "로그 테스트 내용 수정", published = true, listed = true) },
-            expectedType = PostModifiedEvent::class.simpleName!!,
-            expectedPrimaryType = Post::class.simpleName!!,
-            expectedPrimaryId = { post.id },
-            expectedSecondaryType = Member::class.simpleName!!,
-            expectedSecondaryId = { actor.id },
-            expectedActorId = actor.id
+            { postFacade.modify(actor, post, "로그 테스트 글 수정", "로그 테스트 내용 수정", true, true) },
+            PostModifiedEvent::class.simpleName!!,
+            Post::class.simpleName!!,
+            { post.id },
+            Member::class.simpleName!!,
+            { actor.id },
+            actor.id
         )
 
         val comment = verifyAction(
-            action = { postFacade.writeComment(actor, post, "댓글 테스트") },
-            expectedType = PostCommentWrittenEvent::class.simpleName!!,
-            expectedPrimaryType = PostComment::class.simpleName!!,
-            expectedPrimaryId = { it.id },
-            expectedSecondaryType = Post::class.simpleName!!,
-            expectedSecondaryId = { post.id },
-            expectedActorId = actor.id
+            { postFacade.writeComment(actor, post, "댓글 테스트") },
+            PostCommentWrittenEvent::class.simpleName!!,
+            PostComment::class.simpleName!!,
+            { it.id },
+            Post::class.simpleName!!,
+            { post.id },
+            actor.id
         )
 
         verifyAction(
-            action = { postFacade.modifyComment(comment, actor, "댓글 수정") },
-            expectedType = PostCommentModifiedEvent::class.simpleName!!,
-            expectedPrimaryType = PostComment::class.simpleName!!,
-            expectedPrimaryId = { comment.id },
-            expectedSecondaryType = Post::class.simpleName!!,
-            expectedSecondaryId = { post.id },
-            expectedActorId = actor.id
+            { postFacade.modifyComment(comment, actor, "댓글 수정") },
+            PostCommentModifiedEvent::class.simpleName!!,
+            PostComment::class.simpleName!!,
+            { comment.id },
+            Post::class.simpleName!!,
+            { post.id },
+            actor.id
         )
 
         val likeResult = verifyAction(
-            action = { postFacade.toggleLike(post, actor) },
-            expectedType = PostLikeToggledEvent::class.simpleName!!,
-            expectedPrimaryType = PostLike::class.simpleName!!,
-            expectedPrimaryId = { it.likeId },
-            expectedSecondaryType = Post::class.simpleName!!,
-            expectedSecondaryId = { post.id },
-            expectedActorId = actor.id
+            { postFacade.toggleLike(post, actor) },
+            PostLikeToggledEvent::class.simpleName!!,
+            PostLike::class.simpleName!!,
+            { it.likeId },
+            Post::class.simpleName!!,
+            { post.id },
+            actor.id
         )
         assertThat(likeResult.likeId).isPositive()
 
         val unliked = verifyAction(
-            action = { postFacade.toggleLike(post, actor) },
-            expectedType = PostLikeToggledEvent::class.simpleName!!,
-            expectedPrimaryType = PostLike::class.simpleName!!,
-            expectedPrimaryId = { it.likeId },
-            expectedSecondaryType = Post::class.simpleName!!,
-            expectedSecondaryId = { post.id },
-            expectedActorId = actor.id
+            { postFacade.toggleLike(post, actor) },
+            PostLikeToggledEvent::class.simpleName!!,
+            PostLike::class.simpleName!!,
+            { it.likeId },
+            Post::class.simpleName!!,
+            { post.id },
+            actor.id
         )
         assertThat(unliked.likeId).isPositive()
 
         verifyAction(
-            action = { postFacade.deleteComment(post, comment, actor) },
-            expectedType = PostCommentDeletedEvent::class.simpleName!!,
-            expectedPrimaryType = PostComment::class.simpleName!!,
-            expectedPrimaryId = { comment.id },
-            expectedSecondaryType = Post::class.simpleName!!,
-            expectedSecondaryId = { post.id },
-            expectedActorId = actor.id
+            { postFacade.deleteComment(post, comment, actor) },
+            PostCommentDeletedEvent::class.simpleName!!,
+            PostComment::class.simpleName!!,
+            { comment.id },
+            Post::class.simpleName!!,
+            { post.id },
+            actor.id
         )
 
         verifyAction(
-            action = { postFacade.delete(post, actor) },
-            expectedType = PostDeletedEvent::class.simpleName!!,
-            expectedPrimaryType = Post::class.simpleName!!,
-            expectedPrimaryId = { post.id },
-            expectedSecondaryType = Member::class.simpleName!!,
-            expectedSecondaryId = { actor.id },
-            expectedActorId = actor.id
+            { postFacade.delete(post, actor) },
+            PostDeletedEvent::class.simpleName!!,
+            Post::class.simpleName!!,
+            { post.id },
+            Member::class.simpleName!!,
+            { actor.id },
+            actor.id
         )
     }
 
@@ -135,15 +133,7 @@ class MemberLogEventFlowTest {
         val before = lastLogId()
         val result = action()
 
-        verifyLog(
-            before = before,
-            expectedType = expectedType,
-            expectedPrimaryType = expectedPrimaryType,
-            expectedPrimaryId = expectedPrimaryId(result),
-            expectedSecondaryType = expectedSecondaryType,
-            expectedSecondaryId = expectedSecondaryId(result),
-            expectedActorId = expectedActorId
-        )
+        verifyLog(before, expectedType, expectedPrimaryType, expectedPrimaryId(result), expectedSecondaryType, expectedSecondaryId(result), expectedActorId)
 
         return result
     }

@@ -6,7 +6,6 @@ import com.back.standard.dto.post.type1.PostSearchKeywordType1
 import com.back.standard.dto.post.type1.PostSearchSortType1
 import com.back.standard.extensions.getOrThrow
 import org.hamcrest.Matchers
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,12 +42,10 @@ class ApiV1PostControllerTest {
 
 
     @Nested
-    @DisplayName("POST /post/api/v1/posts — 글 작성")
     inner class Write {
         @Test
-        @DisplayName("성공: 기본 작성 (published=false)")
         @WithUserDetails("user1")
-        fun `성공`() {
+        fun `인증된 사용자가 글을 작성하면 제목과 내용이 저장된 게시글이 정상 생성된다`() {
             val resultActions = mvc
                 .perform(
                     post("/post/api/v1/posts")
@@ -83,7 +80,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("성공: published=true, listed=true로 작성")
         @WithUserDetails("user1")
         fun `성공 - 공개 글 작성`() {
             val resultActions = mvc
@@ -112,8 +108,7 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("성공: wrong apiKey + valid accessToken → accessToken 우선")
-        fun `성공 - wrong apiKey with valid accessToken`() {
+        fun `성공 - 잘못된 아이피아이 키와 유효한 액세스 토큰`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
             val actorAccessToken = actorFacade.genAccessToken(actor)
 
@@ -140,7 +135,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 제목 없이 → 400")
         @WithUserDetails("user1")
         fun `실패 - 제목 없이`() {
             val resultActions = mvc
@@ -174,7 +168,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 내용 없이 → 400")
         @WithUserDetails("user1")
         fun `실패 - 내용 없이`() {
             val resultActions = mvc
@@ -208,9 +201,8 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 잘못된 JSON → 400")
         @WithUserDetails("user1")
-        fun `실패 - 잘못된 JSON`() {
+        fun `실패 - 잘못된 데이터 형식`() {
             val wrongJsonBody = """
                 {
                     "title": 제목",
@@ -237,7 +229,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 인증 없이 → 401")
         fun `실패 - 인증 없이`() {
             val resultActions = mvc
                 .perform(
@@ -261,7 +252,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 잘못된 인증 헤더 → 401")
         fun `실패 - 잘못된 인증 헤더`() {
             val resultActions = mvc
                 .perform(
@@ -288,10 +278,8 @@ class ApiV1PostControllerTest {
 
 
     @Nested
-    @DisplayName("GET /post/api/v1/posts/{id} — 글 단건조회")
     inner class GetItem {
         @Test
-        @DisplayName("성공: 공개 글 조회")
         fun `성공 - 공개 글`() {
             val id = 1
 
@@ -325,11 +313,10 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("성공: 미공개 글 - 작성자 조회")
         @WithUserDetails("user1")
         fun `성공 - 미공개 글 작성자 조회`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
-            val post = postFacade.write(actor, "미공개 글", "내용", published = false, listed = false)
+            val post = postFacade.write(actor, "미공개 글", "내용", false, false)
 
             val resultActions = mvc
                 .perform(
@@ -343,7 +330,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 존재하지 않는 글 → 404")
         fun `실패 - 존재하지 않는 글`() {
             val id = Int.MAX_VALUE
 
@@ -362,11 +348,10 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 미공개 글 - 다른 사용자 → 403")
         @WithUserDetails("user3")
         fun `실패 - 미공개 글 다른 사용자`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
-            val post = postFacade.write(actor, "미공개 글", "내용", published = false, listed = false)
+            val post = postFacade.write(actor, "미공개 글", "내용", false, false)
 
             val resultActions = mvc
                 .perform(
@@ -382,10 +367,8 @@ class ApiV1PostControllerTest {
 
 
     @Nested
-    @DisplayName("GET /post/api/v1/posts — 글 다건조회")
     inner class GetItems {
         @Test
-        @DisplayName("성공: page/pageSize 기본값으로 조회")
         fun `성공 - 기본값 조회`() {
             val resultActions = mvc
                 .perform(
@@ -409,8 +392,7 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("성공: page/pageSize 경계값은 보정되어 조회")
-        fun `성공 - page와 pageSize 경계 보정 조회`() {
+        fun `성공 - 페이지와 페이지 크기 경계 보정 조회`() {
             val resultActions = mvc
                 .perform(
                     get("/post/api/v1/posts?page=0&pageSize=31")
@@ -433,7 +415,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("성공: 공백 키워드는 전체 조회로 처리")
         fun `성공 - 공백 키워드 검색`() {
             val resultActions = mvc
                 .perform(
@@ -458,7 +439,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("성공: 기본 페이징 조회")
         fun `성공 - 기본 페이징`() {
             val resultActions = mvc
                 .perform(
@@ -501,7 +481,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("성공: 검색 키워드로 조회")
         fun `성공 - 키워드 검색`() {
             val resultActions = mvc
                 .perform(
@@ -519,12 +498,10 @@ class ApiV1PostControllerTest {
 
 
     @Nested
-    @DisplayName("PUT /post/api/v1/posts/{id} — 글 수정")
     inner class Modify {
         @Test
-        @DisplayName("성공: 작성자가 수정")
         @WithUserDetails("user1")
-        fun `성공`() {
+        fun `인증된 작성자가 기존 글 수정 요청 시 글이 정상 변경된다`() {
             val id = 1
 
             val resultActions = mvc
@@ -551,7 +528,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 권한 없는 사용자 → 403")
         @WithUserDetails("user3")
         fun `실패 - 권한 없음`() {
             val id = 1
@@ -580,7 +556,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 존재하지 않는 글 → 404")
         @WithUserDetails("user1")
         fun `실패 - 존재하지 않는 글`() {
             val id = Int.MAX_VALUE
@@ -611,12 +586,10 @@ class ApiV1PostControllerTest {
 
 
     @Nested
-    @DisplayName("DELETE /post/api/v1/posts/{id} — 글 삭제")
     inner class Delete {
         @Test
-        @DisplayName("성공: 작성자가 삭제")
         @WithUserDetails("user1")
-        fun `성공`() {
+        fun `작성자가 본인 글 삭제 요청 시 삭제가 성공적으로 처리된다`() {
             val id = 1
 
             val resultActions = mvc
@@ -634,7 +607,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("성공: 관리자가 삭제")
         @WithUserDetails("admin")
         fun `성공 - 관리자`() {
             val id = 1
@@ -654,7 +626,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 권한 없는 사용자 → 403")
         @WithUserDetails("user3")
         fun `실패 - 권한 없음`() {
             val id = 1
@@ -674,7 +645,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 존재하지 않는 글 → 404")
         @WithUserDetails("user1")
         fun `실패 - 존재하지 않는 글`() {
             val id = Int.MAX_VALUE
@@ -696,11 +666,9 @@ class ApiV1PostControllerTest {
 
 
     @Nested
-    @DisplayName("POST /post/api/v1/posts/{id}/hit — 조회수 증가")
     inner class IncrementHit {
         @Test
-        @DisplayName("성공: 조회수 증가")
-        fun `성공`() {
+        fun `글 조회가 호출되면 조회수 증가가 정상 반영된다`() {
             val id = 1
 
             val resultActions = mvc
@@ -719,7 +687,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 존재하지 않는 글 → 404")
         fun `실패 - 존재하지 않는 글`() {
             val id = Int.MAX_VALUE
 
@@ -740,10 +707,8 @@ class ApiV1PostControllerTest {
 
 
     @Nested
-    @DisplayName("POST /post/api/v1/posts/{id}/like — 좋아요 토글")
     inner class ToggleLike {
         @Test
-        @DisplayName("성공: 좋아요 추가")
         @WithUserDetails("user1")
         fun `성공 - 좋아요 추가`() {
             val id = 1
@@ -765,7 +730,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("성공: 좋아요 취소 (두 번 토글)")
         @WithUserDetails("user1")
         fun `성공 - 좋아요 취소`() {
             val id = 1
@@ -791,7 +755,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 인증 없이 → 401")
         fun `실패 - 인증 없이`() {
             val id = 1
 
@@ -810,12 +773,10 @@ class ApiV1PostControllerTest {
 
 
     @Nested
-    @DisplayName("GET /post/api/v1/posts/mine — 내 게시물 조회")
     inner class GetMine {
         @Test
-        @DisplayName("성공: 내 게시물 목록")
         @WithUserDetails("user1")
-        fun `성공`() {
+        fun `로그인한 사용자가 내 글 목록을 조회하면 본인 게시글만 반환된다`() {
             val resultActions = mvc
                 .perform(
                     get("/post/api/v1/posts/mine?page=1&pageSize=10")
@@ -830,7 +791,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 인증 없이 → 401")
         fun `실패 - 인증 없이`() {
             val resultActions = mvc
                 .perform(
@@ -847,10 +807,8 @@ class ApiV1PostControllerTest {
 
 
     @Nested
-    @DisplayName("POST /post/api/v1/posts/temp — 임시저장")
     inner class GetOrCreateTemp {
         @Test
-        @DisplayName("성공: 새 임시글 생성")
         @WithUserDetails("user1")
         fun `성공 - 새 임시글`() {
             val resultActions = mvc
@@ -869,7 +827,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("성공: 기존 임시글 반환")
         @WithUserDetails("user1")
         fun `성공 - 기존 임시글`() {
             // 첫 번째 호출: 임시글 생성
@@ -891,7 +848,6 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 인증 없이 → 401")
         fun `실패 - 인증 없이`() {
             val resultActions = mvc
                 .perform(

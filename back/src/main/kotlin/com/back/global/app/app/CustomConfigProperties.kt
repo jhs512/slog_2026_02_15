@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component
 
 @Component
-@ConfigurationProperties(prefix = "custom")
+@ConfigurationProperties("custom")
 class CustomConfigProperties {
     var notProdMembers: MutableList<NotProdMember> = mutableListOf()
 

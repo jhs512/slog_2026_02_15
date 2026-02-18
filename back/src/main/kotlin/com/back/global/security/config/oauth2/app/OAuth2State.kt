@@ -19,11 +19,11 @@ data class OAuth2State(
 
         fun decode(encoded: String): OAuth2State {
             val decoded = encoded.base64Decode()
-            val parts = decoded.split(DELIMITER, limit = 2)
+            val parts = decoded.split(DELIMITER, ignoreCase = false, limit = 2)
 
             return OAuth2State(
-                redirectUrl = parts.getOrNull(0)?.takeIf { it.isNotBlank() } ?: DEFAULT_REDIRECT_URL,
-                originState = parts.getOrNull(1).orEmpty()
+                parts.getOrNull(0)?.takeIf { it.isNotBlank() } ?: DEFAULT_REDIRECT_URL,
+                parts.getOrNull(1).orEmpty()
             )
         }
     }

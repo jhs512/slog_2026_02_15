@@ -10,7 +10,7 @@ data class RsData<T>(
 ) {
     constructor(resultCode: String, msg: String, data: T = null as T) : this(
         resultCode,
-        resultCode.split("-", limit = 2)[0].toInt(),
+        resultCode.split("-", ignoreCase = false, limit = 2)[0].toInt(),
         msg,
         data
     )

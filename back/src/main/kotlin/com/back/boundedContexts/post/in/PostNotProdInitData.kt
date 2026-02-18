@@ -40,8 +40,8 @@ class PostNotProdInitData(
         val memberUser2 = memberFacade.findByUsername("user2").getOrThrow()
         val memberUser3 = memberFacade.findByUsername("user3").getOrThrow()
 
-        val post1 = postFacade.write(memberUser1, "제목 1", "내용 1", published = true, listed = true)
-        val post2 = postFacade.write(memberUser2, "제목 2", "내용 2", published = true, listed = true)
-        val post3 = postFacade.write(memberUser3, "제목 3", "내용 3", published = true, listed = true)
+        val post1 = postFacade.write(memberUser1, "제목 1", "내용 1", true, true)
+        val post2 = postFacade.write(memberUser2, "제목 2", "내용 2", true, true)
+        val post3 = postFacade.write(memberUser3, "제목 3", "내용 3", true, true)
     }
 }

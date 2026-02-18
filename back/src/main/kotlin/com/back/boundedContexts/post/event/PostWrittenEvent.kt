@@ -20,7 +20,7 @@ data class PostWrittenEvent @JsonCreator constructor(
 ) : EventPayload {
 
     @JsonGetter("postDto")
-    fun getPostDtoForJson() = postDto.copy(title = "")
+    fun getPostDtoForJson() = postDto.forEventLog()
 
     constructor(
         uid: UUID,

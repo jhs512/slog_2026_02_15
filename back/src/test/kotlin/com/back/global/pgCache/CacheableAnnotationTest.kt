@@ -47,7 +47,7 @@ class CacheableAnnotationTest {
     }
 
     @Test
-    fun `@Cacheable caches the result on second call`() {
+    fun `같은 키로 동일 메서드를 두 번 호출하면 두 번째 호출은 캐시된 값으로 처리되어 재실행되지 않는다`() {
         val result1 = testCacheService.getData("foo")
         val result2 = testCacheService.getData("foo")
 
@@ -57,7 +57,7 @@ class CacheableAnnotationTest {
     }
 
     @Test
-    fun `@Cacheable different keys call method each time`() {
+    fun `캐시 키가 다르면 같은 메서드라도 호출할 때마다 실제 연산이 다시 수행된다`() {
         testCacheService.getData("a")
         testCacheService.getData("b")
 
@@ -65,7 +65,7 @@ class CacheableAnnotationTest {
     }
 
     @Test
-    fun `@CacheEvict removes cached entry`() {
+    fun `캐시 항목을 제거한 뒤 같은 키를 다시 조회하면 재계산이 다시 수행된다`() {
         testCacheService.getData("foo")
         assertEquals(1, testCacheService.callCount.get())
 
@@ -76,7 +76,7 @@ class CacheableAnnotationTest {
     }
 
     @Test
-    fun `@Cacheable with custom SpEL key`() {
+    fun `사용자 정의 스펠 표현식 키가 동일하면 캐시 재사용, 다르면 캐시 미스가 발생한다`() {
         val result1 = testCacheService.getByIdAndName(1, "alice")
         val result2 = testCacheService.getByIdAndName(1, "alice")
         val result3 = testCacheService.getByIdAndName(1, "bob")

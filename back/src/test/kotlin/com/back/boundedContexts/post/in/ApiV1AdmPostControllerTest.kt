@@ -1,7 +1,6 @@
 package com.back.boundedContexts.post.`in`
 
 import com.back.boundedContexts.post.app.PostFacade
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,12 +29,10 @@ class ApiV1AdmPostControllerTest {
 
 
     @Nested
-    @DisplayName("GET /post/api/v1/adm/posts/count — 글 개수 조회")
     inner class Count {
         @Test
-        @DisplayName("성공: 관리자가 조회")
         @WithUserDetails("admin")
-        fun `성공`() {
+        fun `관리자 권한으로 전체 게시글 수 조회가 정상 동작한다`() {
             val resultActions = mvc
                 .perform(
                     get("/post/api/v1/adm/posts/count")
@@ -51,7 +48,6 @@ class ApiV1AdmPostControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 일반 사용자가 조회 → 403")
         @WithUserDetails("user1")
         fun `실패 - 일반 사용자`() {
             val resultActions = mvc

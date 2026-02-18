@@ -50,13 +50,7 @@ class PostFacade(
         published: Boolean = false,
         listed: Boolean = false,
     ): Post {
-        val post = Post(
-            author = author,
-            title = title,
-            content = content,
-            published = published,
-            listed = listed,
-        )
+        val post = Post(author, title, content, published, listed)
 
         author.incrementPostsCount()
 

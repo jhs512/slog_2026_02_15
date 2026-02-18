@@ -5,7 +5,6 @@ import com.back.standard.extensions.getOrThrow
 import jakarta.servlet.http.Cookie
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,11 +38,9 @@ class ApiV1MemberControllerTest {
 
 
     @Nested
-    @DisplayName("POST /member/api/v1/members — 회원가입")
     inner class Join {
         @Test
-        @DisplayName("성공: 회원가입")
-        fun `성공`() {
+        fun `성공 - 신규 회원가입 요청 시 회원이 생성되고 인증 응답이 반환된다`() {
             val resultActions = mvc
                 .perform(
                     post("/member/api/v1/members")
@@ -77,8 +74,7 @@ class ApiV1MemberControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 중복 username → 409")
-        fun `실패 - 중복 username`() {
+        fun `실패 - 중복 사용자명`() {
             val resultActions = mvc
                 .perform(
                     post("/member/api/v1/members")
@@ -104,7 +100,6 @@ class ApiV1MemberControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 유효성 검증 실패 → 400")
         fun `실패 - 유효성 검증 실패`() {
             val resultActions = mvc
                 .perform(
@@ -132,11 +127,9 @@ class ApiV1MemberControllerTest {
 
 
     @Nested
-    @DisplayName("POST /member/api/v1/members/login — 로그인")
     inner class Login {
         @Test
-        @DisplayName("성공: 로그인 + 쿠키 검증")
-        fun `성공`() {
+        fun `성공 - 올바른 계정으로 로그인하면 상태코드가 200이고 토큰과 쿠키가 내려온다`() {
             val resultActions = mvc
                 .perform(
                     post("/member/api/v1/members/login")
@@ -196,7 +189,6 @@ class ApiV1MemberControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 잘못된 비밀번호 → 401")
         fun `실패 - 잘못된 비밀번호`() {
             val resultActions = mvc
                 .perform(
@@ -222,7 +214,6 @@ class ApiV1MemberControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 존재하지 않는 사용자 → 401")
         fun `실패 - 존재하지 않는 사용자`() {
             val resultActions = mvc
                 .perform(
@@ -250,11 +241,9 @@ class ApiV1MemberControllerTest {
 
 
     @Nested
-    @DisplayName("DELETE /member/api/v1/members/logout — 로그아웃")
     inner class Logout {
         @Test
-        @DisplayName("성공: 로그아웃 + 쿠키 초기화")
-        fun `성공`() {
+        fun `성공 - 로그아웃 요청 시 세션 인증 정보가 제거되고 쿠키 만료가 처리된다`() {
             val resultActions = mvc
                 .perform(
                     delete("/member/api/v1/members/logout")
@@ -285,12 +274,10 @@ class ApiV1MemberControllerTest {
 
 
     @Nested
-    @DisplayName("GET /member/api/v1/members/me — 내 정보 조회")
     inner class Me {
         @Test
-        @DisplayName("성공: @WithUserDetails로 조회")
         @WithUserDetails("user1")
-        fun `성공 - WithUserDetails`() {
+        fun `성공 - 인증된 사용자가 내 정보를 조회하면 상세 정보가 반환된다`() {
             val resultActions = mvc
                 .perform(
                     get("/member/api/v1/members/me")
@@ -312,8 +299,7 @@ class ApiV1MemberControllerTest {
         }
 
         @Test
-        @DisplayName("성공: apiKey 쿠키로 조회")
-        fun `성공 - apiKey 쿠키`() {
+        fun `성공 - 아이피아이 키 쿠키만 있어도 내 정보 조회가 가능하다`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
             val actorApiKey: String = actor.apiKey
 
@@ -331,8 +317,7 @@ class ApiV1MemberControllerTest {
         }
 
         @Test
-        @DisplayName("성공: 만료된 accessToken → apiKey로 재발급")
-        fun `성공 - accessToken 재발급`() {
+        fun `성공 - 아이피아이 키와 잘못된 액세스 토큰으로도 재발급이 수행된다`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
             val actorApiKey: String = actor.apiKey
 
@@ -362,7 +347,6 @@ class ApiV1MemberControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 인증 없이 → 401")
         fun `실패 - 인증 없이`() {
             val resultActions = mvc
                 .perform(
@@ -377,8 +361,7 @@ class ApiV1MemberControllerTest {
         }
 
         @Test
-        @DisplayName("실패: Bearer 형식 아님 → 401")
-        fun `실패 - Bearer 형식 아님`() {
+        fun `실패 - 베어러 형식 아님`() {
             val resultActions = mvc
                 .perform(
                     get("/member/api/v1/members/me")
@@ -395,11 +378,9 @@ class ApiV1MemberControllerTest {
 
 
     @Nested
-    @DisplayName("GET /member/api/v1/members/{id}/redirectToProfileImg — 프로필 이미지 리다이렉트")
     inner class RedirectToProfileImg {
         @Test
-        @DisplayName("성공: 리다이렉트 응답")
-        fun `성공`() {
+        fun `성공 - 프로필 이미지 리다이렉트 응답이 반환된다`() {
             val id = 1
 
             val resultActions = mvc
@@ -416,7 +397,6 @@ class ApiV1MemberControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 존재하지 않는 회원 → 404")
         fun `실패 - 존재하지 않는 회원`() {
             val id = Int.MAX_VALUE
 
@@ -437,12 +417,10 @@ class ApiV1MemberControllerTest {
 
 
     @Nested
-    @DisplayName("GET /member/api/v1/members/randomSecureTip — 랜덤 보안 팁")
     inner class RandomSecureTip {
         @Test
-        @DisplayName("성공: 보안 팁 반환")
         @WithUserDetails("user1")
-        fun `성공`() {
+        fun `인증된 사용자가 랜덤 보안 팁을 정상 조회한다`() {
             val resultActions = mvc
                 .perform(
                     get("/member/api/v1/members/randomSecureTip")
@@ -456,8 +434,7 @@ class ApiV1MemberControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 인증 없이 → 401")
-        fun `실패 - 인증 없이`() {
+        fun `실패 - 미인증 상태에서는 랜덤 보안 팁 조회가 거부된다`() {
             val resultActions = mvc
                 .perform(
                     get("/member/api/v1/members/randomSecureTip")

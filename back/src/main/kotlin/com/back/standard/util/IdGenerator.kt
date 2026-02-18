@@ -32,8 +32,8 @@ class IdGenerator(
             pool.poll()?.let { return it }
 
             val seqName = "${name}_id_seq"
-            val isCreateMode = ddlAuto.equals("create", ignoreCase = true) ||
-                ddlAuto.equals("create-drop", ignoreCase = true)
+            val isCreateMode = ddlAuto.equals("create", true) ||
+                ddlAuto.equals("create-drop", true)
 
             if (initializedSeqs.add(seqName)) {
                 if (isCreateMode) {

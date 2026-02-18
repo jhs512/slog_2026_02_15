@@ -1,12 +1,9 @@
 package com.back.boundedContexts.member.app.shared
 
-import com.back.boundedContexts.member.app.shared.ActorFacade
-import com.back.boundedContexts.member.app.shared.AuthTokenService
 import com.back.boundedContexts.member.dto.shared.AccessTokenPayload
 import com.back.standard.extensions.getOrThrow
 import com.back.standard.util.Ut
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -31,8 +28,7 @@ class AuthTokenServiceTest {
     private var accessTokenExpirationSeconds: Int = 0
 
     @Test
-    @DisplayName("토큰 유틸을 통해 토큰을 생성하고 페이로드를 검증한다.")
-    fun `Ut JWT toString 으로 토큰을 발급하면 페이로드를 검증할 수 있다`() {
+    fun `문자열화된 토큰 발급 결과의 페이로드를 검증할 수 있다`() {
         val payload = mapOf("name" to "Paul", "age" to 23)
 
         val jwt = Ut.JWT.toString(
@@ -53,8 +49,7 @@ class AuthTokenServiceTest {
     }
 
     @Test
-    @DisplayName("멤버 기반 토큰 발급 결과를 통해 페이로드를 검증한다.")
-    fun `genAccessToken 으로 생성한 JWT를 검증할 수 있다`() {
+    fun `발급한 토큰을 검증할 수 있다`() {
         val memberUser1 = actorFacade.findByUsername("user1").getOrThrow()
 
         val accessToken = authTokenService.genAccessToken(memberUser1)
@@ -63,11 +58,7 @@ class AuthTokenServiceTest {
 
         val parsedPayload = authTokenService.payload(accessToken)
 
-        val expectedPayload = AccessTokenPayload(
-            id = memberUser1.id,
-            username = memberUser1.username,
-            name = memberUser1.name
-        )
+        val expectedPayload = AccessTokenPayload(memberUser1.id, memberUser1.username, memberUser1.name)
 
         assertThat(parsedPayload)
             .isEqualTo(expectedPayload)

@@ -33,7 +33,7 @@ class GlobalExceptionHandler {
             .asSequence()
             .map { violation ->
                 val path = violation.propertyPath.toString()
-                val field = path.split(".", limit = 2).getOrElse(1) { path }
+                val field = path.split(".", ignoreCase = false, limit = 2).getOrElse(1) { path }
 
                 val bits = violation.messageTemplate.split(".")
                 val code = bits.getOrNull(bits.size - 2) ?: "Unknown"

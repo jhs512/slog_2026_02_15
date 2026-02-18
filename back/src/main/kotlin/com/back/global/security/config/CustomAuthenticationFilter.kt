@@ -91,7 +91,7 @@ class CustomAuthenticationFilter(
         return if (headerAuthorization.isNotBlank()) {
             if (!headerAuthorization.startsWith("Bearer "))
                 throw BusinessException("401-2", "${HttpHeaders.AUTHORIZATION} 헤더가 Bearer 형식이 아닙니다.")
-            val bits = headerAuthorization.split(" ", limit = 3)
+            val bits = headerAuthorization.split(" ", ignoreCase = false, limit = 3)
             bits.getOrNull(1).orEmpty() to bits.getOrNull(2).orEmpty()
         } else {
             rq.getCookieValue("apiKey", "") to rq.getCookieValue("accessToken", "")

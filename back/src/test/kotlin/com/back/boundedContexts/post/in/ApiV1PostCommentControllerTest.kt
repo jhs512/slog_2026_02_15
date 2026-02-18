@@ -9,7 +9,6 @@ import com.back.boundedContexts.post.domain.postExtensions.getComments
 import com.back.standard.extensions.getOrThrow
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,17 +51,15 @@ class ApiV1PostCommentControllerTest {
         val user1 = actorFacade.findByUsername("user1").getOrThrow()
         val user3 = actorFacade.findByUsername("user3").getOrThrow()
 
-        post = postFacade.write(user1, "댓글 게시글", "댓글 게시글 내용", published = true, listed = true)
+        post = postFacade.write(user1, "댓글 게시글", "댓글 게시글 내용", true, true)
         commentByAuthor = postFacade.writeComment(user1, post, "댓글 내용1")
         postFacade.writeComment(user3, post, "댓글 내용2")
     }
 
     @Nested
-    @DisplayName("GET /post/api/v1/posts/{postId}/comments — 댓글 다건조회")
     inner class GetItems {
         @Test
-        @DisplayName("성공: 댓글 목록 조회")
-        fun `성공`() {
+        fun `게시글의 댓글 목록을 조회하면 생성된 댓글 목록이 정상 반환된다`() {
             val postId = post.id
 
             val resultActions = mvc
@@ -107,7 +104,6 @@ class ApiV1PostCommentControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 존재하지 않는 글 → 404")
         fun `실패 - 존재하지 않는 글`() {
             val postId = Int.MAX_VALUE
 
@@ -128,11 +124,9 @@ class ApiV1PostCommentControllerTest {
 
 
     @Nested
-    @DisplayName("GET /post/api/v1/posts/{postId}/comments/{id} — 댓글 단건조회")
     inner class GetItem {
         @Test
-        @DisplayName("성공: 댓글 조회")
-        fun `성공`() {
+        fun `존재하는 댓글 식별자로 댓글을 조회하면 상세 정보가 정상 반환된다`() {
             val postId = post.id
             val id = commentByAuthor.id
 
@@ -171,7 +165,6 @@ class ApiV1PostCommentControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 존재하지 않는 댓글 → 404")
         fun `실패 - 존재하지 않는 댓글`() {
             val postId = post.id
             val id = Int.MAX_VALUE
@@ -193,12 +186,10 @@ class ApiV1PostCommentControllerTest {
 
 
     @Nested
-    @DisplayName("POST /post/api/v1/posts/{postId}/comments — 댓글 작성")
     inner class Write {
         @Test
-        @DisplayName("성공: 댓글 작성")
         @WithUserDetails("user1")
-        fun `성공`() {
+        fun `인증된 사용자가 댓글을 작성하면 새 댓글이 정상 생성된다`() {
             val postId = post.id
 
             val resultActions = mvc
@@ -246,7 +237,6 @@ class ApiV1PostCommentControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 인증 없이 → 401")
         fun `실패 - 인증 없이`() {
             val postId = post.id
 
@@ -271,7 +261,6 @@ class ApiV1PostCommentControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 빈 내용 → 400")
         @WithUserDetails("user1")
         fun `실패 - 빈 내용`() {
             val postId = post.id
@@ -300,12 +289,10 @@ class ApiV1PostCommentControllerTest {
 
 
     @Nested
-    @DisplayName("PUT /post/api/v1/posts/{postId}/comments/{id} — 댓글 수정")
     inner class Modify {
         @Test
-        @DisplayName("성공: 작성자가 수정")
         @WithUserDetails("user1")
-        fun `성공`() {
+        fun `작성자가 댓글을 수정 요청하면 내용이 정상적으로 변경된다`() {
             val postId = post.id
             val id = commentByAuthor.id
 
@@ -332,7 +319,6 @@ class ApiV1PostCommentControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 권한 없는 사용자 → 403")
         @WithUserDetails("user3")
         fun `실패 - 권한 없음`() {
             val postId = post.id
@@ -363,12 +349,10 @@ class ApiV1PostCommentControllerTest {
 
 
     @Nested
-    @DisplayName("DELETE /post/api/v1/posts/{postId}/comments/{id} — 댓글 삭제")
     inner class Delete {
         @Test
-        @DisplayName("성공: 작성자가 삭제")
         @WithUserDetails("user1")
-        fun `성공`() {
+        fun `작성자가 댓글 삭제 요청 시 댓글이 정상 삭제된다`() {
             val postId = post.id
             val id = commentByAuthor.id
 
@@ -387,7 +371,6 @@ class ApiV1PostCommentControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 권한 없는 사용자 → 403")
         @WithUserDetails("user3")
         fun `실패 - 권한 없음`() {
             val postId = post.id

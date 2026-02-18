@@ -74,8 +74,8 @@ class MemberRepositoryImpl : MemberRepositoryCustom {
         if (kw.isBlank()) return null
 
         val operator = when {
-            kw.contains(" AND ", ignoreCase = false) -> SearchOperator.AND
-            kw.contains(" OR ", ignoreCase = false) -> SearchOperator.OR
+            kw.contains(" AND ") -> SearchOperator.AND
+            kw.contains(" OR ") -> SearchOperator.OR
             else -> SearchOperator.NONE
         }
 
@@ -89,8 +89,8 @@ class MemberRepositoryImpl : MemberRepositoryCustom {
 
         return when (operator) {
             SearchOperator.NONE -> buildSingleClause(kwType, terms.first())
-            SearchOperator.OR -> buildGroupClause(kwType, terms, separator = "OR")
-            SearchOperator.AND -> buildGroupClause(kwType, terms, separator = "AND")
+            SearchOperator.OR -> buildGroupClause(kwType, terms, "OR")
+            SearchOperator.AND -> buildGroupClause(kwType, terms, "AND")
         }
     }
 

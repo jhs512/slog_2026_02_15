@@ -29,9 +29,9 @@ class AuthTokenService(
             ?: return null
 
         return AccessTokenPayload(
-            id = parsed["id"] as Int,
-            username = parsed["username"] as String,
-            name = parsed["name"] as String
+            parsed["id"] as Int,
+            parsed["username"] as String,
+            parsed["name"] as String
         )
     }
 }

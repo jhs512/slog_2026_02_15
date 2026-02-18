@@ -25,4 +25,17 @@ data class PostCommentDto(
         postComment.post.id,
         postComment.content
     )
+
+    fun forEventLog() = PostCommentDto(
+        id,
+        createdAt,
+        modifiedAt,
+        authorId,
+        authorName,
+        authorProfileImgUrl,
+        postId,
+        "",
+        actorCanModify,
+        actorCanDelete
+    )
 }

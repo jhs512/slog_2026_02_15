@@ -3,7 +3,6 @@ package com.back.boundedContexts.member.`in`
 import com.back.boundedContexts.member.app.MemberFacade
 import com.back.standard.extensions.getOrThrow
 import org.hamcrest.Matchers
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,12 +31,10 @@ class ApiV1AdmMemberControllerTest {
 
 
     @Nested
-    @DisplayName("GET /member/api/v1/adm/members — 회원 다건조회")
     inner class GetItems {
         @Test
-        @DisplayName("성공: page/pageSize 기본값으로 조회")
         @WithUserDetails("admin")
-        fun `성공 - 기본값 조회`() {
+        fun `성공 - 관리자 목록 조회에서 페이지와 크기 기본값이 적용된 상태로 응답한다`() {
             val resultActions = mvc
                 .perform(
                     get("/member/api/v1/adm/members")
@@ -54,9 +51,8 @@ class ApiV1AdmMemberControllerTest {
         }
 
         @Test
-        @DisplayName("성공: page/pageSize 경계값은 보정되어 조회")
         @WithUserDetails("admin")
-        fun `성공 - page와 pageSize 경계 보정 조회`() {
+        fun `성공 - 페이지와 페이지 크기 경계 보정 조회`() {
             val resultActions = mvc
                 .perform(
                     get("/member/api/v1/adm/members?page=0&pageSize=31")
@@ -73,7 +69,6 @@ class ApiV1AdmMemberControllerTest {
         }
 
         @Test
-        @DisplayName("성공: 공백 키워드는 전체 조회로 처리")
         @WithUserDetails("admin")
         fun `성공 - 공백 키워드 검색`() {
             val resultActions = mvc
@@ -93,9 +88,8 @@ class ApiV1AdmMemberControllerTest {
         }
 
         @Test
-        @DisplayName("성공: 관리자가 조회")
         @WithUserDetails("admin")
-        fun `성공`() {
+        fun `기본 검색 조건에서 회원 목록이 정상 응답한다`() {
             val resultActions = mvc
                 .perform(
                     get("/member/api/v1/adm/members?page=1&pageSize=5")
@@ -129,9 +123,8 @@ class ApiV1AdmMemberControllerTest {
         }
 
         @Test
-        @DisplayName("성공: 다건 조회 - USERNAME 키워드(bigram) 검색")
         @WithUserDetails("admin")
-        fun `성공 - username 키워드 검색`() {
+        fun `성공 - 사용자명 기준 검색 조건으로 맞는 회원만 조회한다`() {
             makeMemberSearchFixture()
 
             val resultActions = mvc
@@ -152,9 +145,8 @@ class ApiV1AdmMemberControllerTest {
         }
 
         @Test
-        @DisplayName("성공: 다건 조회 - NICKNAME 키워드(bigram) 검색")
         @WithUserDetails("admin")
-        fun `성공 - nickname 키워드 검색`() {
+        fun `성공 - 별명 기준 검색 조건으로 맞는 회원만 조회한다`() {
             makeMemberSearchFixture()
 
             val resultActions = mvc
@@ -175,9 +167,8 @@ class ApiV1AdmMemberControllerTest {
         }
 
         @Test
-        @DisplayName("성공: 다건 조회 - ALL + AND/OR 키워드 검색")
         @WithUserDetails("admin")
-        fun `성공 - all with and or 검색`() {
+        fun `성공 - 키워드 검색에서 모두 조건과 아무거나 조건 조합이 정상 동작한다`() {
             makeMemberSearchFixture()
 
             val andResult = mvc
@@ -218,7 +209,6 @@ class ApiV1AdmMemberControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 일반 사용자가 조회 → 403")
         @WithUserDetails("user1")
         fun `실패 - 일반 사용자`() {
             val resultActions = mvc
@@ -234,7 +224,6 @@ class ApiV1AdmMemberControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 일반 사용자가 검색 조회 → 403")
         @WithUserDetails("user1")
         fun `실패 - 일반 사용자 검색`() {
             val resultActions = mvc
@@ -259,12 +248,10 @@ class ApiV1AdmMemberControllerTest {
 
 
     @Nested
-    @DisplayName("GET /member/api/v1/adm/members/{id} — 회원 단건조회")
     inner class GetItem {
         @Test
-        @DisplayName("성공: 관리자가 조회")
         @WithUserDetails("admin")
-        fun `성공`() {
+        fun `성공 - 관리자 기본 조회 조건으로 단일 회원 상세 정보를 정확히 반환한다`() {
             val id = 1
 
             val resultActions = mvc
@@ -294,7 +281,6 @@ class ApiV1AdmMemberControllerTest {
         }
 
         @Test
-        @DisplayName("실패: 일반 사용자가 조회 → 403")
         @WithUserDetails("user1")
         fun `실패 - 일반 사용자`() {
             val id = 1

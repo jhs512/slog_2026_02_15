@@ -24,10 +24,10 @@ data class PostCommentWrittenEvent @JsonCreator constructor(
 ) : EventPayload {
 
     @JsonGetter("postCommentDto")
-    fun getPostCommentDtoForJson() = postCommentDto.copy(content = "")
+    fun getPostCommentDtoForJson() = postCommentDto.forEventLog()
 
     @JsonGetter("postDto")
-    fun getPostDtoForJson() = postDto.copy(title = "")
+    fun getPostDtoForJson() = postDto.forEventLog()
 
     constructor(
         uid: UUID,
