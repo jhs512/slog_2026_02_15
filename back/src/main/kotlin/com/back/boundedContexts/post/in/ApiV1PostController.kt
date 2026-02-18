@@ -31,6 +31,19 @@ class ApiV1PostController(
     private val postFacade: PostFacade,
     private val rq: Rq
 ) {
+    private fun makePostDtoPage(postPage: org.springframework.data.domain.Page<Post>): PageDto<PostDto> {
+        val actor = rq.actorOrNull
+        val likedPostIds = postFacade.findLikedPostIds(actor, postPage.content)
+
+        return PageDto(
+            postPage.map { post ->
+                PostDto(post).apply {
+                    actorHasLiked = post.id in likedPostIds
+                }
+            }
+        )
+    }
+
     private fun makePostWithContentDto(post: Post): PostWithContentDto {
         val actor = rq.actorOrNull
 
@@ -49,7 +62,7 @@ class ApiV1PostController(
         @RequestParam(defaultValue = "5") pageSize: Int,
         @RequestParam(defaultValue = "ALL") kwType: PostSearchKeywordType1,
         @RequestParam(defaultValue = "") kw: String,
-        @RequestParam(defaultValue = "ID") sort: PostSearchSortType1,
+        @RequestParam(defaultValue = "CREATED_AT") sort: PostSearchSortType1,
     ): PageDto<PostDto> {
         val page: Int = if (page >= 1) {
             page
@@ -70,18 +83,8 @@ class ApiV1PostController(
             page,
             pageSize
         )
-
-        val actor = rq.actorOrNull
-        val likedPostIds = postFacade.findLikedPostIds(actor, postPage.content)
-
-        return PageDto(
-            postPage
-                .map {
-                    PostDto(it).apply {
-                        actorHasLiked = it.id in likedPostIds
-                    }
-                }
-        )
+        
+        return makePostDtoPage(postPage)
     }
 
 
@@ -227,15 +230,7 @@ class ApiV1PostController(
             validPageSize,
         )
 
-        val likedPostIds = postFacade.findLikedPostIds(rq.actor, postPage.content)
-
-        return PageDto(
-            postPage.map { post ->
-                PostDto(post).apply {
-                    actorHasLiked = post.id in likedPostIds
-                }
-            }
-        )
+        return makePostDtoPage(postPage)
     }
 
 

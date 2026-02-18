@@ -83,7 +83,7 @@ class PostFacade(
         author: Member,
         page: Int,
         pageSize: Int,
-    ): Page<Post> = postRepository.findByAuthorOrderByIdDesc(
+    ): Page<Post> = postRepository.findQPagedByAuthor(
         author,
         PageRequest.of(page - 1, pageSize)
     )

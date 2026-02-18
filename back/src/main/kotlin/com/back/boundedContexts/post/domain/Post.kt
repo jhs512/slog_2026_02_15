@@ -13,10 +13,18 @@ import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToOne
+import jakarta.persistence.Index
+import jakarta.persistence.Table
 import org.hibernate.annotations.DynamicUpdate
 
 @Entity
 @DynamicUpdate
+@Table(
+    indexes = [
+        Index(name = "idx_post_author_created_at_id_desc", columnList = "author_id, created_at DESC, id DESC"),
+        Index(name = "idx_post_modified_at_id_desc", columnList = "modified_at DESC, id DESC"),
+    ]
+)
 @PGroongaIndex(columns = ["title", "content"])
 class Post(
     @field:ManyToOne(fetch = FetchType.LAZY)

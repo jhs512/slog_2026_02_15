@@ -34,9 +34,7 @@ class SessionConfig {
             }
 
             private fun shouldUseSession(uri: String): Boolean {
-                if (sessionPathsPrefixes.any { uri.startsWith(it) }) return true
-
-                return false
+                return sessionPathsPrefixes.any { uri.startsWith(it) }
             }
         }
     }
