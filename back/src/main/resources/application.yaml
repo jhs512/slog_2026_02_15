@@ -56,9 +56,6 @@ spring:
   jackson:
     serialization:
       fail-on-empty-beans: false
-  session:
-    jdbc:
-      initialize-schema: always
   datasource:
     url: jdbc:postgresql://localhost:5432/${custom.site.dbName}?reWriteBatchedInserts=true
     username: admin
@@ -113,6 +110,7 @@ custom:
     secretKey: ${CUSTOM__JWT__SECRET_KEY}
   accessToken:
     expirationSeconds: "#{60*20}"
+  notProdMembers: []
   systemMemberApiKey: ${CUSTOM__JWT__SECRET_KEY}
   cache:
     ttl-seconds: 3600

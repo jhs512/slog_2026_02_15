@@ -53,7 +53,7 @@ class ApiV1MemberController(
     }
 
 
-    data class MemberJoinReqBody(
+    data class MemberJoinRequest(
         @field:NotBlank @field:Size(min = 2, max = 30)
         val username: String,
         @field:NotBlank @field:Size(min = 2, max = 30)
@@ -66,7 +66,7 @@ class ApiV1MemberController(
     @Transactional
     @Operation(summary = "가입")
     fun join(
-        @RequestBody @Valid reqBody: MemberJoinReqBody
+        @RequestBody @Valid reqBody: MemberJoinRequest
     ): RsData<MemberDto> {
         val member = memberFacade.join(
             reqBody.username,
@@ -82,7 +82,7 @@ class ApiV1MemberController(
     }
 
 
-    data class MemberLoginReqBody(
+    data class MemberLoginRequest(
         @field:NotBlank @field:Size(min = 2, max = 30)
         val username: String,
         @field:NotBlank @field:Size(min = 2, max = 30)
@@ -99,7 +99,7 @@ class ApiV1MemberController(
     @Transactional(readOnly = true)
     @Operation(summary = "로그인")
     fun login(
-        @RequestBody @Valid reqBody: MemberLoginReqBody
+        @RequestBody @Valid reqBody: MemberLoginRequest
     ): RsData<MemberLoginResBody> {
         val member = memberFacade
             .findByUsername(reqBody.username)

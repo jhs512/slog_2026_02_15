@@ -83,7 +83,7 @@ class ApiV1PostCommentController(
         )
     }
 
-    data class PostCommentModifyReqBody(
+    data class PostCommentModifyRequest(
         @field:NotBlank
         @field:Size(min = 2, max = 100)
         val content: String
@@ -95,7 +95,7 @@ class ApiV1PostCommentController(
     fun modify(
         @PathVariable postId: Int,
         @PathVariable id: Int,
-        @Valid @RequestBody reqBody: PostCommentModifyReqBody
+        @Valid @RequestBody reqBody: PostCommentModifyRequest
     ): RsData<Void> {
         val post = postFacade.findById(postId).getOrThrow()
 
@@ -111,7 +111,7 @@ class ApiV1PostCommentController(
         )
     }
 
-    data class PostCommentWriteReqBody(
+    data class PostCommentWriteRequest(
         @field:NotBlank
         @field:Size(min = 2, max = 100)
         val content: String
@@ -122,7 +122,7 @@ class ApiV1PostCommentController(
     @Operation(summary = "작성")
     fun write(
         @PathVariable postId: Int,
-        @Valid @RequestBody reqBody: PostCommentWriteReqBody
+        @Valid @RequestBody reqBody: PostCommentWriteRequest
     ): RsData<PostCommentDto> {
         val post = postFacade.findById(postId).getOrThrow()
 

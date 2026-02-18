@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component
 @Component
 @ConfigurationProperties(prefix = "custom")
 class CustomConfigProperties {
-    lateinit var notProdMembers: MutableList<NotProdMember>
+    var notProdMembers: MutableList<NotProdMember> = mutableListOf()
 
     data class NotProdMember(
         val username: String,

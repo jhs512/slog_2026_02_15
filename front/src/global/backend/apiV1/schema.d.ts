@@ -314,10 +314,10 @@ export interface components {
             msg: string;
             data: unknown;
         };
-        PostCommentModifyReqBody: {
+        PostCommentModifyRequest: {
             content: string;
         };
-        PostModifyReqBody: {
+        PostModifyRequest: {
             title: string;
             content: string;
             published: boolean;
@@ -350,13 +350,13 @@ export interface components {
             msg: string;
             data: components["schemas"]["PostDto"];
         };
-        PostWriteReqBody: {
+        PostWriteRequest: {
             title: string;
             content: string;
             published?: boolean;
             listed?: boolean;
         };
-        PostCommentWriteReqBody: {
+        PostCommentWriteRequest: {
             content: string;
         };
         PostCommentDto: {
@@ -430,7 +430,7 @@ export interface components {
             msg: string;
             data: components["schemas"]["PostWithContentDto"];
         };
-        MemberJoinReqBody: {
+        MemberJoinRequest: {
             username: string;
             password: string;
             nickname: string;
@@ -452,7 +452,7 @@ export interface components {
             msg: string;
             data: components["schemas"]["MemberDto"];
         };
-        MemberLoginReqBody: {
+        MemberLoginRequest: {
             username: string;
             password: string;
         };
@@ -559,7 +559,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PostCommentModifyReqBody"];
+                "application/json": components["schemas"]["PostCommentModifyRequest"];
             };
         };
         responses: {
@@ -659,7 +659,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PostModifyReqBody"];
+                "application/json": components["schemas"]["PostModifyRequest"];
             };
         };
         responses: {
@@ -758,7 +758,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PostWriteReqBody"];
+                "application/json": components["schemas"]["PostWriteRequest"];
             };
         };
         responses: {
@@ -824,7 +824,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PostCommentWriteReqBody"];
+                "application/json": components["schemas"]["PostCommentWriteRequest"];
             };
         };
         responses: {
@@ -948,7 +948,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["MemberJoinReqBody"];
+                "application/json": components["schemas"]["MemberJoinRequest"];
             };
         };
         responses: {
@@ -981,7 +981,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["MemberLoginReqBody"];
+                "application/json": components["schemas"]["MemberLoginRequest"];
             };
         };
         responses: {
