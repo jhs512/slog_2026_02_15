@@ -143,7 +143,7 @@ class ApiV1PostController(
     }
 
 
-    data class PostWriteReqBody(
+    data class PostWriteRequest(
         @field:NotBlank
         @field:Size(min = 2, max = 100)
         val title: String,
@@ -158,7 +158,7 @@ class ApiV1PostController(
     @Transactional
     @Operation(summary = "작성")
     fun write(
-        @Valid @RequestBody reqBody: PostWriteReqBody
+        @Valid @RequestBody reqBody: PostWriteRequest
     ): RsData<PostDto> {
         val post = postFacade.write(
             rq.actor,
@@ -176,7 +176,7 @@ class ApiV1PostController(
     }
 
 
-    data class PostModifyReqBody(
+    data class PostModifyRequest(
         @field:Size(max = 100)
         val title: String,
         val content: String,
@@ -189,7 +189,7 @@ class ApiV1PostController(
     @Operation(summary = "수정")
     fun modify(
         @PathVariable id: Int,
-        @Valid @RequestBody reqBody: PostModifyReqBody
+        @Valid @RequestBody reqBody: PostModifyRequest
     ): RsData<PostDto> {
         val post = postFacade.findById(id).getOrThrow()
 
