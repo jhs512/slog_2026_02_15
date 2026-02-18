@@ -52,7 +52,6 @@ class PostRepositoryImpl(
         QueryDslUtil.applySorting(query, pageable) { property ->
             when (property) {
                 "createdAt" -> post.createdAt
-                "id" -> post.createdAt
                 "modifiedAt" -> post.modifiedAt
                 "authorName" -> post.author.nickname
                 else -> null

@@ -40,7 +40,7 @@ class ApiV1MemberControllerTest {
     @Nested
     inner class Join {
         @Test
-        fun `성공 - 신규 회원가입 요청 시 회원이 생성되고 인증 응답이 반환된다`() {
+        fun `성공 - 회원가입 요청 시 회원이 생성되고 인증 응답이 반환된다`() {
             val resultActions = mvc
                 .perform(
                     post("/member/api/v1/members")
@@ -299,7 +299,7 @@ class ApiV1MemberControllerTest {
         }
 
         @Test
-        fun `성공 - 아이피아이 키 쿠키만 있어도 내 정보 조회가 가능하다`() {
+        fun `성공 - API 키 쿠키만 있어도 내 정보 조회가 가능하다`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
             val actorApiKey: String = actor.apiKey
 
@@ -317,7 +317,7 @@ class ApiV1MemberControllerTest {
         }
 
         @Test
-        fun `성공 - 아이피아이 키와 잘못된 액세스 토큰으로도 재발급이 수행된다`() {
+        fun `성공 - API 키는 유효하고 액세스 토큰은 잘못되어도 재발급이 수행된다`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
             val actorApiKey: String = actor.apiKey
 

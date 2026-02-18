@@ -27,7 +27,12 @@ class PGroongaIndexConfig {
             conn.autoCommit = true
 
             conn.createStatement().use { stmt ->
-                stmt.execute("CREATE EXTENSION IF NOT EXISTS pgroonga")
+                runCatching {
+                    stmt.execute("CREATE EXTENSION IF NOT EXISTS pgroonga")
+                }.onFailure { ex ->
+                    log.warn("PGroonga 확장 확인 실패: {}", ex.message)
+                    return@ApplicationRunner
+                }
             }
             log.info("PGroonga extension 확인 완료")
 
@@ -44,15 +49,26 @@ class PGroongaIndexConfig {
                 for (anno in annotations) {
                     val cols = anno.columns.joinToString(", ")
                     val indexName = "idx_${tableName}_${anno.columns.joinToString("_")}_pgroonga"
+                    val quotedTableName = tableName
+                        .split(".")
+                        .joinToString(".") { part -> "\"$part\"" }
+                    val quotedCols = anno.columns.joinToString(", ") { col -> "\"$col\"" }
 
                     val ddl = """
                         CREATE INDEX IF NOT EXISTS $indexName
-                        ON $tableName USING pgroonga ($cols)
+                        ON $quotedTableName USING pgroonga ($quotedCols)
                         WITH (tokenizer = '${anno.tokenizer}')
                     """.trimIndent()
 
-                    conn.createStatement().use { stmt -> stmt.execute(ddl) }
-                    log.info("PGroonga 인덱스 생성: {}", indexName)
+                    runCatching {
+                        conn.createStatement().use { stmt ->
+                            log.info("PGroonga 인덱스 DDL: {}", ddl)
+                            stmt.execute(ddl)
+                        }
+                        log.info("PGroonga 인덱스 생성: {}", indexName)
+                    }.onFailure { ex ->
+                        log.warn("PGroonga 인덱스 생성 실패: {} (DDL: {})", ex.message, ddl)
+                    }
                 }
             }
         }

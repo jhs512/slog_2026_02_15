@@ -4,8 +4,6 @@ import com.back.standard.extensions.toCamelCase
 import org.springframework.data.domain.Sort
 
 enum class PostSearchSortType1 {
-    ID,
-    ID_ASC,
     CREATED_AT,
     CREATED_AT_ASC,
     MODIFIED_AT,
@@ -22,7 +20,6 @@ enum class PostSearchSortType1 {
 
     val property by lazy {
         when (this) {
-            ID, ID_ASC -> "createdAt"
             CREATED_AT, CREATED_AT_ASC -> "createdAt"
             MODIFIED_AT, MODIFIED_AT_ASC -> "modifiedAt"
             else -> name.removeSuffix("_ASC").toCamelCase()

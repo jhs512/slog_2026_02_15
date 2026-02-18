@@ -168,7 +168,7 @@ class ApiV1AdmMemberControllerTest {
 
         @Test
         @WithUserDetails("admin")
-        fun `성공 - 키워드 검색에서 모두 조건과 아무거나 조건 조합이 정상 동작한다`() {
+        fun `성공 - 키워드 검색의 AND 혹은 OR 조합이 모두 정상 동작한다`() {
             makeMemberSearchFixture()
 
             val andResult = mvc

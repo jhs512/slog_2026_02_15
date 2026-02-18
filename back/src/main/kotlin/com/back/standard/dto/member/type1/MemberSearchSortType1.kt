@@ -4,8 +4,8 @@ import com.back.standard.extensions.toCamelCase
 import org.springframework.data.domain.Sort
 
 enum class MemberSearchSortType1 {
-    ID,
-    ID_ASC,
+    CREATED_AT,
+    CREATED_AT_ASC,
     USERNAME,
     USERNAME_ASC,
     NICKNAME,

@@ -108,7 +108,7 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        fun `성공 - 잘못된 아이피아이 키와 유효한 액세스 토큰`() {
+        fun `성공 - 잘못된 API 키와 유효한 액세스 토큰이 있어도 글 작성이 처리된다`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
             val actorAccessToken = actorFacade.genAccessToken(actor)
 
@@ -379,7 +379,7 @@ class ApiV1PostControllerTest {
             val posts = postFacade.findPagedByKw(
                 PostSearchKeywordType1.ALL,
                 "",
-                PostSearchSortType1.ID,
+                PostSearchSortType1.CREATED_AT,
                 1,
                 5
             ).content
@@ -402,7 +402,7 @@ class ApiV1PostControllerTest {
             val posts = postFacade.findPagedByKw(
                 PostSearchKeywordType1.ALL,
                 "",
-                PostSearchSortType1.ID,
+                PostSearchSortType1.CREATED_AT,
                 1,
                 30
             ).content
@@ -426,7 +426,7 @@ class ApiV1PostControllerTest {
             val posts = postFacade.findPagedByKw(
                 PostSearchKeywordType1.ALL,
                 "   ",
-                PostSearchSortType1.ID,
+                PostSearchSortType1.CREATED_AT,
                 1,
                 5
             ).content
@@ -449,7 +449,7 @@ class ApiV1PostControllerTest {
             val postPage = postFacade.findPagedByKw(
                 PostSearchKeywordType1.ALL,
                 "",
-                PostSearchSortType1.ID,
+                PostSearchSortType1.CREATED_AT,
                 1,
                 5
             )

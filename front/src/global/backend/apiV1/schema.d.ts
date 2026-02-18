@@ -721,7 +721,7 @@ export interface operations {
                 pageSize?: number;
                 kwType?: "ALL";
                 kw?: string;
-                sort?: "ID" | "ID_ASC" | "AUTHOR_NAME" | "AUTHOR_NAME_ASC";
+                sort?: "CREATED_AT" | "CREATED_AT_ASC" | "MODIFIED_AT" | "MODIFIED_AT_ASC" | "AUTHOR_NAME" | "AUTHOR_NAME_ASC";
             };
             header?: never;
             path?: never;
@@ -1160,7 +1160,7 @@ export interface operations {
                 pageSize?: number;
                 kwType?: "USERNAME" | "NICKNAME" | "ALL";
                 kw?: string;
-                sort?: "ID" | "ID_ASC" | "USERNAME" | "USERNAME_ASC" | "NICKNAME" | "NICKNAME_ASC";
+                sort?: "CREATED_AT" | "CREATED_AT_ASC" | "USERNAME" | "USERNAME_ASC" | "NICKNAME" | "NICKNAME_ASC";
             };
             header?: never;
             path?: never;

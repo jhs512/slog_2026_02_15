@@ -132,6 +132,7 @@ class MemberRepositoryImpl : MemberRepositoryCustom {
             .asSequence()
             .mapNotNull { order ->
                 val column = when (order.property) {
+                    "createdAt" -> "created_at"
                     "id" -> "id"
                     "username" -> "username"
                     "nickname" -> "nickname"

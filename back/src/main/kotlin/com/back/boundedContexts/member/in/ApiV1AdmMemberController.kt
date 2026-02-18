@@ -28,7 +28,7 @@ class ApiV1AdmMemberController(
         @RequestParam(defaultValue = "5") pageSize: Int,
         @RequestParam(defaultValue = "ALL") kwType: MemberSearchKeywordType1,
         @RequestParam(defaultValue = "") kw: String,
-        @RequestParam(defaultValue = "ID") sort: MemberSearchSortType1,
+        @RequestParam(defaultValue = "CREATED_AT") sort: MemberSearchSortType1,
     ): PageDto<MemberWithUsernameDto> {
         val page: Int = if (page >= 1) {
             page

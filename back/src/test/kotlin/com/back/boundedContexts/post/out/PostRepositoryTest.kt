@@ -26,7 +26,7 @@ class PostRepositoryTest {
             PageRequest.of(
                 0,
                 10,
-                PostSearchSortType1.ID.sortBy
+                PostSearchSortType1.CREATED_AT.sortBy
             ),
         )
 
