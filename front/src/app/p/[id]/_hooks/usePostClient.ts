@@ -205,7 +205,11 @@ export default function usePostClient(initialPost: PostWithContentDto) {
     };
   }, [initialPost.id]);
 
-  const deletePost = (id: number, onSuccess: () => void) => {
+  const deletePost = (
+    id: number,
+    onSuccess: () => void,
+    onError?: () => void,
+  ) => {
     client
       .DELETE("/post/api/v1/posts/{id}", {
         params: {
@@ -217,6 +221,7 @@ export default function usePostClient(initialPost: PostWithContentDto) {
       .then((res) => {
         if (res.error) {
           toast.error(res.error.msg);
+          onError?.();
           return;
         }
 

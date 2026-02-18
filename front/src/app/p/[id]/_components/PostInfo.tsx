@@ -76,9 +76,15 @@ export default function PostInfo({
 
   const deletePost = () => {
     setIsDeleting(true);
-    _deletePost(post.id, () => {
-      router.replace("/p");
-    });
+    _deletePost(
+      post.id,
+      () => {
+        router.replace("/p");
+      },
+      () => {
+        setIsDeleting(false);
+      },
+    );
   };
 
   const getStatusBadge = () => {

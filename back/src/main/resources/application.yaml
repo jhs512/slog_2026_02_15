@@ -56,6 +56,9 @@ spring:
   jackson:
     serialization:
       fail-on-empty-beans: false
+  sql:
+    init:
+      mode: always
   datasource:
     url: jdbc:postgresql://localhost:5432/${custom.site.dbName}?reWriteBatchedInserts=true
     username: admin

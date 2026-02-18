@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import PostWriteButton from "@/domain/post/components/PostWriteButton";
 import withLogin from "@/global/auth/hoc/withLogin";
@@ -13,9 +13,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { Eye, List, Lock, Pencil, Search } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  List,
+  Lock,
+  Pencil,
+  Search,
+} from "lucide-react";
 
 type PostDto = components["schemas"]["PostDto"];
+type PageableDto = components["schemas"]["PageableDto"];
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -28,22 +37,55 @@ function formatDate(dateString: string): string {
   });
 }
 
-export default withLogin(function Page() {
+function PageContent() {
   const router = useRouter();
-  const [posts, setPosts] = useState<PostDto[] | null>(null);
+  const searchParams = useSearchParams();
+
+  const currentPage = Number(searchParams.get("page") || "1");
+  const currentPageSize = Number(searchParams.get("pageSize") || "10");
+
+  const [posts, setPosts] = useState<PostDto[]>([]);
+  const [pageable, setPageable] = useState<PageableDto | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     client
-      .GET("/post/api/v1/posts/mine")
-      .then((res) => res.data && setPosts(res.data.content));
-  }, []);
+      .GET("/post/api/v1/posts/mine", {
+        params: {
+          query: {
+            page: currentPage,
+            pageSize: currentPageSize,
+          },
+        },
+      })
+      .then((res) => {
+        if (!cancelled && res.data) {
+          setPosts(res.data.content);
+          setPageable(res.data.pageable ?? null);
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentPage, currentPageSize]);
 
-  if (posts == null)
+  const handlePageChange = (page: number) => {
+    const sp = new URLSearchParams(searchParams.toString());
+    sp.set("page", String(page));
+    router.push(`?${sp.toString()}`);
+  };
+
+  if (loading)
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-muted-foreground">로딩중...</div>
       </div>
     );
+
+  const totalPages = pageable?.totalPages ?? 1;
+  const totalElements = pageable?.totalElements ?? posts.length;
 
   const getStatusBadge = (post: PostDto) => {
     if (!post.published) {
@@ -76,7 +118,7 @@ export default withLogin(function Page() {
 
       <div className="flex items-center justify-between mb-6">
         <span className="text-sm text-muted-foreground">
-          총 {posts.length}개
+          총 {totalElements}개
         </span>
         <PostWriteButton />
       </div>
@@ -130,6 +172,52 @@ export default withLogin(function Page() {
           ))}
         </ul>
       )}
+
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-8">
+          <Button
+            variant="outline"
+            size="icon"
+            disabled={currentPage <= 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <Button
+              key={p}
+              variant={p === currentPage ? "default" : "outline"}
+              size="icon"
+              onClick={() => handlePageChange(p)}
+            >
+              {p}
+            </Button>
+          ))}
+          <Button
+            variant="outline"
+            size="icon"
+            disabled={currentPage >= totalPages}
+            onClick={() => handlePageChange(currentPage + 1)}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default withLogin(function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="text-muted-foreground">로딩중...</div>
+        </div>
+      }
+    >
+      <PageContent />
+    </Suspense>
   );
 });

@@ -205,6 +205,12 @@ class PostFacade(
             )
         )
 
+        // Post의 FK 참조를 먼저 null로 설정하고 flush해야 PostAttr 삭제 시 FK 제약 위반 방지
+        post.likesCountAttr = null
+        post.commentsCountAttr = null
+        post.hitCountAttr = null
+        postRepository.flush()
+
         postAttrRepository.deleteBySubjectId(post.id)
         postCommentRepository.deleteByPost(post)
         postLikeRepository.deleteByPost(post)
