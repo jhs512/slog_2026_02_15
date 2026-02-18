@@ -4,11 +4,19 @@ import com.back.boundedContexts.member.domain.shared.Member
 import com.back.boundedContexts.member.dto.MemberDto
 import com.back.boundedContexts.post.domain.Post
 import com.back.boundedContexts.post.domain.PostComment
+import com.back.boundedContexts.post.domain.postExtensions.PostLikeToggleResult
 import com.back.boundedContexts.post.domain.postExtensions.addComment
 import com.back.boundedContexts.post.domain.postExtensions.deleteComment
+import com.back.boundedContexts.post.domain.postExtensions.toggleLike
 import com.back.boundedContexts.post.dto.PostCommentDto
 import com.back.boundedContexts.post.dto.PostDto
+import com.back.boundedContexts.post.event.PostCommentDeletedEvent
+import com.back.boundedContexts.post.event.PostCommentModifiedEvent
 import com.back.boundedContexts.post.event.PostCommentWrittenEvent
+import com.back.boundedContexts.post.event.PostDeletedEvent
+import com.back.boundedContexts.post.event.PostLikeToggledEvent
+import com.back.boundedContexts.post.event.PostModifiedEvent
+import com.back.boundedContexts.post.event.PostWrittenEvent
 import com.back.boundedContexts.post.out.PostAttrRepository
 import com.back.boundedContexts.post.out.PostCommentRepository
 import com.back.boundedContexts.post.out.PostLikeRepository
@@ -19,6 +27,7 @@ import com.back.standard.dto.post.type1.PostSearchSortType1
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
@@ -33,6 +42,7 @@ class PostFacade(
 ) {
     fun count(): Long = postRepository.count()
 
+    @Transactional
     fun write(
         author: Member,
         title: String,
@@ -50,14 +60,26 @@ class PostFacade(
 
         author.incrementPostsCount()
 
-        return postRepository.save(post)
+        val savedPost = postRepository.save(post)
+
+        eventPublisher.publish(
+            PostWrittenEvent(
+                UUID.randomUUID(),
+                PostDto(savedPost),
+                MemberDto(author)
+            )
+        )
+
+        return savedPost
     }
 
 
     fun findById(id: Int): Post? = postRepository.findById(id).getOrNull()
 
 
+    @Transactional
     fun modify(
+        actor: Member,
         post: Post,
         title: String,
         content: String,
@@ -77,6 +99,14 @@ class PostFacade(
 
         // 글 본문 변경사항 구독자에게 알림
         postNotificationService.notifyPostModified(post)
+
+        eventPublisher.publish(
+            PostModifiedEvent(
+                UUID.randomUUID(),
+                PostDto(post),
+                MemberDto(actor)
+            )
+        )
     }
 
     fun findPagedByAuthor(
@@ -94,6 +124,7 @@ class PostFacade(
      * 임시저장 글 조회 또는 생성
      * @return Pair(Post, isNew) - 기존 글이면 false, 새로 생성이면 true
      */
+    @Transactional
     fun getOrCreateTemp(author: Member): Pair<Post, Boolean> {
         val existingTemp = findTemp(author)
 
@@ -113,6 +144,7 @@ class PostFacade(
     }
 
 
+    @Transactional
     fun writeComment(author: Member, post: Post, content: String): PostComment {
         val postComment = post.addComment(author, content)
 
@@ -131,30 +163,78 @@ class PostFacade(
     }
 
 
-    fun deleteComment(post: Post, postComment: PostComment) =
+    @Transactional
+    fun deleteComment(post: Post, postComment: PostComment, actor: Member) {
+        val postCommentDto = PostCommentDto(postComment)
+        val postDto = PostDto(post)
+
         post.deleteComment(postComment)
 
+        eventPublisher.publish(
+            PostCommentDeletedEvent(
+                UUID.randomUUID(),
+                postCommentDto,
+                postDto,
+                MemberDto(actor)
+            )
+        )
+    }
 
-    fun modifyComment(postComment: PostComment, content: String) =
+
+    @Transactional
+    fun modifyComment(postComment: PostComment, actor: Member, content: String) {
         postComment.modify(content)
 
+        eventPublisher.publish(
+            PostCommentModifiedEvent(
+                UUID.randomUUID(),
+                PostCommentDto(postComment),
+                PostDto(postComment.post),
+                MemberDto(actor)
+            )
+        )
+    }
 
-    fun delete(post: Post) {
+    @Transactional
+    fun delete(post: Post, actor: Member) {
+        val postDto = PostDto(post)
+        val actorDto = MemberDto(actor)
+
         post.author.decrementPostsCount()
 
-        // OneToOne 참조 해제 (Hibernate flush 순서 문제 방지)
-        post.likesCountAttr = null
-        post.commentsCountAttr = null
-        post.hitCountAttr = null
-        postRepository.flush()
+        // 삭제 이벤트를 post 삭제 전에 발행 (이벤트 리스너는 BEFORE_COMMIT 유지)
+        eventPublisher.publish(
+            PostDeletedEvent(
+                UUID.randomUUID(),
+                postDto,
+                actorDto
+            )
+        )
 
-        // 연관 데이터 먼저 삭제 (FK 제약 조건 방지)
-        postAttrRepository.deleteBySubject(post)
+        postAttrRepository.deleteBySubjectId(post.id)
         postCommentRepository.deleteByPost(post)
         postLikeRepository.deleteByPost(post)
-        postRepository.flush()
 
-        postRepository.delete(post)
+        postRepository.deleteRowById(post.id)
+    }
+
+
+    @Transactional
+    fun toggleLike(post: Post, actor: Member): PostLikeToggleResult {
+        val likeResult = post.toggleLike(actor)
+
+        eventPublisher.publish(
+            PostLikeToggledEvent(
+                UUID.randomUUID(),
+                post.id,
+                post.author.id,
+                likeResult.likeId,
+                likeResult.isLiked,
+                MemberDto(actor)
+            )
+        )
+
+        return likeResult
     }
 
 

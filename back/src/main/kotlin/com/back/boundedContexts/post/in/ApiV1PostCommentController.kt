@@ -75,7 +75,7 @@ class ApiV1PostCommentController(
 
         postComment.checkActorCanDelete(rq.actorOrNull)
 
-        postFacade.deleteComment(post, postComment)
+        postFacade.deleteComment(post, postComment, rq.actor)
 
         return RsData(
             "200-1",
@@ -103,7 +103,7 @@ class ApiV1PostCommentController(
 
         postComment.checkActorCanModify(rq.actorOrNull)
 
-        postFacade.modifyComment(postComment, reqBody.content)
+        postFacade.modifyComment(postComment, rq.actor, reqBody.content)
 
         return RsData(
             "200-1",

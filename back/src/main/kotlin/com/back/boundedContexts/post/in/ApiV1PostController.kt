@@ -137,7 +137,7 @@ class ApiV1PostController(
 
         post.checkActorCanDelete(rq.actor)
 
-        postFacade.delete(post)
+        postFacade.delete(post, rq.actor)
 
         return RsData(
             "200-1",
@@ -199,6 +199,7 @@ class ApiV1PostController(
         post.checkActorCanModify(rq.actor)
 
         postFacade.modify(
+            rq.actor,
             post,
             reqBody.title,
             reqBody.content,
@@ -261,7 +262,8 @@ class ApiV1PostController(
     ): RsData<PostLikeToggleResBody> {
         val post = postFacade.findById(id).getOrThrow()
 
-        val liked = post.toggleLike(rq.actor)
+        val likeResult = postFacade.toggleLike(post, rq.actor)
+        val liked = likeResult.isLiked
 
         val msg = if (liked) "좋아요를 눌렀습니다." else "좋아요를 취소했습니다."
 

@@ -9,12 +9,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
 
-data class PostWrittenEvent @JsonCreator constructor(
+data class PostModifiedEvent @JsonCreator constructor(
     override val uid: UUID,
     override val aggregateType: String,
     override val aggregateId: Int,
     @field:JsonIgnore
-    @JsonProperty("postDto")
+    @field:JsonProperty("postDto")
     val postDto: PostDto,
     val actorDto: MemberDto,
 ) : EventPayload {

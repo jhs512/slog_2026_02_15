@@ -6,7 +6,7 @@ import com.back.boundedContexts.post.domain.PostAttr
 import com.back.boundedContexts.post.domain.PostLike
 
 // ================================
-// 좋아요 관리 (PostAttr 기반)
+// 좋아요 관리 (PostAttr + Repository 기반)
 // ================================
 
 val Post.likesCount: Int
@@ -34,21 +34,28 @@ fun Post.isLikedBy(liker: Member?): Boolean {
     return Post.postLikeRepository.findByLikerAndPost(liker, this) != null
 }
 
+data class PostLikeToggleResult(
+    val isLiked: Boolean,
+    val likeId: Int,
+)
+
 /**
  * 좋아요 토글
  * @return true: 좋아요 추가됨, false: 좋아요 취소됨
  */
-fun Post.toggleLike(liker: Member): Boolean {
+fun Post.toggleLike(liker: Member): PostLikeToggleResult {
     val existingLike = Post.postLikeRepository.findByLikerAndPost(liker, this)
 
     return if (existingLike != null) {
         Post.postLikeRepository.delete(existingLike)
         decreaseLikesCount()
-        false // 좋아요 취소됨
+
+        PostLikeToggleResult(false, existingLike.id)
     } else {
         val newLike = PostLike(liker, this)
-        Post.postLikeRepository.save(newLike)
+        val savedLike = Post.postLikeRepository.save(newLike)
         increaseLikesCount()
-        true // 좋아요 추가됨
+
+        PostLikeToggleResult(true, savedLike.id)
     }
 }
