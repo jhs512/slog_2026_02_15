@@ -19,7 +19,6 @@ import { LogOut, User } from "lucide-react";
 export default function MeMenuButton() {
   const { loginMember, logout: _logout } = useAuthContext();
   const router = useRouter();
-
   const logout = () => {
     _logout(() => router.replace("/"));
   };

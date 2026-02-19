@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useAuthContext } from "@/global/auth/hooks/useAuth";
 
@@ -38,6 +38,11 @@ export default function NarrowHeaderContent({
 }) {
   const { isLogin, loginMember, logout: _logout } = useAuthContext();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // /p/[id]/edit 또는 /p/[id]/edit/monaco 패턴에서 글 번호 추출
+  const editMatch = pathname.match(/^\/p\/(\d+)\/edit/);
+  const editPostId = editMatch ? editMatch[1] : null;
 
   const logout = () => {
     _logout(() => router.replace("/"));
@@ -154,7 +159,16 @@ export default function NarrowHeaderContent({
         <Logo />
       </Button>
 
-      <div className="flex-grow" />
+      <div className="flex-grow flex items-center justify-center">
+        {editPostId && (
+          <Link
+            href={`/p/${editPostId}/edit`}
+            className="text-sm text-muted-foreground hover:underline"
+          >
+            #{editPostId}번 글
+          </Link>
+        )}
+      </div>
 
       {!isLogin && <LoginButton />}
       {isLogin && <MeMenuButton />}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { useAuthContext } from "@/global/auth/hooks/useAuth";
 
@@ -20,6 +21,11 @@ export default function WideHeaderContent({
   className?: string;
 }) {
   const { isLogin } = useAuthContext();
+  const pathname = usePathname();
+
+  // /p/[id]/edit 또는 /p/[id]/edit/monaco 패턴에서 글 번호 추출
+  const editMatch = pathname.match(/^\/p\/(\d+)\/edit/);
+  const editPostId = editMatch ? editMatch[1] : null;
 
   return (
     <div className={`${className} container mx-auto px-4 py-1`}>
@@ -40,7 +46,16 @@ export default function WideHeaderContent({
         </Button>
       )}
 
-      <div className="flex-grow" />
+      <div className="flex-grow flex items-center justify-center">
+        {editPostId && (
+          <Link
+            href={`/p/${editPostId}/edit`}
+            className="text-sm text-muted-foreground hover:underline"
+          >
+            #{editPostId}번 글
+          </Link>
+        )}
+      </div>
 
       {!isLogin && <LoginButton />}
       {isLogin && <MeMenuButton />}

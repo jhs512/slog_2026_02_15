@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { use, useEffect } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 
 import usePost from "@/domain/post/hooks/usePost";
 import withLogin from "@/global/auth/hoc/withLogin";
@@ -28,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-import { Eye, FileEdit, List, Pencil, Save } from "lucide-react";
+import { Code, Eye, FileEdit, List, Pencil, Save } from "lucide-react";
 
 // 임시저장은 빈 값 허용, 공개 시에만 필수 체크
 const postFormSchema = z
@@ -91,6 +92,53 @@ export default withLogin(function Page({
 
   const published = form.watch("published");
 
+  const onSubmit = useCallback(
+    async (data: PostFormInputs) => {
+      if (!post) return;
+
+      const response = await client.PUT("/post/api/v1/posts/{id}", {
+        params: { path: { id } },
+        body: {
+          title: data.title,
+          content: data.content,
+          published: data.published,
+          listed: data.listed,
+        },
+      });
+
+      if (response.error) {
+        toast.error(response.error.msg);
+        return;
+      }
+
+      // 상태 업데이트
+      setPost({
+        ...post,
+        title: data.title,
+        content: data.content,
+        published: data.published,
+        listed: data.listed,
+      });
+
+      // 폼 상태 재설정 (dirty 상태 초기화)
+      form.reset({
+        title: data.title,
+        content: data.content,
+        // published와 listed는 boolean이므로 그대로 전달
+        published: data.published,
+        listed: data.listed,
+      });
+
+      toast.success(response.data.msg, {
+        action: {
+          label: "글 보기",
+          onClick: () => router.push(`/p/${id}`),
+        },
+      });
+    },
+    [post, setPost, id, router],
+  );
+
   useEffect(() => {
     if (post) {
       form.reset({
@@ -102,45 +150,29 @@ export default withLogin(function Page({
     }
   }, [post, form]);
 
+  // Ctrl+S / Cmd+S 단축키로 저장
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        if (form.formState.isDirty) {
+          form.handleSubmit(onSubmit)();
+        } else {
+          toast.info("변경된 내용이 없습니다.");
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [form, onSubmit]);
+
   if (post == null)
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-muted-foreground">로딩중...</div>
       </div>
     );
-
-  const onSubmit = async (data: PostFormInputs) => {
-    const response = await client.PUT("/post/api/v1/posts/{id}", {
-      params: { path: { id } },
-      body: {
-        title: data.title,
-        content: data.content,
-        published: data.published,
-        listed: data.listed,
-      },
-    });
-
-    if (response.error) {
-      toast.error(response.error.msg);
-      return;
-    }
-
-    // 상태 업데이트
-    setPost({
-      ...post,
-      title: data.title,
-      content: data.content,
-      published: data.published,
-      listed: data.listed,
-    });
-
-    toast.success(response.data.msg, {
-      action: {
-        label: "글 보기",
-        onClick: () => router.push(`/p/${id}`),
-      },
-    });
-  };
 
   const isTemp = !post.published && post.title === "";
 
@@ -151,9 +183,16 @@ export default withLogin(function Page({
           <CardTitle className="flex items-center gap-2 text-xl">
             <Pencil className="w-5 h-5" />
             {isTemp ? "새 글 작성" : "글 수정"}
-            <Badge variant="outline" className="ml-auto">
-              #{id}
-            </Badge>
+            <Link href={`/p/${id}/edit/monaco`} className="ml-auto">
+              <Badge
+                variant="outline"
+                className="cursor-pointer hover:bg-accent"
+              >
+                <Code className="w-3 h-3 mr-1" />
+                VS CODE
+              </Badge>
+            </Link>
+            <Badge variant="outline">#{id}</Badge>
             {!published && (
               <Badge variant="secondary" className="ml-2">
                 임시저장
@@ -265,7 +304,7 @@ export default withLogin(function Page({
                       <Textarea
                         {...field}
                         placeholder="내용을 입력하세요"
-                        className="h-[calc(100dvh-400px)] min-h-[300px] max-h-[800px] resize-y"
+                        className="h-[calc(100dvh-100px)] resize-y"
                       />
                     </FormControl>
                     <FormMessage />

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ButtonHTMLAttributes } from "react";
 
 import client from "@/global/backend/client";
+import { useDirtyStateContext } from "@/global/context/DirtyStateContext";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,6 @@ const PostWriteButton = ({
   ...props
 }: PostWriteButtonProps) => {
   const router = useRouter();
-
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     if (onClick) {
       onClick(e);

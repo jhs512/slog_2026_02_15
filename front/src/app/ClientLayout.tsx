@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+import { useEffect } from "react";
 
 import NewPostNotification from "@/domain/post/components/NewPostNotification";
 import { useAuthContext } from "@/global/auth/hooks/useAuth";
@@ -27,6 +30,9 @@ export default function ClientLayout({
     );
   }
 
+  const pathname = usePathname();
+  const isEditPage = pathname.match(/^\/p\/\d+\/edit(\/monaco)?$/);
+
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
@@ -34,20 +40,22 @@ export default function ClientLayout({
         <WideHeaderContent className="hidden sm:flex" />
       </header>
       <main className="flex-1 flex flex-col bg-background">{children}</main>
-      <footer className="border-t border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex justify-center gap-4">
-          <Button variant="link" asChild>
-            <Link href="/">
-              <Copyright /> 2026 슬로그
-            </Link>
-          </Button>
-          <Button variant="link" asChild>
-            <Link href="/adm/members/login">
-              <LogIn /> 관리자
-            </Link>
-          </Button>
-        </div>
-      </footer>
+      {!isEditPage && (
+        <footer className="border-t border-border bg-card">
+          <div className="container mx-auto px-4 py-4 flex justify-center gap-4">
+            <Button variant="link" asChild>
+              <Link href="/">
+                <Copyright /> 2026 슬로그
+              </Link>
+            </Button>
+            <Button variant="link" asChild>
+              <Link href="/adm/members/login">
+                <LogIn /> 관리자
+              </Link>
+            </Button>
+          </div>
+        </footer>
+      )}
       <NewPostNotification />
     </>
   );
