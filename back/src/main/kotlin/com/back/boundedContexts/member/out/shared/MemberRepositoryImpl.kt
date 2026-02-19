@@ -45,8 +45,8 @@ class MemberRepositoryImpl : MemberRepositoryCustom {
         val query = entityManager
             .createNativeQuery(sql, Member::class.java)
             .apply {
-                searchClause?.keywordParameters?.forEachIndexed { index, keyword ->
-                    setParameter(index + 1, keyword)
+                searchClause?.keywordParameters?.forEach { (name, value) ->
+                    setParameter(name, value)
                 }
             }
             .setFirstResult(pageable.offset.toInt())
@@ -63,8 +63,8 @@ class MemberRepositoryImpl : MemberRepositoryCustom {
         }
 
         val query = entityManager.createNativeQuery(sql)
-        searchClause?.keywordParameters?.forEachIndexed { index, keyword ->
-            query.setParameter(index + 1, keyword)
+        searchClause?.keywordParameters?.forEach { (name, value) ->
+            query.setParameter(name, value)
         }
 
         return (query.singleResult as Number).toLong()
@@ -95,10 +95,11 @@ class MemberRepositoryImpl : MemberRepositoryCustom {
     }
 
     private fun buildSingleClause(kwType: MemberSearchKeywordType1, term: String): SearchClause {
+        val targetColumns = targetColumns(kwType)
+
         return when (kwType) {
-            MemberSearchKeywordType1.USERNAME -> SearchClause("username &@~ ?1", listOf(term))
-            MemberSearchKeywordType1.NICKNAME -> SearchClause("nickname &@~ ?1", listOf(term))
-            MemberSearchKeywordType1.ALL -> SearchClause("(username &@~ ?1 OR nickname &@~ ?1)", listOf(term))
+            MemberSearchKeywordType1.USERNAME, MemberSearchKeywordType1.NICKNAME, MemberSearchKeywordType1.ALL ->
+                SearchClause(buildLikeClause(targetColumns, "kw0"), mapOf("kw0" to likePattern(term)))
         }
     }
 
@@ -108,23 +109,40 @@ class MemberRepositoryImpl : MemberRepositoryCustom {
         separator: String
     ): SearchClause {
         val clauses = mutableListOf<String>()
-        val parameters = mutableListOf<String>()
+        val parameters = linkedMapOf<String, Any>()
+        val targetColumns = targetColumns(kwType)
 
         terms.forEachIndexed { index, term ->
             val position = index + 1
-            val clause = when (kwType) {
-                MemberSearchKeywordType1.USERNAME -> "$USERNAME_SEARCH_KEY$position"
-                MemberSearchKeywordType1.NICKNAME -> "$NICKNAME_SEARCH_KEY$position"
-                MemberSearchKeywordType1.ALL -> "$USERNAME_SEARCH_KEY$position OR $NICKNAME_SEARCH_KEY$position"
-            }
+            val clause = buildLikeClause(targetColumns, "kw$position")
             clauses.add("($clause)")
-            parameters.add(term)
+            parameters["kw$position"] = likePattern(term)
         }
 
         val sql = clauses.joinToString(" $separator ") { it }
         val safeSql = if (terms.size > 1) "($sql)" else sql
 
         return SearchClause(safeSql, parameters)
+    }
+
+    private fun targetColumns(kwType: MemberSearchKeywordType1): List<String> =
+        when (kwType) {
+            MemberSearchKeywordType1.USERNAME -> listOf("username")
+            MemberSearchKeywordType1.NICKNAME -> listOf("nickname")
+            MemberSearchKeywordType1.ALL -> listOf("username", "nickname")
+        }
+
+    private fun buildLikeClause(columns: List<String>, paramName: String): String {
+        val clause = columns.joinToString(" OR ") { "$it LIKE :$paramName ESCAPE '\\'" }
+        return if (columns.size == 1) clause else "($clause)"
+    }
+
+    private fun likePattern(term: String): String {
+        val escaped = term
+            .replace("\\", "\\\\")
+            .replace("%", "\\%")
+            .replace("_", "\\_")
+        return "%$escaped%"
     }
 
     private fun Pageable.orderBySql(): String {
@@ -147,7 +165,7 @@ class MemberRepositoryImpl : MemberRepositoryCustom {
 
     private data class SearchClause(
         val whereClause: String,
-        val keywordParameters: List<String>,
+        val keywordParameters: Map<String, Any>,
     )
 
     private enum class SearchOperator {
@@ -156,8 +174,4 @@ class MemberRepositoryImpl : MemberRepositoryCustom {
         OR,
     }
 
-    private companion object {
-        const val USERNAME_SEARCH_KEY = "username &@~ ?"
-        const val NICKNAME_SEARCH_KEY = "nickname &@~ ?"
-    }
 }

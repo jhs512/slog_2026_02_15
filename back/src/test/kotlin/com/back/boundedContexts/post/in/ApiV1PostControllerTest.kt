@@ -476,7 +476,7 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        fun `성공 - 키워드 검색`() {
+        fun `성공 - GET post api v1 posts?kw=제목 1 (제목+본문 통합)`() {
             val resultActions = mvc
                 .perform(
                     get("/post/api/v1/posts?page=1&pageSize=5&kw=제목 1")
@@ -491,7 +491,7 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        fun `성공 - PGroonga title 필드 지정 검색`() {
+        fun `성공 - GET post api v1 posts?kw=title@스프링`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
             val titleOnlyPost = postFacade.write(
                 actor,
@@ -520,7 +520,7 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        fun `성공 - PGroonga content 필드 지정 검색`() {
+        fun `성공 - GET post api v1 posts?kw=content@자바`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
             val contentOnlyPost = postFacade.write(
                 actor,
@@ -549,7 +549,7 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        fun `성공 - PGroonga 제목 본문 각각 필드 지정 검색`() {
+        fun `성공 - GET post api v1 posts?kw=title@스프링 content@자바`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
             val targetPost = postFacade.write(
                 actor,
@@ -584,7 +584,7 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        fun `성공 - PGroonga 플러스 마이너스 연산자 검색`() {
+        fun `성공 - GET post api v1 posts?kw=+스프링 -자바 (플러스 마이너스)`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
             val targetPost = postFacade.write(
                 actor,
@@ -619,7 +619,7 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        fun `성공 - PGroonga OR 연산자 검색`() {
+        fun `성공 - GET post api v1 posts?kw=스프링 OR 자바`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
             val springPost = postFacade.write(
                 actor,
@@ -654,7 +654,7 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        fun `성공 - PGroonga AND(플러스) 연산자 검색`() {
+        fun `성공 - GET post api v1 posts?kw=+스프링 +자바`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
             val bothPost = postFacade.write(
                 actor,
@@ -969,7 +969,7 @@ class ApiV1PostControllerTest {
     inner class GetMine {
         @Test
         @WithUserDetails("user1")
-        fun `로그인한 사용자가 내 글 목록을 조회하면 본인 게시글만 반환된다`() {
+        fun `성공 - GET post api v1 posts mine?page=1&pageSize=10`() {
             val resultActions = mvc
                 .perform(
                     get("/post/api/v1/posts/mine?page=1&pageSize=10")
@@ -981,6 +981,29 @@ class ApiV1PostControllerTest {
                 .andExpect(handler().methodName("getMine"))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.content").isArray)
+        }
+
+        @Test
+        @WithUserDetails("user1")
+        fun `성공 - GET post api v1 posts mine?kw=검색`() {
+            val actor = actorFacade.findByUsername("user1").getOrThrow()
+            val targetPost = postFacade.write(actor, "내 검색 키워드 글", "검색 검증 글")
+
+            val resultActions = mvc
+                .perform(
+                    get("/post/api/v1/posts/mine")
+                        .param("page", "1")
+                        .param("pageSize", "10")
+                        .param("kw", "검색")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1PostController::class.java))
+                .andExpect(handler().methodName("getMine"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.hasItem(targetPost.id)))
+                .andExpect(jsonPath("$.content[*].authorId").value(Matchers.hasItem(actor.id)))
         }
 
         @Test

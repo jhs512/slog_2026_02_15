@@ -70,7 +70,7 @@ class ApiV1AdmMemberControllerTest {
 
         @Test
         @WithUserDetails("admin")
-        fun `성공 - 공백 키워드 검색`() {
+        fun `성공 - GET member api v1 adm members?kw=   (공백은 검색 미적용)`() {
             val resultActions = mvc
                 .perform(
                     get("/member/api/v1/adm/members")
@@ -89,7 +89,7 @@ class ApiV1AdmMemberControllerTest {
 
         @Test
         @WithUserDetails("admin")
-        fun `기본 검색 조건에서 회원 목록이 정상 응답한다`() {
+        fun `성공 - GET member api v1 adm members?page=1&pageSize=5`() {
             val resultActions = mvc
                 .perform(
                     get("/member/api/v1/adm/members?page=1&pageSize=5")
@@ -124,7 +124,7 @@ class ApiV1AdmMemberControllerTest {
 
         @Test
         @WithUserDetails("admin")
-        fun `성공 - 사용자명 기준 검색 조건으로 맞는 회원만 조회한다`() {
+        fun `성공 - GET member api v1 adm members?kwType=USERNAME&kw=android`() {
             makeMemberSearchFixture()
 
             val resultActions = mvc
@@ -146,7 +146,28 @@ class ApiV1AdmMemberControllerTest {
 
         @Test
         @WithUserDetails("admin")
-        fun `성공 - 별명 기준 검색 조건으로 맞는 회원만 조회한다`() {
+        fun `성공 - GET member api v1 adm members?kwType=USERNAME&kw=KAKAO (부분일치)`() {
+            memberFacade.join("super-KAKAO-user", "1234", "안드로이드 가이드")
+            memberFacade.join("KAKAO-hero", "1234", "일반 사용자")
+            memberFacade.join("other-user", "1234", "KAKAO 관리자")
+
+            val resultActions = mvc
+                .perform(
+                    get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=USERNAME&kw=KAKAO")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[*].username").value(Matchers.containsInAnyOrder("super-KAKAO-user", "KAKAO-hero")))
+        }
+
+        @Test
+        @WithUserDetails("admin")
+        fun `성공 - GET member api v1 adm members?kwType=NICKNAME&kw=안드로이드`() {
             makeMemberSearchFixture()
 
             val resultActions = mvc
@@ -168,16 +189,41 @@ class ApiV1AdmMemberControllerTest {
 
         @Test
         @WithUserDetails("admin")
-        fun `성공 - 키워드 검색의 AND 혹은 OR 조합이 모두 정상 동작한다`() {
+        fun `성공 - GET member api v1 adm members?kwType=NICKNAME&kw=dev%_guide (와일드카드 이스케이프)`() {
+            memberFacade.join("nicktest1", "1234", "dev%_guide")
+            memberFacade.join("nicktest2", "1234", "devabcguide")
+
+            val resultActions = mvc
+                .perform(
+                    get("/member/api/v1/adm/members")
+                        .param("page", "1")
+                        .param("pageSize", "10")
+                        .param("kwType", "NICKNAME")
+                        .param("kw", "dev%_guide")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].username").value("nicktest1"))
+                .andExpect(jsonPath("$.content[0].name").value("dev%_guide"))
+        }
+
+        @Test
+        @WithUserDetails("admin")
+        fun `성공 - GET member api v1 adm members?kwType=ALL&kw=안드로이드 AND 가이드`() {
             makeMemberSearchFixture()
 
-            val andResult = mvc
+            val resultActions = mvc
                 .perform(
                     get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=ALL&kw=안드로이드 AND 가이드")
                 )
                 .andDo(print())
 
-            andResult
+            resultActions
                 .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
                 .andExpect(handler().methodName("getItems"))
                 .andExpect(status().isOk)
@@ -186,14 +232,20 @@ class ApiV1AdmMemberControllerTest {
                     jsonPath("$.content[*].name")
                         .value(Matchers.contains("안드로이드 가이드"))
                 )
+        }
 
-            val orResult = mvc
+        @Test
+        @WithUserDetails("admin")
+        fun `성공 - GET member api v1 adm members?kwType=ALL&kw=안드로이드 OR 가이드`() {
+            makeMemberSearchFixture()
+
+            val resultActions = mvc
                 .perform(
                     get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=ALL&kw=안드로이드 OR 가이드")
                 )
                 .andDo(print())
 
-            orResult
+            resultActions
                 .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
                 .andExpect(handler().methodName("getItems"))
                 .andExpect(status().isOk)
@@ -206,6 +258,52 @@ class ApiV1AdmMemberControllerTest {
                             "개발 가이드"
                         ))
                 )
+        }
+
+        @Test
+        @WithUserDetails("admin")
+        fun `성공 - GET member api v1 adm members?kwType=ALL&kw=guide`() {
+            makeMemberSearchFixture()
+
+            val resultActions = mvc
+                .perform(
+                    get("/member/api/v1/adm/members")
+                        .param("page", "1")
+                        .param("pageSize", "10")
+                        .param("kwType", "ALL")
+                        .param("kw", "guide")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(3))
+                .andExpect(jsonPath("$.content[*].username").value(Matchers.containsInAnyOrder("guide-search", "dev-guide", "android-guide")))
+                .andExpect(jsonPath("$.content[*].name").value(Matchers.hasItem("개발 가이드")))
+                .andExpect(jsonPath("$.content[*].name").value(Matchers.hasItem("안드로이드 레시피")))
+        }
+
+        @Test
+        @WithUserDetails("admin")
+        fun `성공 - GET member api v1 adm members?kw=guide (kwType 생략 시 ALL)`() {
+            makeMemberSearchFixture()
+
+            val resultActions = mvc
+                .perform(
+                    get("/member/api/v1/adm/members?page=1&pageSize=10&kw=guide")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content.length()").value(3))
+                .andExpect(jsonPath("$.content[*].username").value(Matchers.containsInAnyOrder("guide-search", "dev-guide", "android-guide")))
+                .andExpect(jsonPath("$.content[*].name").value(Matchers.hasItem("개발 가이드")))
+                .andExpect(jsonPath("$.content[*].name").value(Matchers.hasItem("안드로이드 레시피")))
         }
 
         @Test
