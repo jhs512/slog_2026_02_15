@@ -1,14 +1,23 @@
 package com.back.boundedContexts.member.out.shared
 
 import com.back.boundedContexts.member.domain.shared.Member
+import com.back.boundedContexts.member.domain.shared.QMember.member
 import com.back.standard.dto.member.type1.MemberSearchKeywordType1
+import com.back.standard.util.QueryDslUtil
+import com.querydsl.core.BooleanBuilder
+import com.querydsl.core.types.dsl.StringPath
+import com.querydsl.jpa.impl.JPAQuery
+import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
+import org.springframework.data.support.PageableExecutionUtils
 
-class MemberRepositoryImpl : MemberRepositoryCustom {
+class MemberRepositoryImpl(
+    private val queryFactory: JPAQueryFactory,
+) : MemberRepositoryCustom {
+
     @field:PersistenceContext
     private lateinit var entityManager: EntityManager
 
@@ -23,155 +32,78 @@ class MemberRepositoryImpl : MemberRepositoryCustom {
     override fun findQPagedByKw(
         kwType: MemberSearchKeywordType1,
         kw: String,
-        pageable: Pageable
+        pageable: Pageable,
     ): Page<Member> {
-        val searchClause = buildWhereClause(kwType, kw)
+        val builder = BooleanBuilder()
 
-        val members = findMembersByCriteria(searchClause, pageable)
-        val totalCount = countMembersByCriteria(searchClause)
+        if (kw.isNotBlank()) builder.and(buildKwPredicate(kwType, kw))
 
-        return PageImpl(members, pageable, totalCount)
+        val itemsQuery = createItemsQuery(builder, pageable)
+        val countQuery = createCountQuery(builder)
+
+        return PageableExecutionUtils.getPage(
+            itemsQuery.fetch(),
+            pageable,
+        ) { countQuery.fetchOne() ?: 0L }
     }
 
-    private fun findMembersByCriteria(searchClause: SearchClause?, pageable: Pageable): List<Member> {
-        val orderBy = pageable.orderBySql()
+    private fun buildKwPredicate(kwType: MemberSearchKeywordType1, kw: String): com.querydsl.core.types.Predicate {
+        val cols = targetCols(kwType)
 
-        val sql = buildString {
-            append("SELECT * FROM member")
-            searchClause?.whereClause?.let { append(" WHERE ").append(it) }
-            if (orderBy.isNotBlank()) append(" ORDER BY ").append(orderBy)
-        }
-
-        val query = entityManager
-            .createNativeQuery(sql, Member::class.java)
-            .apply {
-                searchClause?.keywordParameters?.forEach { (name, value) ->
-                    setParameter(name, value)
-                }
+        return when {
+            kw.contains(" AND ") -> {
+                val terms = kw.split(" AND ").filter { it.isNotBlank() }
+                val andBuilder = BooleanBuilder()
+                terms.forEach { term -> andBuilder.and(colsContain(cols, term)) }
+                andBuilder
             }
-            .setFirstResult(pageable.offset.toInt())
-            .setMaxResults(pageable.pageSize)
-
-        @Suppress("UNCHECKED_CAST")
-        return query.resultList as List<Member>
-    }
-
-    private fun countMembersByCriteria(searchClause: SearchClause?): Long {
-        val sql = buildString {
-            append("SELECT COUNT(*) FROM member")
-            searchClause?.whereClause?.let { append(" WHERE ").append(it) }
-        }
-
-        val query = entityManager.createNativeQuery(sql)
-        searchClause?.keywordParameters?.forEach { (name, value) ->
-            query.setParameter(name, value)
-        }
-
-        return (query.singleResult as Number).toLong()
-    }
-
-    private fun buildWhereClause(kwType: MemberSearchKeywordType1, kw: String): SearchClause? {
-        if (kw.isBlank()) return null
-
-        val operator = when {
-            kw.contains(" AND ") -> SearchOperator.AND
-            kw.contains(" OR ") -> SearchOperator.OR
-            else -> SearchOperator.NONE
-        }
-
-        val terms = when (operator) {
-            SearchOperator.NONE -> listOf(kw)
-            SearchOperator.OR -> kw.split(" OR ").filter { it.isNotBlank() }
-            SearchOperator.AND -> kw.split(" AND ").filter { it.isNotBlank() }
-        }
-
-        if (terms.isEmpty()) return null
-
-        return when (operator) {
-            SearchOperator.NONE -> buildSingleClause(kwType, terms.first())
-            SearchOperator.OR -> buildGroupClause(kwType, terms, "OR")
-            SearchOperator.AND -> buildGroupClause(kwType, terms, "AND")
+            kw.contains(" OR ") -> {
+                val terms = kw.split(" OR ").filter { it.isNotBlank() }
+                val orBuilder = BooleanBuilder()
+                terms.forEach { term -> orBuilder.or(colsContain(cols, term)) }
+                orBuilder
+            }
+            else -> colsContain(cols, kw)
         }
     }
 
-    private fun buildSingleClause(kwType: MemberSearchKeywordType1, term: String): SearchClause {
-        val targetColumns = targetColumns(kwType)
-
-        return when (kwType) {
-            MemberSearchKeywordType1.USERNAME, MemberSearchKeywordType1.NICKNAME, MemberSearchKeywordType1.ALL ->
-                SearchClause(buildLikeClause(targetColumns, "kw0"), mapOf("kw0" to likePattern(term)))
-        }
-    }
-
-    private fun buildGroupClause(
-        kwType: MemberSearchKeywordType1,
-        terms: List<String>,
-        separator: String
-    ): SearchClause {
-        val clauses = mutableListOf<String>()
-        val parameters = linkedMapOf<String, Any>()
-        val targetColumns = targetColumns(kwType)
-
-        terms.forEachIndexed { index, term ->
-            val position = index + 1
-            val clause = buildLikeClause(targetColumns, "kw$position")
-            clauses.add("($clause)")
-            parameters["kw$position"] = likePattern(term)
-        }
-
-        val sql = clauses.joinToString(" $separator ") { it }
-        val safeSql = if (terms.size > 1) "($sql)" else sql
-
-        return SearchClause(safeSql, parameters)
-    }
-
-    private fun targetColumns(kwType: MemberSearchKeywordType1): List<String> =
+    private fun targetCols(kwType: MemberSearchKeywordType1): List<StringPath> =
         when (kwType) {
-            MemberSearchKeywordType1.USERNAME -> listOf("username")
-            MemberSearchKeywordType1.NICKNAME -> listOf("nickname")
-            MemberSearchKeywordType1.ALL -> listOf("username", "nickname")
+            MemberSearchKeywordType1.USERNAME -> listOf(member.username)
+            MemberSearchKeywordType1.NICKNAME -> listOf(member.nickname)
+            MemberSearchKeywordType1.ALL -> listOf(member.username, member.nickname)
         }
 
-    private fun buildLikeClause(columns: List<String>, paramName: String): String {
-        val clause = columns.joinToString(" OR ") { "$it LIKE :$paramName ESCAPE '\\'" }
-        return if (columns.size == 1) clause else "($clause)"
+    private fun colsContain(cols: List<StringPath>, term: String): com.querydsl.core.types.Predicate {
+        val orBuilder = BooleanBuilder()
+        cols.forEach { col -> orBuilder.or(col.containsIgnoreCase(term)) }
+        return orBuilder
     }
 
-    private fun likePattern(term: String): String {
-        val escaped = term
-            .replace("\\", "\\\\")
-            .replace("%", "\\%")
-            .replace("_", "\\_")
-        return "%$escaped%"
-    }
+    private fun createItemsQuery(builder: BooleanBuilder, pageable: Pageable): JPAQuery<Member> {
+        val query = queryFactory
+            .selectFrom(member)
+            .where(builder)
 
-    private fun Pageable.orderBySql(): String {
-        return this.sort
-            .asSequence()
-            .mapNotNull { order ->
-                val column = when (order.property) {
-                    "createdAt" -> "created_at"
-                    "id" -> "id"
-                    "username" -> "username"
-                    "nickname" -> "nickname"
-                    else -> null
-                }
-                val direction = if (order.isAscending) "ASC" else "DESC"
-                "$column $direction"
+        QueryDslUtil.applySorting(query, pageable) { property ->
+            when (property) {
+                "createdAt" -> member.createdAt
+                "username" -> member.username
+                "nickname" -> member.nickname
+                else -> null
             }
-            .joinToString(", ")
-            .ifBlank { "id DESC" }
+        }
+
+        if (pageable.sort.isEmpty) query.orderBy(member.id.desc())
+
+        return query
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
     }
 
-    private data class SearchClause(
-        val whereClause: String,
-        val keywordParameters: Map<String, Any>,
-    )
-
-    private enum class SearchOperator {
-        NONE,
-        AND,
-        OR,
-    }
-
+    private fun createCountQuery(builder: BooleanBuilder): JPAQuery<Long> =
+        queryFactory
+            .select(member.count())
+            .from(member)
+            .where(builder)
 }

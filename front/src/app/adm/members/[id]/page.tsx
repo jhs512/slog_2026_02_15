@@ -8,6 +8,8 @@ import withAdmin from "@/global/auth/hoc/withAdmin";
 import type { components } from "@/global/backend/apiV1/schema";
 import client from "@/global/backend/client";
 
+import { Button } from "@/components/ui/button";
+
 type MemberWithUsernameDto = components["schemas"]["MemberWithUsernameDto"];
 
 export default withAdmin(function Page({
@@ -34,50 +36,43 @@ export default withAdmin(function Page({
 
   if (member == null) return <div>로딩중...</div>;
 
-  return (
-    <>
-      <h1>회원 정보</h1>
+  const rows: { label: string; value: React.ReactNode }[] = [
+    { label: "ID", value: member.id },
+    { label: "아이디", value: member.username },
+    { label: "이름", value: member.name },
+    { label: "관리자 여부", value: member.isAdmin ? "예" : "아니오" },
+    { label: "가입일", value: new Date(member.createdAt).toLocaleString() },
+    { label: "수정일", value: new Date(member.modifiedAt).toLocaleString() },
+  ];
 
-      <div>
+  return (
+    <div className="container mx-auto px-4 py-6 max-w-2xl">
+      <h1 className="text-2xl font-bold text-center my-4">회원 정보</h1>
+
+      <div className="flex justify-center mb-6">
         <img
           src={member.profileImageUrl}
           alt={`${member.name} 프로필`}
-          style={{ width: 100, height: 100, borderRadius: "50%" }}
+          className="w-24 h-24 rounded-full object-cover"
         />
       </div>
 
-      <table>
-        <tbody>
-          <tr>
-            <th>ID</th>
-            <td>{member.id}</td>
-          </tr>
-          <tr>
-            <th>아이디</th>
-            <td>{member.username}</td>
-          </tr>
-          <tr>
-            <th>이름</th>
-            <td>{member.name}</td>
-          </tr>
-          <tr>
-            <th>관리자 여부</th>
-            <td>{member.isAdmin ? "예" : "아니오"}</td>
-          </tr>
-          <tr>
-            <th>가입일</th>
-            <td>{new Date(member.createdAt).toLocaleString()}</td>
-          </tr>
-          <tr>
-            <th>수정일</th>
-            <td>{new Date(member.modifiedAt).toLocaleString()}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div style={{ marginTop: 20 }}>
-        <Link href="/adm/members">목록으로</Link>
+      <div className="border rounded-lg overflow-hidden">
+        {rows.map(({ label, value }) => (
+          <div key={label} className="flex border-b last:border-b-0 text-sm">
+            <div className="w-32 shrink-0 px-4 py-3 font-medium bg-muted text-muted-foreground">
+              {label}
+            </div>
+            <div className="px-4 py-3">{value}</div>
+          </div>
+        ))}
       </div>
-    </>
+
+      <div className="mt-6">
+        <Button variant="outline" asChild>
+          <Link href="/adm/members">목록으로</Link>
+        </Button>
+      </div>
+    </div>
   );
 });

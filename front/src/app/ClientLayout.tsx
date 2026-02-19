@@ -46,7 +46,11 @@ export default function ClientLayout({
               </Link>
             </Button>
             <Button variant="link" asChild>
-              <Link href={isLogin && isAdmin ? "/adm/members" : "/adm/members/login"}>
+              <Link
+                href={
+                  isLogin && isAdmin ? "/adm/members" : "/adm/members/login"
+                }
+              >
                 {isLogin && isAdmin ? <MonitorCog /> : <LogIn />}
                 {isLogin && isAdmin ? "관리자 메뉴" : "관리자"}
               </Link>

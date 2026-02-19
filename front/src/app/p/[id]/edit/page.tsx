@@ -315,7 +315,7 @@ export default withLogin(function Page({
                       <Textarea
                         {...field}
                         placeholder="내용을 입력하세요"
-                        className="h-[calc(100dvh-100px)] resize-y"
+                        className="h-[calc(100dvh-150px)] resize-y"
                       />
                     </FormControl>
                     <FormMessage />

@@ -9,7 +9,11 @@ export default function withLogin<P extends object>(
     const { isLogin } = useAuthContext();
 
     if (!isLogin) {
-      return <div>로그인 후 이용해주세요.</div>;
+      return (
+        <div className="flex flex-col items-center justify-center py-24 text-muted-foreground gap-2">
+          <span className="text-lg font-medium">로그인 후 이용해주세요.</span>
+        </div>
+      );
     }
 
     return <Component {...props} />;

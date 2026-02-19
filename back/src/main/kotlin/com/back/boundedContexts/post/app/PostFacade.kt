@@ -22,6 +22,7 @@ import com.back.boundedContexts.post.out.PostCommentRepository
 import com.back.boundedContexts.post.out.PostLikeRepository
 import com.back.boundedContexts.post.out.PostRepository
 import com.back.global.event.app.EventPublisher
+import com.back.standard.dto.post.type1.PostSearchKeywordType1
 import com.back.standard.dto.post.type1.PostSearchSortType1
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -83,13 +84,6 @@ class PostFacade(
 
         post.modify(title, content, published, listed)
 
-        val isNowPublishedAndListed = post.published && post.listed
-
-        // 처음 공개될 때만 알림
-        if (!wasPublishedAndListed && isNowPublishedAndListed) {
-            postNotificationService.notifyNewPost(post)
-        }
-
         // 글 본문 변경사항 구독자에게 알림
         postNotificationService.notifyPostModified(post)
 
@@ -104,12 +98,14 @@ class PostFacade(
 
     fun findPagedByAuthor(
         author: Member,
+        kwType: PostSearchKeywordType1,
         kw: String,
         sort: PostSearchSortType1,
         page: Int,
         pageSize: Int,
     ): Page<Post> = postRepository.findQPagedByAuthorAndKw(
         author,
+        kwType,
         kw,
         PageRequest.of(page - 1, pageSize, sort.sortBy)
     )
@@ -244,18 +240,16 @@ class PostFacade(
 
 
     fun findPagedByKw(
+        kwType: PostSearchKeywordType1,
         kw: String,
         sort: PostSearchSortType1,
         page: Int,
-        pageSize: Int
+        pageSize: Int,
     ): Page<Post> =
         postRepository.findQPagedByKw(
+            kwType,
             kw,
-            PageRequest.of(
-                page - 1,
-                pageSize,
-                sort.sortBy
-            )
+            PageRequest.of(page - 1, pageSize, sort.sortBy)
         )
 
     fun findLikedPostIds(liker: Member?, posts: List<Post>): Set<Int> {

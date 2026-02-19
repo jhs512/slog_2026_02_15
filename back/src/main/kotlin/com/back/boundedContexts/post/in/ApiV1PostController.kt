@@ -9,6 +9,7 @@ import com.back.boundedContexts.post.dto.PostWithContentDto
 import com.back.global.dto.RsData
 import com.back.global.exception.app.BusinessException
 import com.back.global.web.util.Rq
+import com.back.standard.dto.post.type1.PostSearchKeywordType1
 import com.back.standard.dto.post.type1.PostSearchSortType1
 import com.back.standard.extensions.getOrThrow
 import io.swagger.v3.oas.annotations.Operation
@@ -59,28 +60,21 @@ class ApiV1PostController(
     fun getItems(
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(defaultValue = "30") pageSize: Int,
+        @RequestParam(defaultValue = "ALL") kwType: PostSearchKeywordType1,
         @RequestParam(defaultValue = "") kw: String,
         @RequestParam(defaultValue = "CREATED_AT") sort: PostSearchSortType1,
     ): PageDto<PostDto> {
-        val page: Int = if (page >= 1) {
-            page
-        } else {
-            1
-        }
-
-        val pageSize: Int = if (pageSize in 1..30) {
-            pageSize
-        } else {
-            30
-        }
+        val validPage = page.coerceAtLeast(1)
+        val validPageSize = pageSize.coerceIn(1, 30)
 
         val postPage = postFacade.findPagedByKw(
+            kwType,
             kw,
             sort,
-            page,
-            pageSize
+            validPage,
+            validPageSize,
         )
-        
+
         return makePostDtoPage(postPage)
     }
 
@@ -218,6 +212,7 @@ class ApiV1PostController(
     fun getMine(
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(defaultValue = "30") pageSize: Int,
+        @RequestParam(defaultValue = "ALL") kwType: PostSearchKeywordType1,
         @RequestParam(defaultValue = "") kw: String,
         @RequestParam(defaultValue = "CREATED_AT") sort: PostSearchSortType1,
     ): PageDto<PostDto> {
@@ -226,6 +221,7 @@ class ApiV1PostController(
 
         val postPage = postFacade.findPagedByAuthor(
             rq.actor,
+            kwType,
             kw,
             sort,
             validPage,
@@ -245,7 +241,7 @@ class ApiV1PostController(
         return if (isNew) {
             RsData("201-1", "임시저장 글이 생성되었습니다.", makePostWithContentDto(post))
         } else {
-            RsData("200-1", "기존 임시저장 글을 반환합니다.", makePostWithContentDto(post))
+            RsData("200-1", "기존 임시저장 글을 불러옵니다.", makePostWithContentDto(post))
         }
     }
 
