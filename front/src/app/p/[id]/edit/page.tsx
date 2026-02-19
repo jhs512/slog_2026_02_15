@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect } from "react";
 
 import usePost from "@/domain/post/hooks/usePost";
 import withLogin from "@/global/auth/hoc/withLogin";
@@ -136,7 +136,7 @@ export default withLogin(function Page({
         },
       });
     },
-    [post, setPost, id, router],
+    [form, post, setPost, id, router],
   );
 
   useEffect(() => {

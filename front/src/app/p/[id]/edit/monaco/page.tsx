@@ -2,9 +2,6 @@
 
 import { useTheme } from "next-themes";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-
 import { use, useEffect, useRef, useState } from "react";
 
 import usePost from "@/domain/post/hooks/usePost";
@@ -85,7 +82,6 @@ export default withLogin(function Page({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const router = useRouter();
   const { resolvedTheme } = useTheme();
 
   const { id: idStr } = use(params);

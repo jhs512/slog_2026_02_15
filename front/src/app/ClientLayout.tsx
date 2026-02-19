@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { useEffect } from "react";
-
 import NewPostNotification from "@/domain/post/components/NewPostNotification";
 import { useAuthContext } from "@/global/auth/hooks/useAuth";
 
@@ -21,6 +19,8 @@ export default function ClientLayout({
   children: React.ReactNode;
 }>) {
   const { isPending } = useAuthContext();
+  const pathname = usePathname();
+  const isEditPage = pathname.match(/^\/p\/\d+\/edit(\/monaco)?$/);
 
   if (isPending) {
     return (
@@ -29,9 +29,6 @@ export default function ClientLayout({
       </div>
     );
   }
-
-  const pathname = usePathname();
-  const isEditPage = pathname.match(/^\/p\/\d+\/edit(\/monaco)?$/);
 
   return (
     <>

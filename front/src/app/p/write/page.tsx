@@ -18,12 +18,12 @@ export default withLogin(function Page() {
 
       if (response.error) {
         toast.error(response.error.msg);
-        router.replace("/posts");
+        router.replace("/p");
         return;
       }
 
       toast(response.data.msg);
-      router.replace(`/posts/${response.data.data.id}/edit`);
+      router.replace(`/p/${response.data.data.id}/edit`);
     };
 
     createTemp();
