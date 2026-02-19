@@ -2,77 +2,104 @@ package com.back.boundedContexts.post.out
 
 import com.back.boundedContexts.member.domain.shared.Member
 import com.back.boundedContexts.post.domain.Post
-import com.back.boundedContexts.post.domain.QPost.post
-import com.back.standard.util.QueryDslUtil
-import com.querydsl.core.BooleanBuilder
-import com.querydsl.core.types.dsl.BooleanExpression
-import com.querydsl.core.types.dsl.Expressions
-import com.querydsl.core.types.dsl.StringPath
-import com.querydsl.jpa.impl.JPAQuery
-import com.querydsl.jpa.impl.JPAQueryFactory
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
+import jakarta.persistence.Query
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.support.PageableExecutionUtils
+import org.springframework.data.domain.PageImpl
 
 class PostRepositoryImpl(
-    private val queryFactory: JPAQueryFactory
+    @field:PersistenceContext
+    private val entityManager: EntityManager
 ) : PostRepositoryCustom {
     override fun findQPagedByAuthorAndKw(author: Member, kw: String, pageable: Pageable): Page<Post> {
-        val builder = BooleanBuilder()
-        builder.and(post.author.eq(author))
-        applyKwFilter(builder, kw)
-
-        return findPosts(pageable, builder)
+        return findPosts(author, kw, pageable)
     }
 
     override fun findQPagedByKw(kw: String, pageable: Pageable): Page<Post> {
-        val builder = BooleanBuilder()
-        applyKwFilter(builder, kw)
-
-        return findPosts(pageable, builder)
+        return findPosts(null, kw, pageable)
     }
 
-    private fun applyKwFilter(builder: BooleanBuilder, kw: String) {
-        if (kw.isBlank()) return
-        // PGroonga 쿼리 문법을 그대로 전달해 title/content 구분과 AND/OR/NOT 동작을 위임
-        builder.and(pgroongaMatch(post.title, kw).or(pgroongaMatch(post.content, kw)))
-    }
+    private fun findPosts(author: Member?, kw: String, pageable: Pageable): Page<Post> {
+        val filterClauses = mutableListOf<String>()
+        val parameters = mutableMapOf<String, Any>()
 
-    private fun findPosts(pageable: Pageable, builder: BooleanBuilder): Page<Post> {
-        val query = buildPostListQuery().where(builder)
-
-        QueryDslUtil.applySorting(query, pageable) { property ->
-            when (property) {
-                "createdAt" -> post.createdAt
-                "modifiedAt" -> post.modifiedAt
-                "authorName" -> post.author.nickname
-                else -> null
-            }
+        if (author != null) {
+            filterClauses.add("p.author_id = :authorId")
+            parameters["authorId"] = author.id
         }
 
-        val results = query
-            .offset(pageable.offset)
-            .limit(pageable.pageSize.toLong())
-            .fetch()
+        if (kw.isNotBlank()) {
+            filterClauses.add("(p.title &@~ :kw OR p.content &@~ :kw)")
+            parameters["kw"] = kw
+        }
 
-        val totalQuery = queryFactory
-            .select(post.count())
-            .from(post)
-            .where(builder)
+        val whereClause = if (filterClauses.isEmpty()) "" else " WHERE ${filterClauses.joinToString(" AND ")}"
 
-        return PageableExecutionUtils.getPage(results, pageable) {
-            totalQuery.fetchFirst() ?: 0L
+        val sort = buildSortClause(pageable)
+
+        val querySql = buildString {
+            append("SELECT p.* FROM post p")
+            if (sort.requiresAuthorJoin) append(" INNER JOIN member m ON m.id = p.author_id")
+            append(whereClause)
+            append(" ORDER BY ").append(sort.sql)
+        }
+
+        val query = createNativeQuery(querySql)
+            .setFirstResult(pageable.offset.toInt())
+            .setMaxResults(pageable.pageSize)
+
+        applyParameters(query, parameters)
+
+        @Suppress("UNCHECKED_CAST")
+        val content = query.resultList as List<Post>
+
+        val countSql = buildString {
+            append("SELECT COUNT(*) FROM post p")
+            append(whereClause)
+        }
+        val countQuery = createNativeQuery(countSql, false)
+        applyParameters(countQuery, parameters)
+        val total = (countQuery.singleResult as Number).toLong()
+
+        return PageImpl(content, pageable, total)
+    }
+
+    private fun createNativeQuery(sql: String, withEntity: Boolean = true): Query =
+        if (withEntity) {
+            entityManager.createNativeQuery(sql, Post::class.java)
+        } else {
+            entityManager.createNativeQuery(sql)
+        }
+
+    private fun applyParameters(query: Query, parameters: Map<String, Any>) {
+        parameters.forEach { (name, value) ->
+            query.setParameter(name, value)
         }
     }
 
-    /** PGroonga &@~ 연산자를 QueryDSL 표현식으로 래핑 */
-    private fun pgroongaMatch(field: StringPath, query: String): BooleanExpression =
-        Expressions.booleanTemplate("({0} &@~ {1})", field, query)
+    private data class SortClause(
+        val sql: String,
+        val requiresAuthorJoin: Boolean = false,
+    )
 
-    private fun buildPostListQuery(): JPAQuery<Post> = queryFactory
-        .selectFrom(post)
-        .leftJoin(post.author).fetchJoin()
-        .leftJoin(post.likesCountAttr).fetchJoin()
-        .leftJoin(post.commentsCountAttr).fetchJoin()
-        .leftJoin(post.hitCountAttr).fetchJoin()
+    private fun buildSortClause(pageable: Pageable): SortClause {
+        val order = pageable.sort.firstOrNull() ?: return SortClause("p.id DESC")
+
+        val orderBySql = order.propertyToSql()
+        val direction = if (order.isAscending) "ASC" else "DESC"
+
+        return when {
+            order.property == "authorName" -> SortClause("m.nickname $direction, p.id DESC", true)
+            else -> SortClause("p.$orderBySql $direction")
+        }
+    }
+
+    private fun org.springframework.data.domain.Sort.Order.propertyToSql(): String =
+        when (property) {
+            "createdAt" -> "created_at"
+            "modifiedAt" -> "modified_at"
+            else -> property
+        }
 }
