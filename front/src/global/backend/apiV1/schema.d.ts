@@ -719,7 +719,6 @@ export interface operations {
             query?: {
                 page?: number;
                 pageSize?: number;
-                kwType?: "ALL";
                 kw?: string;
                 sort?: "CREATED_AT" | "CREATED_AT_ASC" | "MODIFIED_AT" | "MODIFIED_AT_ASC" | "AUTHOR_NAME" | "AUTHOR_NAME_ASC";
             };
@@ -1010,6 +1009,8 @@ export interface operations {
             query?: {
                 page?: number;
                 pageSize?: number;
+                kw?: string;
+                sort?: "CREATED_AT" | "CREATED_AT_ASC" | "MODIFIED_AT" | "MODIFIED_AT_ASC" | "AUTHOR_NAME" | "AUTHOR_NAME_ASC";
             };
             header?: never;
             path?: never;

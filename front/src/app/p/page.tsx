@@ -38,12 +38,12 @@ type PostSort =
   | "AUTHOR_NAME_ASC";
 
 const SORT_OPTIONS: { value: PostSort; label: string }[] = [
-  { value: "CREATED_AT", label: "최신순" },
-  { value: "CREATED_AT_ASC", label: "오래된순" },
-  { value: "MODIFIED_AT", label: "수정일 최신순" },
-  { value: "MODIFIED_AT_ASC", label: "수정일 오래된순" },
-  { value: "AUTHOR_NAME", label: "작성자 역순" },
-  { value: "AUTHOR_NAME_ASC", label: "작성자순" },
+  { value: "CREATED_AT", label: "작성일 ↓" },
+  { value: "CREATED_AT_ASC", label: "작성일 ↑" },
+  { value: "MODIFIED_AT", label: "수정일 ↓" },
+  { value: "MODIFIED_AT_ASC", label: "수정일 ↑" },
+  { value: "AUTHOR_NAME", label: "작성자 ↓" },
+  { value: "AUTHOR_NAME_ASC", label: "작성자 ↑" },
 ];
 
 function formatDate(dateString: string): string {
@@ -70,7 +70,7 @@ function PageContent() {
   const searchParams = useSearchParams();
 
   const currentPage = Number(searchParams.get("page") || "1");
-  const currentPageSize = Number(searchParams.get("pageSize") || "5");
+  const currentPageSize = Number(searchParams.get("pageSize") || "30");
   const currentKw = searchParams.get("kw") || "";
   const currentSort = (searchParams.get("sort") || "CREATED_AT") as PostSort;
 

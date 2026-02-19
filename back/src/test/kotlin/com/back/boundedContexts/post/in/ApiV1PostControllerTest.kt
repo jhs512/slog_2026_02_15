@@ -2,7 +2,6 @@ package com.back.boundedContexts.post.`in`
 
 import com.back.boundedContexts.member.app.shared.ActorFacade
 import com.back.boundedContexts.post.app.PostFacade
-import com.back.standard.dto.post.type1.PostSearchKeywordType1
 import com.back.standard.dto.post.type1.PostSearchSortType1
 import com.back.standard.extensions.getOrThrow
 import org.hamcrest.Matchers
@@ -377,7 +376,6 @@ class ApiV1PostControllerTest {
                 .andDo(print())
 
             val posts = postFacade.findPagedByKw(
-                PostSearchKeywordType1.ALL,
                 "",
                 PostSearchSortType1.CREATED_AT,
                 1,
@@ -400,7 +398,6 @@ class ApiV1PostControllerTest {
                 .andDo(print())
 
             val posts = postFacade.findPagedByKw(
-                PostSearchKeywordType1.ALL,
                 "",
                 PostSearchSortType1.CREATED_AT,
                 1,
@@ -424,7 +421,6 @@ class ApiV1PostControllerTest {
                 .andDo(print())
 
             val posts = postFacade.findPagedByKw(
-                PostSearchKeywordType1.ALL,
                 "   ",
                 PostSearchSortType1.CREATED_AT,
                 1,
@@ -447,7 +443,6 @@ class ApiV1PostControllerTest {
                 .andDo(print())
 
             val postPage = postFacade.findPagedByKw(
-                PostSearchKeywordType1.ALL,
                 "",
                 PostSearchSortType1.CREATED_AT,
                 1,
@@ -493,6 +488,169 @@ class ApiV1PostControllerTest {
                 .andExpect(handler().methodName("getItems"))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.content").isArray)
+        }
+
+        @Test
+        fun `성공 - PGroonga title 필드 지정 검색`() {
+            val actor = actorFacade.findByUsername("user1").getOrThrow()
+            val titleOnlyPost = postFacade.write(
+                actor,
+                "title:@스프링 고급",
+                "백엔드와 안드로이드 이야기"
+            )
+            val contentOnlyPost = postFacade.write(
+                actor,
+                "일반 글 1",
+                "content:@스프링 기본 문서"
+            )
+
+            val resultActions = mvc
+                .perform(
+                    get("/post/api/v1/posts")
+                        .param("kw", "title:@스프링")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1PostController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.hasItem(titleOnlyPost.id)))
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(contentOnlyPost.id))))
+        }
+
+        @Test
+        fun `성공 - PGroonga content 필드 지정 검색`() {
+            val actor = actorFacade.findByUsername("user1").getOrThrow()
+            val contentOnlyPost = postFacade.write(
+                actor,
+                "자바 소개 글",
+                "content:@자바 핵심 정리"
+            )
+            val titleOnlyPost = postFacade.write(
+                actor,
+                "title:@자바 개념 정리",
+                "스프링 기초부터 시작"
+            )
+
+            val resultActions = mvc
+                .perform(
+                    get("/post/api/v1/posts")
+                        .param("kw", "content:@자바")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1PostController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.hasItem(contentOnlyPost.id)))
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(titleOnlyPost.id))))
+        }
+
+        @Test
+        fun `성공 - PGroonga 플러스 마이너스 연산자 검색`() {
+            val actor = actorFacade.findByUsername("user1").getOrThrow()
+            val targetPost = postFacade.write(
+                actor,
+                "PGroonga +스프링 대상",
+                "실험용 내용"
+            )
+            val excludedByNotPost = postFacade.write(
+                actor,
+                "PGroonga 스프링 자바 혼합",
+                "제외 대상"
+            )
+            val excludedByMissingPlusPost = postFacade.write(
+                actor,
+                "일반 글",
+                "자바만 포함된 글"
+            )
+
+            val resultActions = mvc
+                .perform(
+                    get("/post/api/v1/posts")
+                        .param("kw", "+스프링 -자바")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1PostController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.hasItem(targetPost.id)))
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(excludedByNotPost.id))))
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(excludedByMissingPlusPost.id))))
+        }
+
+        @Test
+        fun `성공 - PGroonga OR 연산자 검색`() {
+            val actor = actorFacade.findByUsername("user1").getOrThrow()
+            val springPost = postFacade.write(
+                actor,
+                "PGroonga 제목-스프링",
+                "일반 본문"
+            )
+            val javaPost = postFacade.write(
+                actor,
+                "일반 제목",
+                "PGroonga content-자바"
+            )
+            val irrelevantPost = postFacade.write(
+                actor,
+                "연관 없는 제목",
+                "전혀 관련없는 내용"
+            )
+
+            val resultActions = mvc
+                .perform(
+                    get("/post/api/v1/posts")
+                        .param("kw", "스프링 OR 자바")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1PostController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.hasItem(springPost.id)))
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.hasItem(javaPost.id)))
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(irrelevantPost.id))))
+        }
+
+        @Test
+        fun `성공 - PGroonga AND(플러스) 연산자 검색`() {
+            val actor = actorFacade.findByUsername("user1").getOrThrow()
+            val bothPost = postFacade.write(
+                actor,
+                "PGroonga 스프링 자바 동시 포함",
+                "내용"
+            )
+            val springOnlyPost = postFacade.write(
+                actor,
+                "PGroonga 스프링 만 존재",
+                "일반 본문"
+            )
+            val javaOnlyPost = postFacade.write(
+                actor,
+                "일반 제목",
+                "PGroonga 자바 만 존재"
+            )
+
+            val resultActions = mvc
+                .perform(
+                    get("/post/api/v1/posts")
+                        .param("kw", "+스프링 +자바")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1PostController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.hasItem(bothPost.id)))
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(springOnlyPost.id))))
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(javaOnlyPost.id))))
         }
     }
 

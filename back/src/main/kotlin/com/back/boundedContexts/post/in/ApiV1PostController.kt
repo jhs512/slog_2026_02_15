@@ -9,7 +9,6 @@ import com.back.boundedContexts.post.dto.PostWithContentDto
 import com.back.global.dto.RsData
 import com.back.global.exception.app.BusinessException
 import com.back.global.web.util.Rq
-import com.back.standard.dto.post.type1.PostSearchKeywordType1
 import com.back.standard.dto.post.type1.PostSearchSortType1
 import com.back.standard.extensions.getOrThrow
 import io.swagger.v3.oas.annotations.Operation
@@ -59,8 +58,7 @@ class ApiV1PostController(
     @Operation(summary = "다건 조회")
     fun getItems(
         @RequestParam(defaultValue = "1") page: Int,
-        @RequestParam(defaultValue = "5") pageSize: Int,
-        @RequestParam(defaultValue = "ALL") kwType: PostSearchKeywordType1,
+        @RequestParam(defaultValue = "30") pageSize: Int,
         @RequestParam(defaultValue = "") kw: String,
         @RequestParam(defaultValue = "CREATED_AT") sort: PostSearchSortType1,
     ): PageDto<PostDto> {
@@ -77,7 +75,6 @@ class ApiV1PostController(
         }
 
         val postPage = postFacade.findPagedByKw(
-            kwType,
             kw,
             sort,
             page,
@@ -221,12 +218,16 @@ class ApiV1PostController(
     fun getMine(
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(defaultValue = "10") pageSize: Int,
+        @RequestParam(defaultValue = "") kw: String,
+        @RequestParam(defaultValue = "CREATED_AT") sort: PostSearchSortType1,
     ): PageDto<PostDto> {
         val validPage = page.coerceAtLeast(1)
         val validPageSize = pageSize.coerceIn(1, 30)
 
         val postPage = postFacade.findPagedByAuthor(
             rq.actor,
+            kw,
+            sort,
             validPage,
             validPageSize,
         )

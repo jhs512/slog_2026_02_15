@@ -45,7 +45,7 @@ function PageContent() {
   const searchParams = useSearchParams();
 
   const currentPage = Number(searchParams.get("page") || "1");
-  const currentPageSize = Number(searchParams.get("pageSize") || "5");
+  const currentPageSize = Number(searchParams.get("pageSize") || "30");
   const currentKwType = (searchParams.get("kwType") || "ALL") as MemberKwType;
   const currentKw = searchParams.get("kw") || "";
   const currentSort = (searchParams.get("sort") || "CREATED_AT") as MemberSort;

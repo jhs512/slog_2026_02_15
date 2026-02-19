@@ -12,8 +12,10 @@ import client from "@/global/backend/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 import {
+  ArrowUpDown,
   ChevronLeft,
   ChevronRight,
   Eye,
@@ -25,6 +27,18 @@ import {
 
 type PostDto = components["schemas"]["PostDto"];
 type PageableDto = components["schemas"]["PageableDto"];
+type PostSort =
+  | "CREATED_AT"
+  | "CREATED_AT_ASC"
+  | "MODIFIED_AT"
+  | "MODIFIED_AT_ASC";
+
+const SORT_OPTIONS: { value: PostSort; label: string }[] = [
+  { value: "CREATED_AT", label: "작성일 ↓" },
+  { value: "CREATED_AT_ASC", label: "작성일 ↑" },
+  { value: "MODIFIED_AT", label: "수정일 ↓" },
+  { value: "MODIFIED_AT_ASC", label: "수정일 ↑" },
+];
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -42,11 +56,14 @@ function PageContent() {
   const searchParams = useSearchParams();
 
   const currentPage = Number(searchParams.get("page") || "1");
-  const currentPageSize = Number(searchParams.get("pageSize") || "10");
+  const currentPageSize = Number(searchParams.get("pageSize") || "30");
+  const currentKw = searchParams.get("kw") || "";
+  const currentSort = (searchParams.get("sort") || "CREATED_AT") as PostSort;
 
   const [posts, setPosts] = useState<PostDto[]>([]);
   const [pageable, setPageable] = useState<PageableDto | null>(null);
   const [loading, setLoading] = useState(true);
+  const [kwInput, setKwInput] = useState(currentKw);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,6 +73,8 @@ function PageContent() {
           query: {
             page: currentPage,
             pageSize: currentPageSize,
+            kw: currentKw,
+            sort: currentSort,
           },
         },
       })
@@ -69,12 +88,31 @@ function PageContent() {
     return () => {
       cancelled = true;
     };
-  }, [currentPage, currentPageSize]);
+  }, [currentPage, currentPageSize, currentKw, currentSort]);
+
+  const updateParams = (params: Record<string, string>) => {
+    const sp = new URLSearchParams(searchParams.toString());
+    for (const [k, v] of Object.entries(params)) {
+      if (v) {
+        sp.set(k, v);
+      } else {
+        sp.delete(k);
+      }
+    }
+    router.push(`?${sp.toString()}`);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateParams({ kw: kwInput, page: "1" });
+  };
+
+  const handleSortChange = (sort: string) => {
+    updateParams({ sort, page: "1" });
+  };
 
   const handlePageChange = (page: number) => {
-    const sp = new URLSearchParams(searchParams.toString());
-    sp.set("page", String(page));
-    router.push(`?${sp.toString()}`);
+    updateParams({ page: String(page) });
   };
 
   if (loading)
@@ -116,11 +154,39 @@ function PageContent() {
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold text-center my-4">내 게시물</h1>
 
+      {/* 검색 */}
+      <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+        <Input
+          placeholder="검색어를 입력하세요"
+          value={kwInput}
+          onChange={(e) => setKwInput(e.target.value)}
+          className="flex-1"
+        />
+        <Button type="submit" variant="outline" size="icon">
+          <Search className="w-4 h-4" />
+        </Button>
+      </form>
+
+      {/* 정렬 + 총 개수 */}
       <div className="flex items-center justify-between mb-6">
         <span className="text-sm text-muted-foreground">
           총 {totalElements}개
         </span>
-        <PostWriteButton />
+        <div className="flex items-center gap-2">
+          <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+          <select
+            value={currentSort}
+            onChange={(e) => handleSortChange(e.target.value)}
+            className="text-sm border rounded px-2 py-1 bg-background"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <PostWriteButton />
+        </div>
       </div>
 
       {posts.length === 0 ? (

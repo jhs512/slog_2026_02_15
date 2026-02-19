@@ -3,9 +3,11 @@ package com.back.boundedContexts.post.out
 import com.back.boundedContexts.member.domain.shared.Member
 import com.back.boundedContexts.post.domain.Post
 import com.back.boundedContexts.post.domain.QPost.post
-import com.back.standard.dto.post.type1.PostSearchKeywordType1
 import com.back.standard.util.QueryDslUtil
 import com.querydsl.core.BooleanBuilder
+import com.querydsl.core.types.dsl.BooleanExpression
+import com.querydsl.core.types.dsl.Expressions
+import com.querydsl.core.types.dsl.StringPath
 import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.data.domain.Page
@@ -15,39 +17,29 @@ import org.springframework.data.support.PageableExecutionUtils
 class PostRepositoryImpl(
     private val queryFactory: JPAQueryFactory
 ) : PostRepositoryCustom {
-    override fun findQPagedByAuthor(author: Member, pageable: Pageable): Page<Post> {
-        val query = buildPostListQuery()
-            .where(post.author.eq(author))
-            .orderBy(post.createdAt.desc(), post.id.desc())
+    override fun findQPagedByAuthorAndKw(author: Member, kw: String, pageable: Pageable): Page<Post> {
+        val builder = BooleanBuilder()
+        builder.and(post.author.eq(author))
+        applyKwFilter(builder, kw)
 
-        val results = query
-            .offset(pageable.offset)
-            .limit(pageable.pageSize.toLong())
-            .fetch()
-
-        val totalQuery = queryFactory
-            .select(post.count())
-            .from(post)
-            .where(post.author.eq(author))
-
-        return PageableExecutionUtils.getPage(results, pageable) {
-            totalQuery.fetchFirst() ?: 0L
-        }
+        return findPosts(pageable, builder)
     }
 
-    override fun findQPagedByKw(kwType: PostSearchKeywordType1, kw: String, pageable: Pageable): Page<Post> {
+    override fun findQPagedByKw(kw: String, pageable: Pageable): Page<Post> {
         val builder = BooleanBuilder()
+        applyKwFilter(builder, kw)
 
-        if (kw.isNotBlank()) {
-            // 정책: 글 검색은 title + content 통합 검색만 허용
-            builder.and(
-                post.title.containsIgnoreCase(kw)
-                    .or(post.content.containsIgnoreCase(kw))
-            )
-        }
+        return findPosts(pageable, builder)
+    }
 
-        val query = buildPostListQuery()
-            .where(builder)
+    private fun applyKwFilter(builder: BooleanBuilder, kw: String) {
+        if (kw.isBlank()) return
+        // PGroonga 쿼리 문법을 그대로 전달해 title/content 구분과 AND/OR/NOT 동작을 위임
+        builder.and(pgroongaMatch(post.title, kw).or(pgroongaMatch(post.content, kw)))
+    }
+
+    private fun findPosts(pageable: Pageable, builder: BooleanBuilder): Page<Post> {
+        val query = buildPostListQuery().where(builder)
 
         QueryDslUtil.applySorting(query, pageable) { property ->
             when (property) {
@@ -72,6 +64,10 @@ class PostRepositoryImpl(
             totalQuery.fetchFirst() ?: 0L
         }
     }
+
+    /** PGroonga &@~ 연산자를 QueryDSL 표현식으로 래핑 */
+    private fun pgroongaMatch(field: StringPath, query: String): BooleanExpression =
+        Expressions.booleanTemplate("({0} &@~ {1})", field, query)
 
     private fun buildPostListQuery(): JPAQuery<Post> = queryFactory
         .selectFrom(post)
