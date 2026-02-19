@@ -31,8 +31,9 @@ class PostRepositoryImpl(
         }
 
         if (kw.isNotBlank()) {
-            filterClauses.add("(p.title &@~ :kw OR p.content &@~ :kw)")
-            parameters["kw"] = kw
+            val searchClause = buildSearchClause(kw)
+            filterClauses.add(searchClause.sql)
+            parameters.putAll(searchClause.params)
         }
 
         val whereClause = if (filterClauses.isEmpty()) "" else " WHERE ${filterClauses.joinToString(" AND ")}"
@@ -64,6 +65,58 @@ class PostRepositoryImpl(
         val total = (countQuery.singleResult as Number).toLong()
 
         return PageImpl(content, pageable, total)
+    }
+
+    private fun buildSearchClause(rawKw: String): SearchClause {
+        val tokens = rawKw.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+        if (tokens.isEmpty()) return SearchClause("1 = 1", emptyMap())
+
+        val hasFieldToken = tokens.any { FIELD_FILTER.matches(it) }
+        if (!hasFieldToken) {
+            return SearchClause("(p.title &@~ :kw OR p.content &@~ :kw)", mapOf("kw" to rawKw))
+        }
+
+        val orGroups = tokens.fold(mutableListOf<MutableList<String>>(mutableListOf())) { groups, token ->
+            if (token.equals("OR", ignoreCase = true)) {
+                groups.add(mutableListOf())
+            } else {
+                groups.last().add(token)
+            }
+            groups
+        }.filter { it.isNotEmpty() }
+
+        val params = linkedMapOf<String, Any>()
+        var paramIndex = 0
+
+        val orClauses = orGroups.map { group ->
+            val andClauses = group.map { token ->
+                val fieldMatch = FIELD_FILTER.matchEntire(token)
+                val paramName = "kw${paramIndex++}"
+
+                if (fieldMatch == null) {
+                    params[paramName] = token
+                    "(p.title &@~ :$paramName OR p.content &@~ :$paramName)"
+                } else {
+                    val sign = fieldMatch.groupValues[1]
+                    val fieldName = fieldMatch.groupValues[2]
+                    val term = "$sign${fieldMatch.groupValues[3]}"
+                    params[paramName] = term
+
+                    val targetColumn = when (fieldName) {
+                        "title" -> "p.title"
+                        "content" -> "p.content"
+                        else -> "p.title"
+                    }
+
+                    "$targetColumn &@~ :$paramName"
+                }
+            }
+
+            if (andClauses.size == 1) andClauses[0] else andClauses.joinToString(prefix = "(", postfix = ")", separator = " AND ")
+        }
+
+        val sql = if (orClauses.size == 1) orClauses[0] else orClauses.joinToString(prefix = "(", postfix = ")", separator = " OR ")
+        return SearchClause(sql, params)
     }
 
     private fun createNativeQuery(sql: String, withEntity: Boolean = true): Query =
@@ -102,4 +155,13 @@ class PostRepositoryImpl(
             "modifiedAt" -> "modified_at"
             else -> property
         }
+
+    private data class SearchClause(
+        val sql: String,
+        val params: Map<String, Any>,
+    )
+
+    private companion object {
+        private val FIELD_FILTER = Regex("^([+-]?)(title|content):(.+)$")
+    }
 }

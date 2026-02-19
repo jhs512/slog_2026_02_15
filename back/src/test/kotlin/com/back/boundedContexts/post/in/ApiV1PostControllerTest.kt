@@ -549,6 +549,41 @@ class ApiV1PostControllerTest {
         }
 
         @Test
+        fun `성공 - PGroonga 제목 본문 각각 필드 지정 검색`() {
+            val actor = actorFacade.findByUsername("user1").getOrThrow()
+            val targetPost = postFacade.write(
+                actor,
+                "title:@스프링 안내",
+                "content:@자바 정리"
+            )
+            val titleOnlyPost = postFacade.write(
+                actor,
+                "title:@스프링 개요",
+                "본문에는 내용이 없음"
+            )
+            val contentOnlyPost = postFacade.write(
+                actor,
+                "일반 제목",
+                "content:@자바는 본문에만 있습니다"
+            )
+
+            val resultActions = mvc
+                .perform(
+                    get("/post/api/v1/posts")
+                        .param("kw", "title:@스프링 content:@자바")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(handler().handlerType(ApiV1PostController::class.java))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.hasItem(targetPost.id)))
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(titleOnlyPost.id))))
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(contentOnlyPost.id))))
+        }
+
+        @Test
         fun `성공 - PGroonga 플러스 마이너스 연산자 검색`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
             val targetPost = postFacade.write(
