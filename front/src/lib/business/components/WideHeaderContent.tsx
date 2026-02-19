@@ -6,7 +6,7 @@ import { useAuthContext } from "@/global/auth/hooks/useAuth";
 
 import { Button } from "@/components/ui/button";
 
-import { NotebookText, TableOfContents } from "lucide-react";
+import { MonitorCog, NotebookText, TableOfContents } from "lucide-react";
 
 import LoginButton from "./LoginButton";
 import Logo from "./Logo";
@@ -19,7 +19,7 @@ export default function WideHeaderContent({
 }: {
   className?: string;
 }) {
-  const { isLogin } = useAuthContext();
+  const { isLogin, isAdmin } = useAuthContext();
 
   return (
     <div className={`${className} container mx-auto px-4 py-1`}>
@@ -47,6 +47,13 @@ export default function WideHeaderContent({
 
       {!isLogin && <LoginButton />}
       {isLogin && <MeMenuButton />}
+      {isLogin && isAdmin && (
+        <Button variant="link" asChild>
+          <Link href="/adm/members">
+            <MonitorCog /> 관리자 메뉴
+          </Link>
+        </Button>
+      )}
       <ThemeToggleButton />
     </div>
   );

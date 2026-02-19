@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import {
   LogOut,
   Menu,
+  MonitorCog,
   NotebookText,
   TableOfContents,
   User,
@@ -36,7 +37,7 @@ export default function NarrowHeaderContent({
 }: {
   className?: string;
 }) {
-  const { isLogin, loginMember, logout: _logout } = useAuthContext();
+  const { isLogin, isAdmin, loginMember, logout: _logout } = useAuthContext();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -93,6 +94,21 @@ export default function NarrowHeaderContent({
                     >
                       <Link href="/p/mine">
                         <NotebookText /> 내글
+                      </Link>
+                    </Button>
+                  </DrawerClose>
+                </li>
+              )}
+              {isLogin && isAdmin && (
+                <li>
+                  <DrawerClose asChild>
+                    <Button
+                      variant="link"
+                      className="w-full justify-start"
+                      asChild
+                    >
+                      <Link href="/adm/members">
+                        <MonitorCog /> 관리자 메뉴
                       </Link>
                     </Button>
                   </DrawerClose>

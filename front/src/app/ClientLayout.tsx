@@ -11,14 +11,14 @@ import WideHeaderContent from "@/lib/business/components/WideHeaderContent";
 
 import { Button } from "@/components/ui/button";
 
-import { Copyright, LogIn } from "lucide-react";
+import { Copyright, LogIn, MonitorCog } from "lucide-react";
 
 export default function ClientLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { isPending } = useAuthContext();
+  const { isPending, isLogin, isAdmin } = useAuthContext();
   const pathname = usePathname();
   const isEditPage = pathname.match(/^\/p\/\d+\/(edit(\/monaco)?|vscode)$/);
 
@@ -46,8 +46,9 @@ export default function ClientLayout({
               </Link>
             </Button>
             <Button variant="link" asChild>
-              <Link href="/adm/members/login">
-                <LogIn /> 관리자
+              <Link href={isLogin && isAdmin ? "/adm/members" : "/adm/members/login"}>
+                {isLogin && isAdmin ? <MonitorCog /> : <LogIn />}
+                {isLogin && isAdmin ? "관리자 메뉴" : "관리자"}
               </Link>
             </Button>
           </div>

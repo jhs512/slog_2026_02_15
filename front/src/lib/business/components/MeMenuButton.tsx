@@ -14,10 +14,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { LogOut, User } from "lucide-react";
+import { LogOut, MonitorCog, User } from "lucide-react";
 
 export default function MeMenuButton() {
-  const { loginMember, logout: _logout } = useAuthContext();
+  const { loginMember, isAdmin, logout: _logout } = useAuthContext();
   const router = useRouter();
   const logout = () => {
     _logout(() => router.replace("/"));
@@ -43,6 +43,16 @@ export default function MeMenuButton() {
             <User className="w-4 h-4" /> {loginMember.name}
           </Link>
         </DropdownMenuItem>
+        {isAdmin && (
+          <DropdownMenuItem asChild>
+            <Link
+              href="/adm/members"
+              className="flex items-center gap-2 w-full"
+            >
+              <MonitorCog className="w-4 h-4" /> 관리자 메뉴
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={logout} className="flex items-center gap-2">
           <LogOut className="w-4 h-4" /> 로그아웃
         </DropdownMenuItem>
