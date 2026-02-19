@@ -168,6 +168,7 @@ export default function NarrowHeaderContent({
             #{editPostId}번 글
           </Link>
         )}
+        <div data-header-slot="" />
       </div>
 
       {!isLogin && <LoginButton />}

@@ -20,7 +20,7 @@ export default function ClientLayout({
 }>) {
   const { isPending } = useAuthContext();
   const pathname = usePathname();
-  const isEditPage = pathname.match(/^\/p\/\d+\/edit(\/monaco)?$/);
+  const isEditPage = pathname.match(/^\/p\/\d+\/(edit(\/monaco)?|vscode)$/);
 
   if (isPending) {
     return (

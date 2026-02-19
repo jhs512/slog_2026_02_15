@@ -96,6 +96,18 @@ export default withLogin(function Page({
     async (data: PostFormInputs) => {
       if (!post) return;
 
+      // 변경사항 체크 (isDirty가 가끔 부정확할 수 있으므로 수동 체크 병행)
+      const isChanged =
+        data.title !== post.title ||
+        data.content !== post.content ||
+        data.published !== post.published ||
+        data.listed !== post.listed;
+
+      if (!isChanged && !form.formState.isDirty) {
+        toast.info("변경사항이 없습니다.");
+        return;
+      }
+
       const response = await client.PUT("/post/api/v1/posts/{id}", {
         params: { path: { id } },
         body: {
@@ -153,13 +165,12 @@ export default withLogin(function Page({
   // Ctrl+S / Cmd+S 단축키로 저장
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+      // e.key === "s"는 IME 입력 중일 때 "Process"로 나올 수 있음
+      // 따라서 e.code === "KeyS"도 함께 확인
+      if ((e.ctrlKey || e.metaKey) && (e.key === "s" || e.code === "KeyS")) {
         e.preventDefault();
-        if (form.formState.isDirty) {
-          form.handleSubmit(onSubmit)();
-        } else {
-          toast.info("변경된 내용이 없습니다.");
-        }
+        // isDirty 체크 제거하고 항상 submit 호출 (onSubmit 내부에서 변경사항 체크함)
+        form.handleSubmit(onSubmit)();
       }
     };
 
@@ -183,7 +194,7 @@ export default withLogin(function Page({
           <CardTitle className="flex items-center gap-2 text-xl">
             <Pencil className="w-5 h-5" />
             {isTemp ? "새 글 작성" : "글 수정"}
-            <Link href={`/p/${id}/edit/monaco`} className="ml-auto">
+            <Link href={`/p/${id}/vscode`} className="ml-auto">
               <Badge
                 variant="outline"
                 className="cursor-pointer hover:bg-accent"
