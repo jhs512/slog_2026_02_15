@@ -217,7 +217,7 @@ class ApiV1PostController(
     @Operation(summary = "내 게시물 목록 조회 (임시저장 포함)")
     fun getMine(
         @RequestParam(defaultValue = "1") page: Int,
-        @RequestParam(defaultValue = "10") pageSize: Int,
+        @RequestParam(defaultValue = "30") pageSize: Int,
         @RequestParam(defaultValue = "") kw: String,
         @RequestParam(defaultValue = "CREATED_AT") sort: PostSearchSortType1,
     ): PageDto<PostDto> {

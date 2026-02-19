@@ -25,7 +25,7 @@ class ApiV1AdmMemberController(
     @Operation(summary = "다건 조회")
     fun getItems(
         @RequestParam(defaultValue = "1") page: Int,
-        @RequestParam(defaultValue = "5") pageSize: Int,
+        @RequestParam(defaultValue = "30") pageSize: Int,
         @RequestParam(defaultValue = "ALL") kwType: MemberSearchKeywordType1,
         @RequestParam(defaultValue = "") kw: String,
         @RequestParam(defaultValue = "CREATED_AT") sort: MemberSearchSortType1,
@@ -39,7 +39,7 @@ class ApiV1AdmMemberController(
         val pageSize: Int = if (pageSize in 1..30) {
             pageSize
         } else {
-            5
+            30
         }
 
         val memberPage = memberFacade.findPagedByKw(kwType, kw, sort, page, pageSize)

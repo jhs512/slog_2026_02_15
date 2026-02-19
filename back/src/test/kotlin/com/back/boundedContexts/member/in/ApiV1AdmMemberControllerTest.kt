@@ -41,7 +41,7 @@ class ApiV1AdmMemberControllerTest {
                 )
                 .andDo(print())
 
-            val members = memberFacade.findPaged(1, 5).content
+            val members = memberFacade.findPaged(1, 30).content
 
             resultActions
                 .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
@@ -59,7 +59,7 @@ class ApiV1AdmMemberControllerTest {
                 )
                 .andDo(print())
 
-            val members = memberFacade.findPaged(1, 5).content
+            val members = memberFacade.findPaged(1, 30).content
 
             resultActions
                 .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
@@ -78,7 +78,7 @@ class ApiV1AdmMemberControllerTest {
                 )
                 .andDo(print())
 
-            val members = memberFacade.findPaged(1, 5).content
+            val members = memberFacade.findPaged(1, 30).content
 
             resultActions
                 .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
