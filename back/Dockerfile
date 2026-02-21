@@ -34,7 +34,7 @@ RUN set -e \
  && su postgres -c "pg_ctl -D $PGDATA start -o '-c listen_addresses=localhost' -w" \
  && su postgres -c "psql -c \"ALTER USER postgres PASSWORD 'lldj123414';\"" \
  && su postgres -c "psql -c \"CREATE DATABASE slog_test;\"" \
- && gradle build -x test --no-daemon \
+ && gradle build --no-daemon \
  && su postgres -c "pg_ctl -D $PGDATA stop -w"
 
 # 실행 스테이지
