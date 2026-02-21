@@ -3,6 +3,7 @@ package com.back.boundedContexts.member.domain.shared
 import com.back.boundedContexts.member.out.shared.MemberAttrRepository
 import com.back.boundedContexts.post.domain.PostMember
 import com.back.global.pgroonga.annotation.PGroongaIndex
+import com.back.global.app.app.AppFacade
 import com.back.global.jpa.domain.BaseTime
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -99,7 +100,7 @@ class Member(
             ?: "https://placehold.co/600x600?text=U_U"
 
     val redirectToProfileImgUrlOrDefault: String
-        get() = "http://localhost:8080/member/api/v1/members/${id}/redirectToProfileImg"
+        get() = "${AppFacade.siteBackUrl}/member/api/v1/members/${id}/redirectToProfileImg"
 
     // ================================
     // Member 전용 메서드
