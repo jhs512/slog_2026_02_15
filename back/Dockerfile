@@ -40,6 +40,10 @@ RUN set -e \
 # 실행 스테이지
 FROM container-registry.oracle.com/graalvm/jdk:24
 
+ENV LANG=ko_KR.UTF-8
+ENV LC_ALL=ko_KR.UTF-8
+ENV JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8"
+
 WORKDIR /app
 
 COPY --from=builder /app/build/libs/*.jar app.jar
