@@ -200,11 +200,39 @@ jobs:
             [[ "${LOGIN_CODE}" == "200" ]] || { echo "NPM login failed (HTTP ${LOGIN_CODE})"; exit 1; }
             [[ -n "${APP_1_DOMAIN:-}" ]] || { echo "APP_1_DOMAIN is empty"; exit 1; }
 
-            # 대상 프록시 호스트 ID 조회(도메인 매칭)
+            # 대상 프록시 호스트 ID 조회(도메인 매칭), 없으면 자동 등록
             PROXY_ID=$(curl -sk -b "${COOKIE_JAR}" -X GET "https://127.0.0.1:81/api/nginx/proxy-hosts" \
               | jq ".[] | select(.domain_names[]==\"${APP_1_DOMAIN}\") | .id")
 
-            [[ -n "${PROXY_ID}" && "${PROXY_ID}" != "null" ]] || { echo "Proxy host not found for ${APP_1_DOMAIN}"; exit 1; }
+            if [[ -z "${PROXY_ID}" || "${PROXY_ID}" == "null" ]]; then
+              echo "📝 Proxy host not found for ${APP_1_DOMAIN}, creating..."
+              PROXY_ID=$(curl -sk -b "${COOKIE_JAR}" -X POST "https://127.0.0.1:81/api/nginx/proxy-hosts" \
+                -H "Content-Type: application/json" \
+                -d "$(jq -nc \
+                  --arg domain "${APP_1_DOMAIN}" \
+                  --arg host "${SLOT1}" \
+                  --argjson port ${PORT_IN} \
+                  '{
+                    domain_names: [$domain],
+                    forward_scheme: "http",
+                    forward_host: $host,
+                    forward_port: $port,
+                    allow_websocket_upgrade: true,
+                    block_exploits: true,
+                    access_list_id: 0,
+                    certificate_id: 0,
+                    ssl_forced: false,
+                    http2_support: false,
+                    hsts_enabled: false,
+                    hsts_subdomains: false,
+                    meta: {letsencrypt_agree: false, dns_challenge: false},
+                    advanced_config: "",
+                    locations: [],
+                    caching_enabled: false
+                  }')" | jq '.id')
+              [[ -n "${PROXY_ID}" && "${PROXY_ID}" != "null" ]] || { echo "❌ Failed to create proxy host"; exit 1; }
+              echo "✅ Created proxy host ID: ${PROXY_ID}"
+            fi
 
             # 현재 프록시가 바라보는 업스트림(컨테이너명) 조회
             CURRENT_HOST=$(curl -sk -b "${COOKIE_JAR}" -X GET "https://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
