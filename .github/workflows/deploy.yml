@@ -295,9 +295,21 @@ jobs:
             [[ "${CODE:-000}" == "200" ]] || { echo "❌ ${GREEN} health failed"; docker logs --tail=200 "${GREEN}" || true; docker rm -f "${GREEN}" || true; exit 1; }
 
             # ---------------------------------------------------------
-            # 6) 업스트림 전환 (forward_host/forward_port만 업데이트)
+            # 6) 업스트림 전환 (forward_host/forward_port + locations 동시 업데이트)
             # ---------------------------------------------------------
-            NEW_CFG=$(jq -n --arg host "${GREEN}" --argjson port ${PORT_IN} '{forward_host:$host, forward_port:$port}')
+            NEW_CFG=$(jq -n --arg host "${GREEN}" --argjson port ${PORT_IN} '{
+              forward_host: $host,
+              forward_port: $port,
+              locations: [
+                {
+                  path: "/sse/",
+                  forward_scheme: "http",
+                  forward_host: $host,
+                  forward_port: $port,
+                  npmplus_proxy_response_buffering: true
+                }
+              ]
+            }')
             curl -sk -b "${COOKIE_JAR}" -X PUT "https://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
               -H "Content-Type: application/json" \
               -d "${NEW_CFG}" >/dev/null
