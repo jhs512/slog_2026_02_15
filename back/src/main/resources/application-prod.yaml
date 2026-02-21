@@ -3,8 +3,6 @@ spring:
     password: ${SPRING__DATASOURCE__PASSWORD}
   jpa:
     open-in-view: false
-    hibernate:
-      ddl-auto: update
     properties:
       hibernate:
         format_sql: false
