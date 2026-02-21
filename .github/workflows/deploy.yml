@@ -284,15 +284,20 @@ jobs:
           SCRIPT_EOF
           )
 
-          # SSM 커맨드 전송
+          # SSM 커맨드 전송 (스크립트를 줄 단위 JSON 배열로 변환)
+          PARAMS_FILE=$(mktemp)
+          echo "$SCRIPT" | jq -Rs '{ "commands": split("\n") }' > "$PARAMS_FILE"
+
           COMMAND_ID=$(aws ssm send-command \
             --region "${{ secrets.AWS_REGION }}" \
             --instance-ids "${{ env.INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy" \
-            --parameters "commands=[$(echo "$SCRIPT" | jq -Rs .)]" \
+            --parameters "file://${PARAMS_FILE}" \
             --query "Command.CommandId" \
             --output text)
+
+          rm -f "$PARAMS_FILE"
 
           echo "📋 Command ID: ${COMMAND_ID}"
 
