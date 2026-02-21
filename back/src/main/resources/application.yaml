@@ -61,7 +61,7 @@ spring:
       mode: always
   datasource:
     url: jdbc:postgresql://localhost:5432/${custom.site.dbName}?reWriteBatchedInserts=true
-    username: admin
+    username: postgres
     password: lldj123414
     driver-class-name: org.postgresql.Driver
     hikari:
@@ -100,7 +100,7 @@ custom:
     backUrl: ${custom.dev.backUrl}
     dbName: slog_test
   prod:
-    cookieDomain: slog-2026-02-15.oa.gg
+    cookieDomain: slog2026.oa.gg
     frontUrl: "https://www.${custom.prod.cookieDomain}"
     backUrl: "https://api.${custom.prod.cookieDomain}"
     dbName: slog_prod

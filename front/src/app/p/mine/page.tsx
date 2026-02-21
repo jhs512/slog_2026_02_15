@@ -19,8 +19,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
+  Heart,
   List,
   Lock,
+  MessageCircle,
   Pencil,
   Search,
 } from "lucide-react";
@@ -215,9 +217,23 @@ function PageContent() {
                       <span className="font-medium block truncate">
                         {post.title || "(제목 없음)"}
                       </span>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {formatDate(post.createdAt)}
-                      </p>
+                      <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                        <span>{formatDate(post.createdAt)}</span>
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-3.5 h-3.5" />
+                          {post.hitCount}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Heart
+                            className={`w-3.5 h-3.5 ${post.actorHasLiked ? "fill-red-500 text-red-500" : ""}`}
+                          />
+                          {post.likesCount}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          {post.commentsCount}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex-shrink-0">
                       <Button

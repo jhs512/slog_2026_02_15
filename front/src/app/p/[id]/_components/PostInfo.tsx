@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -110,6 +111,18 @@ export default function PostInfo({
         </div>
         <h1 className="text-2xl font-bold">{post.title}</h1>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <Avatar className="w-7 h-7">
+              <AvatarImage
+                src={post.authorProfileImgUrl}
+                alt={post.authorName}
+              />
+              <AvatarFallback className="text-xs">
+                {post.authorName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            {post.authorName}
+          </span>
           <span className="flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
             {formatDate(post.createdAt)}
