@@ -50,13 +50,8 @@ class Rq(
             ?.takeIf { it.isNotBlank() }
             ?: defaultValue
 
-    private fun cookieDomain(): String {
-        val domain = AppFacade.siteCookieDomain
-
-        // localhost는 그대로, 그 외에는 앞에 . 붙여서 서브도메인도 포함
-        return if (domain == "localhost") domain else ".$domain"
-    }
-
+    private fun cookieDomain(): String = AppFacade.siteCookieDomain
+    
     fun setCookie(name: String, value: String?) {
         val cookie = Cookie(name, value ?: "").apply {
             path = "/"
