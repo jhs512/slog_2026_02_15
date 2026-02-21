@@ -96,13 +96,13 @@ custom:
     dbHost: localhost
     dbName: slog_dev
   test:
-    cookieDomain: ${custom.dev.cookieDomain}
-    frontUrl: ${custom.dev.frontUrl}
-    backUrl: ${custom.dev.backUrl}
+    cookieDomain: localhost
+    frontUrl: "http://${custom.test.cookieDomain}:3000"
+    backUrl: "http://${custom.test.cookieDomain}:${server.port}"
     dbHost: localhost
     dbName: slog_test
   prod:
-    cookieDomain: slog2026.oa.gg
+    cookieDomain: slog.gg
     frontUrl: "https://www.${custom.prod.cookieDomain}"
     backUrl: "https://api.${custom.prod.cookieDomain}"
     dbHost: pg_1
