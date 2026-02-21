@@ -187,27 +187,27 @@ jobs:
             docker pull "${IMAGE}"
 
             # ---------------------------------------------------------
-            # 2) NPMplus API 토큰 발급
+            # 2) NPMplus API 로그인 (쿠키 기반 인증)
             #     - /etc/environment 등에 설정된 PASSWORD_1, APP_1_DOMAIN 사용 가정
             # ---------------------------------------------------------
-            TOKEN=$(curl -sk -X POST https://127.0.0.1:81/api/tokens \
+            COOKIE_JAR="/tmp/npm_cookies.txt"
+            LOGIN_CODE=$(curl -sk -o /dev/null -w "%{http_code}" -c "${COOKIE_JAR}" \
+              -X POST https://127.0.0.1:81/api/tokens \
               -H "Content-Type: application/json" \
-              -d "$(jq -nc --arg id "admin@npm.com" --arg pw "${PASSWORD_1:-}" '{identity:$id, secret:$pw}')" | jq -r '.token')
+              -d "$(jq -nc --arg id "admin@npm.com" --arg pw "${PASSWORD_1:-}" '{identity:$id, secret:$pw}')")
 
-            # 토큰/도메인 검증(없으면 실패)
-            [[ -n "${TOKEN}" && "${TOKEN}" != "null" ]] || { echo "NPM token issue failed"; exit 1; }
+            # 로그인 검증(200이 아니면 실패)
+            [[ "${LOGIN_CODE}" == "200" ]] || { echo "NPM login failed (HTTP ${LOGIN_CODE})"; exit 1; }
             [[ -n "${APP_1_DOMAIN:-}" ]] || { echo "APP_1_DOMAIN is empty"; exit 1; }
 
             # 대상 프록시 호스트 ID 조회(도메인 매칭)
-            PROXY_ID=$(curl -sk -X GET "https://127.0.0.1:81/api/nginx/proxy-hosts" \
-              -H "Authorization: Bearer ${TOKEN}" \
+            PROXY_ID=$(curl -sk -b "${COOKIE_JAR}" -X GET "https://127.0.0.1:81/api/nginx/proxy-hosts" \
               | jq ".[] | select(.domain_names[]==\"${APP_1_DOMAIN}\") | .id")
 
             [[ -n "${PROXY_ID}" && "${PROXY_ID}" != "null" ]] || { echo "Proxy host not found for ${APP_1_DOMAIN}"; exit 1; }
 
             # 현재 프록시가 바라보는 업스트림(컨테이너명) 조회
-            CURRENT_HOST=$(curl -sk -X GET "https://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
-              -H "Authorization: Bearer ${TOKEN}" \
+            CURRENT_HOST=$(curl -sk -b "${COOKIE_JAR}" -X GET "https://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
               | jq -r '.forward_host')
 
             echo "🔎 CURRENT_HOST: ${CURRENT_HOST:-none}"
@@ -262,8 +262,7 @@ jobs:
             # 6) 업스트림 전환 (forward_host/forward_port만 업데이트)
             # ---------------------------------------------------------
             NEW_CFG=$(jq -n --arg host "${GREEN}" --argjson port ${PORT_IN} '{forward_host:$host, forward_port:$port}')
-            curl -sk -X PUT "https://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
-              -H "Authorization: Bearer ${TOKEN}" \
+            curl -sk -b "${COOKIE_JAR}" -X PUT "https://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
               -H "Content-Type: application/json" \
               -d "${NEW_CFG}" >/dev/null
             echo "🔁 switch upstream → ${GREEN}:${PORT_IN}"
