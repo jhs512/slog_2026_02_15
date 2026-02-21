@@ -42,6 +42,7 @@ class PGroongaIndexConfig {
                 if (annotations.isEmpty()) continue
 
                 val tableName = entityClass.getAnnotation(Table::class.java)?.name
+                    ?.takeIf { it.isNotEmpty() }
                     ?: entityClass.simpleName.lowercase()
 
                 for (anno in annotations) {
