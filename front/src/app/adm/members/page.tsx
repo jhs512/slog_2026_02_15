@@ -12,7 +12,9 @@ import client from "@/global/backend/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { ArrowUpDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import Pagination from "@/components/Pagination";
+
+import { ArrowUpDown, Search } from "lucide-react";
 
 type MemberWithUsernameDto = components["schemas"]["MemberWithUsernameDto"];
 type PageableDto = components["schemas"]["PageableDto"];
@@ -181,36 +183,12 @@ function PageContent() {
       )}
 
       {/* 페이지네이션 */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-8">
-          <Button
-            variant="outline"
-            size="icon"
-            disabled={currentPage <= 1}
-            onClick={() => handlePageChange(currentPage - 1)}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <Button
-              key={p}
-              variant={p === currentPage ? "default" : "outline"}
-              size="icon"
-              onClick={() => handlePageChange(p)}
-            >
-              {p}
-            </Button>
-          ))}
-          <Button
-            variant="outline"
-            size="icon"
-            disabled={currentPage >= totalPages}
-            onClick={() => handlePageChange(currentPage + 1)}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
-      )}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        className="mt-8"
+      />
     </div>
   );
 }
