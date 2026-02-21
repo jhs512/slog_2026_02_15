@@ -146,140 +146,140 @@ jobs:
       # → AWS CLI 직접 사용으로 대체 (외부 액션 의존성 제거)
       - name: AWS SSM Send-Command
         run: |
-          SCRIPT=$(cat << 'SCRIPT_EOF'
-set -Eeuo pipefail
+          SCRIPT=$(cat <<'SCRIPT_EOF'
+          set -Eeuo pipefail
 
-# ---------------------------------------------------------
-# 0) 실행 로그(라인 타임스탬프 부착)
-# ---------------------------------------------------------
-LOG="/tmp/ssm-$(date +%Y%m%d_%H%M%S).log"
-exec > >(awk '{ fflush(); print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }' | tee -a "$LOG")
-exec 2> >(awk '{ fflush(); print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }' | tee -a "$LOG" >&2)
+          # ---------------------------------------------------------
+          # 0) 실행 로그(라인 타임스탬프 부착)
+          # ---------------------------------------------------------
+          LOG="/tmp/ssm-$(date +%Y%m%d_%H%M%S).log"
+          exec > >(awk '{ fflush(); print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }' | tee -a "$LOG")
+          exec 2> >(awk '{ fflush(); print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }' | tee -a "$LOG" >&2)
 
-# ---------------------------------------------------------
-# 1) 변수 정의
-#    - 슬롯 이름은 고정(두 개의 컨테이너 이름)
-#    - blue/green은 "역할"이며 매 배포마다 바뀜
-# ---------------------------------------------------------
-source /etc/environment || true   # 시스템 전역 변수(+ 비밀) 주입 시도
-OWNER_LC="${{ github.repository_owner }}"
-OWNER_LC="${OWNER_LC,,}"                                # 소문자 표준화
-IMAGE_TAG="${{ needs.makeTagAndRelease.outputs.tag_name }}"
-IMAGE_REPOSITORY="${{ env.IMAGE_REPOSITORY }}"
-IMAGE="ghcr.io/${OWNER_LC}/${IMAGE_REPOSITORY}:${IMAGE_TAG}"
-SLOT1="${{ env.CONTAINER_1_NAME }}"
-SLOT2="${{ env.CONTAINER_2_NAME }}"
-PORT_IN="${{ env.CONTAINER_PORT }}"
-NET="${{ env.DOCKER_NETWORK }}"
+          # ---------------------------------------------------------
+          # 1) 변수 정의
+          #    - 슬롯 이름은 고정(두 개의 컨테이너 이름)
+          #    - blue/green은 "역할"이며 매 배포마다 바뀜
+          # ---------------------------------------------------------
+          source /etc/environment || true   # 시스템 전역 변수(+ 비밀) 주입 시도
+          OWNER_LC="${{ github.repository_owner }}"
+          OWNER_LC="${OWNER_LC,,}"                                # 소문자 표준화
+          IMAGE_TAG="${{ needs.makeTagAndRelease.outputs.tag_name }}"
+          IMAGE_REPOSITORY="${{ env.IMAGE_REPOSITORY }}"
+          IMAGE="ghcr.io/${OWNER_LC}/${IMAGE_REPOSITORY}:${IMAGE_TAG}"
+          SLOT1="${{ env.CONTAINER_1_NAME }}"
+          SLOT2="${{ env.CONTAINER_2_NAME }}"
+          PORT_IN="${{ env.CONTAINER_PORT }}"
+          NET="${{ env.DOCKER_NETWORK }}"
 
-echo "🔹 Use image: ${IMAGE}"
-docker pull "${IMAGE}"
+          echo "🔹 Use image: ${IMAGE}"
+          docker pull "${IMAGE}"
 
-# ---------------------------------------------------------
-# 2) NPMplus API 토큰 발급
-#     - /etc/environment 등에 설정된 PASSWORD_1, APP_1_DOMAIN 사용 가정
-# ---------------------------------------------------------
-TOKEN=$(curl -s -X POST http://127.0.0.1:81/api/tokens \
-  -H "Content-Type: application/json" \
-  -d "{\"identity\": \"admin@npm.com\", \"secret\": \"${PASSWORD_1:-}\"}" | jq -r '.token')
+          # ---------------------------------------------------------
+          # 2) NPMplus API 토큰 발급
+          #     - /etc/environment 등에 설정된 PASSWORD_1, APP_1_DOMAIN 사용 가정
+          # ---------------------------------------------------------
+          TOKEN=$(curl -s -X POST http://127.0.0.1:81/api/tokens \
+            -H "Content-Type: application/json" \
+            -d "{\"identity\": \"admin@npm.com\", \"secret\": \"${PASSWORD_1:-}\"}" | jq -r '.token')
 
-# 토큰/도메인 검증(없으면 실패)
-[[ -n "${TOKEN}" && "${TOKEN}" != "null" ]] || { echo "NPM token issue failed"; exit 1; }
-[[ -n "${APP_1_DOMAIN:-}" ]] || { echo "APP_1_DOMAIN is empty"; exit 1; }
+          # 토큰/도메인 검증(없으면 실패)
+          [[ -n "${TOKEN}" && "${TOKEN}" != "null" ]] || { echo "NPM token issue failed"; exit 1; }
+          [[ -n "${APP_1_DOMAIN:-}" ]] || { echo "APP_1_DOMAIN is empty"; exit 1; }
 
-# 대상 프록시 호스트 ID 조회(도메인 매칭)
-PROXY_ID=$(curl -s -X GET "http://127.0.0.1:81/api/nginx/proxy-hosts" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  | jq ".[] | select(.domain_names[]==\"${APP_1_DOMAIN}\") | .id")
+          # 대상 프록시 호스트 ID 조회(도메인 매칭)
+          PROXY_ID=$(curl -s -X GET "http://127.0.0.1:81/api/nginx/proxy-hosts" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            | jq ".[] | select(.domain_names[]==\"${APP_1_DOMAIN}\") | .id")
 
-[[ -n "${PROXY_ID}" && "${PROXY_ID}" != "null" ]] || { echo "Proxy host not found for ${APP_1_DOMAIN}"; exit 1; }
+          [[ -n "${PROXY_ID}" && "${PROXY_ID}" != "null" ]] || { echo "Proxy host not found for ${APP_1_DOMAIN}"; exit 1; }
 
-# 현재 프록시가 바라보는 업스트림(컨테이너명) 조회
-CURRENT_HOST=$(curl -s -X GET "http://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  | jq -r '.forward_host')
+          # 현재 프록시가 바라보는 업스트림(컨테이너명) 조회
+          CURRENT_HOST=$(curl -s -X GET "http://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            | jq -r '.forward_host')
 
-echo "🔎 CURRENT_HOST: ${CURRENT_HOST:-none}"
+          echo "🔎 CURRENT_HOST: ${CURRENT_HOST:-none}"
 
-# ---------------------------------------------------------
-# 3) 역할(blue/green) 판정
-#    - blue : 현재 운영 중(CURRENT_HOST)
-#    - green: 다음 운영(교체 대상)
-# ---------------------------------------------------------
-if [[ "${CURRENT_HOST:-}" == "${SLOT1}" ]]; then
-  BLUE="${SLOT1}"
-  GREEN="${SLOT2}"
-elif [[ "${CURRENT_HOST:-}" == "${SLOT2}" ]]; then
-  BLUE="${SLOT2}"
-  GREEN="${SLOT1}"
-else
-  BLUE="none"   # 초기 배포
-  GREEN="${SLOT1}"
-fi
-echo "🎨 role -> blue(now): ${BLUE}, green(next): ${GREEN}"
+          # ---------------------------------------------------------
+          # 3) 역할(blue/green) 판정
+          #    - blue : 현재 운영 중(CURRENT_HOST)
+          #    - green: 다음 운영(교체 대상)
+          # ---------------------------------------------------------
+          if [[ "${CURRENT_HOST:-}" == "${SLOT1}" ]]; then
+            BLUE="${SLOT1}"
+            GREEN="${SLOT2}"
+          elif [[ "${CURRENT_HOST:-}" == "${SLOT2}" ]]; then
+            BLUE="${SLOT2}"
+            GREEN="${SLOT1}"
+          else
+            BLUE="none"   # 초기 배포
+            GREEN="${SLOT1}"
+          fi
+          echo "🎨 role -> blue(now): ${BLUE}, green(next): ${GREEN}"
 
-# ---------------------------------------------------------
-# 4) green 역할 컨테이너 재기동
-#    - 같은 네트워크 상에서 NPMplus가 컨테이너명:PORT로 프록시하므로 -p 불필요
-# ---------------------------------------------------------
-docker rm -f "${GREEN}" >/dev/null 2>&1 || true
-echo "🚀 run new container → ${GREEN}"
-docker run -d --name "${GREEN}" \
-  --restart unless-stopped \
-  --network "${NET}" \
-  -e TZ=Asia/Seoul \
-  "${IMAGE}"
+          # ---------------------------------------------------------
+          # 4) green 역할 컨테이너 재기동
+          #    - 같은 네트워크 상에서 NPMplus가 컨테이너명:PORT로 프록시하므로 -p 불필요
+          # ---------------------------------------------------------
+          docker rm -f "${GREEN}" >/dev/null 2>&1 || true
+          echo "🚀 run new container → ${GREEN}"
+          docker run -d --name "${GREEN}" \
+            --restart unless-stopped \
+            --network "${NET}" \
+            -e TZ=Asia/Seoul \
+            "${IMAGE}"
 
-# ---------------------------------------------------------
-# 5) 헬스체크 (/actuator/health 200 OK까지 대기)
-# ---------------------------------------------------------
-echo "⏱ health-check: ${GREEN}"
-TIMEOUT=120
-INTERVAL=3
-ELAPSED=0
-sleep 8  # 초기 부팅 여유
+          # ---------------------------------------------------------
+          # 5) 헬스체크 (/actuator/health 200 OK까지 대기)
+          # ---------------------------------------------------------
+          echo "⏱ health-check: ${GREEN}"
+          TIMEOUT=120
+          INTERVAL=3
+          ELAPSED=0
+          sleep 8  # 초기 부팅 여유
 
-while (( ELAPSED < TIMEOUT )); do
-  CODE=$(docker exec "${GREEN}" curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:${PORT_IN}/actuator/health" || echo 000)
-  [[ "${CODE}" == "200" ]] && { echo "✅ ${GREEN} healthy"; break; }
-  sleep "${INTERVAL}"
-  ELAPSED=$((ELAPSED + INTERVAL))
-done
-[[ "${CODE:-000}" == "200" ]] || { echo "❌ ${GREEN} health failed"; docker logs --tail=200 "${GREEN}" || true; docker rm -f "${GREEN}" || true; exit 1; }
+          while (( ELAPSED < TIMEOUT )); do
+            CODE=$(docker exec "${GREEN}" curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:${PORT_IN}/actuator/health" || echo 000)
+            [[ "${CODE}" == "200" ]] && { echo "✅ ${GREEN} healthy"; break; }
+            sleep "${INTERVAL}"
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+          [[ "${CODE:-000}" == "200" ]] || { echo "❌ ${GREEN} health failed"; docker logs --tail=200 "${GREEN}" || true; docker rm -f "${GREEN}" || true; exit 1; }
 
-# ---------------------------------------------------------
-# 6) 업스트림 전환 (forward_host/forward_port만 업데이트)
-# ---------------------------------------------------------
-NEW_CFG=$(jq -n --arg host "${GREEN}" --argjson port ${PORT_IN} '{forward_host:$host, forward_port:$port}')
-curl -s -X PUT "http://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d "${NEW_CFG}" >/dev/null
-echo "🔁 switch upstream → ${GREEN}:${PORT_IN}"
+          # ---------------------------------------------------------
+          # 6) 업스트림 전환 (forward_host/forward_port만 업데이트)
+          # ---------------------------------------------------------
+          NEW_CFG=$(jq -n --arg host "${GREEN}" --argjson port ${PORT_IN} '{forward_host:$host, forward_port:$port}')
+          curl -s -X PUT "http://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "${NEW_CFG}" >/dev/null
+          echo "🔁 switch upstream → ${GREEN}:${PORT_IN}"
 
-# ---------------------------------------------------------
-# 7) 이전 blue 종료(최초 배포면 생략)
-# ---------------------------------------------------------
-if [[ "${BLUE}" != "none" ]]; then
-  docker stop "${BLUE}" >/dev/null 2>&1 || true
-  docker rm "${BLUE}" >/dev/null 2>&1 || true
-  echo "🧹 removed old blue: ${BLUE}"
-fi
+          # ---------------------------------------------------------
+          # 7) 이전 blue 종료(최초 배포면 생략)
+          # ---------------------------------------------------------
+          if [[ "${BLUE}" != "none" ]]; then
+            docker stop "${BLUE}" >/dev/null 2>&1 || true
+            docker rm "${BLUE}" >/dev/null 2>&1 || true
+            echo "🧹 removed old blue: ${BLUE}"
+          fi
 
-# ---------------------------------------------------------
-# 8) 이미지 정리(현재 태그/ latest 제외) - 결과 없음도 오류 아님
-#     - pipefail과 grep의 종료코드(1)를 고려해 블록 전체에 || true 적용
-# ---------------------------------------------------------
-{
-  docker images --format '{{.Repository}}:{{.Tag}}' \
-    | grep -F "ghcr.io/${OWNER_LC}/${IMAGE_REPOSITORY}:" \
-    | grep -v -F ":${IMAGE_TAG}" \
-    | grep -v -F ":latest" \
-    | xargs -r docker rmi
-} || true
+          # ---------------------------------------------------------
+          # 8) 이미지 정리(현재 태그/ latest 제외) - 결과 없음도 오류 아님
+          #     - pipefail과 grep의 종료코드(1)를 고려해 블록 전체에 || true 적용
+          # ---------------------------------------------------------
+          {
+            docker images --format '{{.Repository}}:{{.Tag}}' \
+              | grep -F "ghcr.io/${OWNER_LC}/${IMAGE_REPOSITORY}:" \
+              | grep -v -F ":${IMAGE_TAG}" \
+              | grep -v -F ":latest" \
+              | xargs -r docker rmi
+          } || true
 
-echo "🏁 Blue/Green switch complete. now blue = ${GREEN}"
-SCRIPT_EOF
+          echo "🏁 Blue/Green switch complete. now blue = ${GREEN}"
+          SCRIPT_EOF
           )
 
           # SSM 커맨드 전송
