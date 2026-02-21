@@ -23,5 +23,5 @@ custom:
     cookieDomain: "${custom.prod.cookieDomain}"
     frontUrl: "${custom.prod.frontUrl}"
     backUrl: "${custom.prod.backUrl}"
-    dbHost: ${custom.prod.dbHost}"
+    dbHost: "${custom.prod.dbHost}"
     dbName: "${custom.prod.dbName}"

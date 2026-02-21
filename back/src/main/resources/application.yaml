@@ -111,7 +111,7 @@ custom:
     cookieDomain: "${custom.dev.cookieDomain}"
     frontUrl: "${custom.dev.frontUrl}"
     backUrl: "${custom.dev.backUrl}"
-    dbHost: ${custom.dev.dbHost}"
+    dbHost: "${custom.dev.dbHost}"
     dbName: "${custom.dev.dbName}"
   jwt:
     secretKey: ${CUSTOM__JWT__SECRET_KEY}
