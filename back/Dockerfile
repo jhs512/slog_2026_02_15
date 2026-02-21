@@ -1,5 +1,20 @@
-# 첫 번째 스테이지: 빌드 스테이지
-FROM gradle:jdk24-graal AS builder
+# 빌드 스테이지: jangka512/pgj 기반 (PGroonga + PostGIS + pgvector 포함)
+FROM jangka512/pgj:latest AS builder
+
+# JDK 25 + Gradle 설치
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl unzip \
+ && curl -sL https://download.java.net/java/early_access/jdk25/25/GPL/openjdk-25-ea+25_linux-x64_bin.tar.gz | tar xz -C /opt \
+ && ln -s /opt/jdk-25 /opt/java \
+ && curl -sL https://services.gradle.org/distributions/gradle-8.13-bin.zip -o /tmp/gradle.zip \
+ && unzip -q /tmp/gradle.zip -d /opt \
+ && ln -s /opt/gradle-8.13 /opt/gradle \
+ && rm /tmp/gradle.zip \
+ && apt-get purge -y unzip && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
+ENV JAVA_HOME=/opt/java
+ENV GRADLE_HOME=/opt/gradle
+ENV PATH="${JAVA_HOME}/bin:${GRADLE_HOME}/bin:${PATH}"
 
 WORKDIR /app
 
@@ -11,10 +26,19 @@ RUN gradle dependencies --no-daemon
 COPY .env .
 COPY src src
 
-RUN gradle build --no-daemon
+# PG 초기화 → 시작 → 테스트 DB 생성 → 빌드(테스트 포함) → PG 종료
+ENV PGDATA=/var/lib/postgresql/data
+RUN set -e \
+ && mkdir -p "$PGDATA" && chown postgres:postgres "$PGDATA" \
+ && su postgres -c "initdb -D $PGDATA --auth=trust" \
+ && su postgres -c "pg_ctl -D $PGDATA start -o '-c listen_addresses=localhost' -w" \
+ && su postgres -c "psql -c \"ALTER USER postgres PASSWORD 'lldj123414';\"" \
+ && su postgres -c "psql -c \"CREATE DATABASE slog_test;\"" \
+ && gradle build --no-daemon \
+ && su postgres -c "pg_ctl -D $PGDATA stop -w"
 
-# 두 번째 스테이지: 실행 스테이지
-FROM container-registry.oracle.com/graalvm/jdk:24
+# 실행 스테이지
+FROM container-registry.oracle.com/graalvm/jdk:25
 
 WORKDIR /app
 
