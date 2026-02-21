@@ -51,7 +51,7 @@ class Rq(
             ?: defaultValue
 
     private fun cookieDomain(): String = AppFacade.siteCookieDomain
-    
+
     fun setCookie(name: String, value: String?) {
         val cookie = Cookie(name, value ?: "").apply {
             path = "/"
