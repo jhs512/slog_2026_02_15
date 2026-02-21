@@ -6,9 +6,9 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends curl unzip \
  && curl -sL https://download.java.net/java/GA/jdk25.0.2/b1e0dfa218384cb9959bdcb897162d4e/10/GPL/openjdk-25.0.2_linux-x64_bin.tar.gz | tar xz -C /opt \
  && ln -s /opt/jdk-25.0.2 /opt/java \
- && curl -sL https://services.gradle.org/distributions/gradle-8.13-bin.zip -o /tmp/gradle.zip \
+ && curl -sL https://services.gradle.org/distributions/gradle-9.3.0-bin.zip -o /tmp/gradle.zip \
  && unzip -q /tmp/gradle.zip -d /opt \
- && ln -s /opt/gradle-8.13 /opt/gradle \
+ && ln -s /opt/gradle-9.3.0 /opt/gradle \
  && rm /tmp/gradle.zip \
  && apt-get purge -y unzip && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
