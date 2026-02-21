@@ -217,18 +217,18 @@ jobs:
                     forward_scheme: "http",
                     forward_host: $host,
                     forward_port: $port,
-                    allow_websocket_upgrade: true,
-                    block_exploits: false,
                     access_list_id: 0,
                     certificate_id: 0,
                     ssl_forced: false,
-                    http2_support: false,
+                    http2_support: true,
                     hsts_enabled: false,
                     hsts_subdomains: false,
-                    meta: {letsencrypt_agree: false, dns_challenge: false},
+                    block_exploits: false,
+                    caching_enabled: false,
+                    allow_websocket_upgrade: true,
                     advanced_config: "",
                     locations: [],
-                    caching_enabled: false
+                    meta: {letsencrypt_agree: false, dns_challenge: false}
                   }')" | jq '.id')
               [[ -n "${PROXY_ID}" && "${PROXY_ID}" != "null" ]] || { echo "❌ Failed to create proxy host"; exit 1; }
               echo "✅ Created proxy host ID: ${PROXY_ID}"
