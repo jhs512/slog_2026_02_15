@@ -1,11 +1,11 @@
 # 빌드 스테이지: jangka512/pgj 기반 (PGroonga + PostGIS + pgvector 포함)
 FROM jangka512/pgj:latest AS builder
 
-# JDK 25 + Gradle 설치
+# JDK 24 + Gradle 설치 (toolchain languageVersion=24에 맞춤)
 RUN apt-get update \
  && apt-get install -y --no-install-recommends curl unzip \
- && curl -sL https://download.java.net/java/GA/jdk25.0.2/b1e0dfa218384cb9959bdcb897162d4e/10/GPL/openjdk-25.0.2_linux-x64_bin.tar.gz | tar xz -C /opt \
- && ln -s /opt/jdk-25.0.2 /opt/java \
+ && curl -sL https://download.java.net/java/GA/jdk24/1f9ff9062db4449d8ca828c504ffae90/36/GPL/openjdk-24_linux-x64_bin.tar.gz | tar xz -C /opt \
+ && ln -s /opt/jdk-24 /opt/java \
  && curl -sL https://services.gradle.org/distributions/gradle-9.3.0-bin.zip -o /tmp/gradle.zip \
  && unzip -q /tmp/gradle.zip -d /opt \
  && ln -s /opt/gradle-9.3.0 /opt/gradle \
@@ -38,7 +38,7 @@ RUN set -e \
  && su postgres -c "pg_ctl -D $PGDATA stop -w"
 
 # 실행 스테이지
-FROM container-registry.oracle.com/graalvm/jdk:25
+FROM container-registry.oracle.com/graalvm/jdk:24
 
 WORKDIR /app
 
