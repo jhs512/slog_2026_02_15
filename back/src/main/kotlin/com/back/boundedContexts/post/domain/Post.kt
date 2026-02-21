@@ -30,8 +30,9 @@ class Post(
     @field:ManyToOne(fetch = FetchType.LAZY)
     val author: Member,
     var title: String,
+    @Basic(fetch = FetchType.LAZY)
     @field:Column(columnDefinition = "TEXT")
-    content: String,
+    var content: String,
     var published: Boolean = false,
     var listed: Boolean = false,
 ) : BaseTime() {
@@ -63,18 +64,6 @@ class Post(
         const val COMMENTS_COUNT = "commentsCount"
         const val HIT_COUNT = "hitCount"
     }
-
-    // ================================
-    // 기본 데이터 조작
-    // ================================
-    @Basic(fetch = FetchType.LAZY)
-    var content: String = content
-        set(value) {
-            if (field != value) {
-                field = value
-                updateModifiedAt()
-            }
-        }
 
     fun modify(title: String, content: String, published: Boolean? = null, listed: Boolean? = null) {
         this.title = title
