@@ -174,7 +174,7 @@ jobs:
             done < /etc/environment
             set +a
             OWNER_LC="${{ github.repository_owner }}"
-            OWNER_LC="${OWNER_LC,,}"                                # 소문자 표준화
+            OWNER_LC="${OWNER_LC,,}"
             IMAGE_TAG="${{ needs.makeTagAndRelease.outputs.tag_name }}"
             IMAGE_REPOSITORY="${{ env.IMAGE_REPOSITORY }}"
             IMAGE="ghcr.io/${OWNER_LC}/${IMAGE_REPOSITORY}:${IMAGE_TAG}"
