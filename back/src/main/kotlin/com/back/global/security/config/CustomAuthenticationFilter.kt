@@ -36,11 +36,11 @@ class CustomAuthenticationFilter(
         Regex("/member/api/v1/members/\\d+/redirectToProfileImg")
     )
 
-    private val apiPrefixes = listOf("/member/api/", "/post/api/")
+    private val filteredPrefixes = listOf("/member/api/", "/post/api/", "/ws/", "/sse/")
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         val uri = request.requestURI
-        if (apiPrefixes.none { uri.startsWith(it) }) return true
+        if (filteredPrefixes.none { uri.startsWith(it) }) return true
         if (uri in publicApiPaths) return true
         if (publicApiPatterns.any { it.matches(uri) }) return true
         return false

@@ -40,6 +40,7 @@ class SecurityConfig(
                 authorize("/h2-console/**", permitAll)
                 authorize("/gen/**", permitAll)
                 authorize("/ws/**", permitAll)
+                authorize("/sse/**", permitAll)
 
                 // ================================
                 // 모듈별 설정

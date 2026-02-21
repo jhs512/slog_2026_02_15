@@ -84,6 +84,9 @@ class PostFacade(
 
         post.modify(title, content, published, listed)
 
+        // flush로 @LastModifiedDate 반영 후 알림 전송
+        postRepository.flush()
+
         // 글 본문 변경사항 구독자에게 알림
         postNotificationService.notifyPostModified(post)
 
