@@ -227,7 +227,15 @@ jobs:
                     caching_enabled: false,
                     allow_websocket_upgrade: true,
                     advanced_config: "",
-                    locations: [],
+                    locations: [
+                      {
+                        path: "/sse/",
+                        forward_scheme: "http",
+                        forward_host: $host,
+                        forward_port: $port,
+                        npmplus_proxy_response_buffering: true
+                      }
+                    ],
                     meta: {letsencrypt_agree: false, dns_challenge: false}
                   }')" | jq '.id')
               [[ -n "${PROXY_ID}" && "${PROXY_ID}" != "null" ]] || { echo "❌ Failed to create proxy host"; exit 1; }
