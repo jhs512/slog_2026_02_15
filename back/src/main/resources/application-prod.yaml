@@ -1,6 +1,6 @@
 spring:
   datasource:
-    password: lldj123414
+    password: ${SPRING__DATASOURCE__PASSWORD}
   jpa:
     open-in-view: false
     hibernate:
@@ -23,3 +23,5 @@ custom:
     cookieDomain: "${custom.prod.cookieDomain}"
     frontUrl: "${custom.prod.frontUrl}"
     backUrl: "${custom.prod.backUrl}"
+    dbHost: ${custom.prod.dbHost}"
+    dbName: "${custom.prod.dbName}"

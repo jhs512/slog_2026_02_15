@@ -8,7 +8,8 @@ spring:
 custom:
   notProdMembers: []
   site:
-    cookieDomain: "${custom.test.cookieDomain}"
-    frontUrl: "${custom.test.frontUrl}"
-    backUrl: "${custom.test.backUrl}"
-    dbName: "${custom.test.dbName}"
+    cookieDomain: "${custom.dev.cookieDomain}"
+    frontUrl: "${custom.dev.frontUrl}"
+    backUrl: "${custom.dev.backUrl}"
+    dbHost: ${custom.dev.dbHost}"
+    dbName: "${custom.dev.dbName}"
