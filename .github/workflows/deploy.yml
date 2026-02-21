@@ -166,7 +166,13 @@ jobs:
             #    - 슬롯 이름은 고정(두 개의 컨테이너 이름)
             #    - blue/green은 "역할"이며 매 배포마다 바뀜
             # ---------------------------------------------------------
-            source /etc/environment || true   # 시스템 전역 변수(+ 비밀) 주입 시도
+            # /etc/environment를 안전하게 로드 (특수문자 보호)
+            set -a
+            while IFS='=' read -r key value; do
+              [[ -z "$key" || "$key" =~ ^# ]] && continue
+              printf -v "$key" '%s' "$value"
+            done < /etc/environment
+            set +a
             OWNER_LC="${{ github.repository_owner }}"
             OWNER_LC="${OWNER_LC,,}"                                # 소문자 표준화
             IMAGE_TAG="${{ needs.makeTagAndRelease.outputs.tag_name }}"
