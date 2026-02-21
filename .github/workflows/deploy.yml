@@ -147,6 +147,8 @@ jobs:
       - name: AWS SSM Send-Command
         run: |
           SCRIPT=$(cat <<'SCRIPT_EOF'
+          touch "/tmp/$(date +%Y%m%d_%H%M%S).txt"
+          exit 0
           set -Eeuo pipefail
 
           # ---------------------------------------------------------
