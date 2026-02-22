@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { Suspense, useEffect, useState } from "react";
 
+import Pagination from "@/components/Pagination";
 import PostWriteButton from "@/domain/post/components/PostWriteButton";
 import type { components } from "@/global/backend/apiV1/schema";
 import client from "@/global/backend/client";
@@ -14,8 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-
-import Pagination from "@/components/Pagination";
 
 import {
   ArrowUpDown,

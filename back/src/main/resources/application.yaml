@@ -69,7 +69,7 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         dialect: com.back.global.jpa.config.CustomPostgreSQLDialect
@@ -117,7 +117,11 @@ custom:
     secretKey: ${CUSTOM__JWT__SECRET_KEY}
   accessToken:
     expirationSeconds: "#{60*20}"
-  notProdMembers: []
+  notProdMembers:
+    - username: KAKAO__3889999627
+      nickname: 장희성
+      profileImgUrl: http://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg
+      apiKey: KAKAO__3889999627
   systemMemberApiKey: ${CUSTOM__JWT__SECRET_KEY}
   cache:
     ttl-seconds: 3600

@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { Suspense, useEffect, useState } from "react";
 
+import Pagination from "@/components/Pagination";
 import PostWriteButton from "@/domain/post/components/PostWriteButton";
 import withLogin from "@/global/auth/hoc/withLogin";
 import type { components } from "@/global/backend/apiV1/schema";
@@ -13,8 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-
-import Pagination from "@/components/Pagination";
 
 import {
   ArrowUpDown,
@@ -154,7 +153,7 @@ function PageContent() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-center my-4">내 게시물</h1>
+      <h1 className="text-2xl font-bold text-center my-4">내 글</h1>
 
       {/* 검색 */}
       <form onSubmit={handleSearch} className="flex gap-2 mb-4">

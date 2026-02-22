@@ -31,6 +31,7 @@ class PgCacheConfig(
     ): CacheManager {
         val typingMapper = PgCache.createTypingObjectMapper(objectMapper)
         val ttlOverrides = properties.ttlOverrides.mapValues { Duration.ofSeconds(it.value) }
+
         return PgCacheManager(
             em,
             typingMapper,

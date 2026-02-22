@@ -5,14 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { Suspense, useEffect, useState } from "react";
 
+import Pagination from "@/components/Pagination";
 import withAdmin from "@/global/auth/hoc/withAdmin";
 import type { components } from "@/global/backend/apiV1/schema";
 import client from "@/global/backend/client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-import Pagination from "@/components/Pagination";
 
 import { ArrowUpDown, Search } from "lucide-react";
 

@@ -9,6 +9,10 @@ import org.springframework.session.web.http.HttpSessionIdResolver
 
 @Configuration
 class SessionConfig {
+    private val sessionPathsPrefixes = listOf(
+        "/oauth2/",
+        "/login/oauth2/"
+    )
 
     @Bean
     fun httpSessionIdResolver(): HttpSessionIdResolver {
@@ -38,9 +42,4 @@ class SessionConfig {
             }
         }
     }
-
-    private val sessionPathsPrefixes = listOf(
-        "/oauth2/",
-        "/login/oauth2/"
-    )
 }
