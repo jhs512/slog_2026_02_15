@@ -35,7 +35,7 @@ export default function WideHeaderContent({
       {isLogin && (
         <Button variant="link" asChild>
           <Link href="/p/mine">
-            <NotebookText /> 내글
+            <NotebookText /> 내 글
           </Link>
         </Button>
       )}

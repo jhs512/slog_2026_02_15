@@ -4,11 +4,12 @@ import Link from "next/link";
 
 import PostWriteButton from "@/domain/post/components/PostWriteButton";
 import { useAuthContext } from "@/global/auth/hooks/useAuth";
+import LoginButton from "@/lib/business/components/LoginButton";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { FileText, LogIn, Sparkles } from "lucide-react";
+import { FileText, Sparkles } from "lucide-react";
 
 export default function Page() {
   const { isLogin } = useAuthContext();
@@ -39,12 +40,7 @@ export default function Page() {
               {isLogin ? (
                 <PostWriteButton variant="outline" size="lg" />
               ) : (
-                <Button asChild variant="outline" size="lg">
-                  <Link href="/members/login">
-                    <LogIn className="w-4 h-4" />
-                    로그인
-                  </Link>
-                </Button>
+                <LoginButton variant="outline" text="로그인" />
               )}
             </div>
           </CardContent>
