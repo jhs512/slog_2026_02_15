@@ -10,7 +10,7 @@ import org.hibernate.tool.schema.spi.Exporter
 import org.hibernate.type.BasicType
 import org.hibernate.type.SqlTypes
 
-class CustomPostgreSQLDialect : PostgreSQLDialect() {
+open class CustomPostgreSQLDialect : PostgreSQLDialect() {
     private val tableExporter = object : StandardTableExporter(this) {
         override fun getSqlCreateStrings(
             table: Table,

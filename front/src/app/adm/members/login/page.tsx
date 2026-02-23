@@ -52,7 +52,7 @@ export default withLogout(function Page() {
   });
 
   const onSubmit = async (data: LoginFormInputs) => {
-    const response = await client.POST("/member/api/v1/members/login", {
+    const response = await client.POST("/member/api/v1/auth/login", {
       body: {
         username: data.username,
         password: data.password,

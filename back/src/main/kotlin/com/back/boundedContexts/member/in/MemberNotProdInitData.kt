@@ -1,6 +1,7 @@
 package com.back.boundedContexts.member.`in`
 
 import com.back.boundedContexts.member.app.MemberFacade
+import com.back.boundedContexts.member.domain.shared.Member
 import com.back.global.app.app.CustomConfigProperties
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.ApplicationRunner
@@ -33,7 +34,7 @@ class MemberNotProdInitData(
     fun makeBaseMembers() {
         if (memberFacade.count() > 0) return
 
-        val memberSystem = memberFacade.join("system", "1234", "시스템")
+        val memberSystem = memberFacade.join(Member.SYSTEM.username, "1234", Member.SYSTEM.nickname)
         memberSystem.modifyApiKey(memberSystem.username)
 
         val memberHolding = memberFacade.join("holding", "1234", "홀딩")

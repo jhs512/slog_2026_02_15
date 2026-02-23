@@ -500,8 +500,8 @@ class ApiV1PostControllerTest {
         @Test
         fun `성공 - GET post api v1 posts?kwType=TITLE&kw=스프링 (제목 검색)`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
-            val titlePost = postFacade.write(actor, "스프링 입문", "백엔드 이야기")
-            val contentOnlyPost = postFacade.write(actor, "일반 제목", "스프링 기본 문서")
+            val titlePost = postFacade.write(actor, "스프링 입문", "백엔드 이야기", true, true)
+            val contentOnlyPost = postFacade.write(actor, "일반 제목", "스프링 기본 문서", true, true)
 
             val resultActions = mvc
                 .perform(
@@ -520,10 +520,38 @@ class ApiV1PostControllerTest {
         }
 
         @Test
+        fun `비공개 글은 공개 목록에서 조회되지 않는다`() {
+            val actor = actorFacade.findByUsername("user1").getOrThrow()
+            val unpublishedPost = postFacade.write(actor, "비공개 글", "비공개 내용", false, false)
+
+            val resultActions = mvc
+                .perform(get("/post/api/v1/posts"))
+                .andDo(print())
+
+            resultActions
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(unpublishedPost.id))))
+        }
+
+        @Test
+        fun `공개지만 목록 미노출 글은 공개 목록에서 조회되지 않는다`() {
+            val actor = actorFacade.findByUsername("user1").getOrThrow()
+            val unlistedPost = postFacade.write(actor, "비노출 공개 글", "비노출 내용", true, false)
+
+            val resultActions = mvc
+                .perform(get("/post/api/v1/posts"))
+                .andDo(print())
+
+            resultActions
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(unlistedPost.id))))
+        }
+
+        @Test
         fun `성공 - GET post api v1 posts?kwType=CONTENT&kw=자바 (본문 검색)`() {
             val actor = actorFacade.findByUsername("user1").getOrThrow()
-            val contentPost = postFacade.write(actor, "일반 제목", "자바 핵심 정리")
-            val titleOnlyPost = postFacade.write(actor, "자바 개념 정리", "스프링 기초부터 시작")
+            val contentPost = postFacade.write(actor, "일반 제목", "자바 핵심 정리", true, true)
+            val titleOnlyPost = postFacade.write(actor, "자바 개념 정리", "스프링 기초부터 시작", true, true)
 
             val resultActions = mvc
                 .perform(
@@ -599,6 +627,34 @@ class ApiV1PostControllerTest {
                 .andExpect(status().isForbidden)
                 .andExpect(jsonPath("$.resultCode").value("403-1"))
                 .andExpect(jsonPath("$.msg").value("작성자만 글을 수정할 수 있습니다."))
+        }
+
+        @Test
+        @WithUserDetails("user1")
+        fun `published false로 수정하면 listed가 자동으로 false가 된다`() {
+            val actor = actorFacade.findByUsername("user1").getOrThrow()
+            val post = postFacade.write(actor, "공개 글", "내용", true, true)
+
+            val resultActions = mvc
+                .perform(
+                    put("/post/api/v1/posts/${post.id}")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                            """
+                            {
+                                "title": "공개 글",
+                                "content": "내용",
+                                "published": false
+                            }
+                            """
+                        )
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.data.published").value(false))
+                .andExpect(jsonPath("$.data.listed").value(false))
         }
 
         @Test

@@ -8,6 +8,7 @@ import com.back.standard.extensions.getOrThrow
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.PageRequest
 import org.springframework.test.context.ActiveProfiles
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @ActiveProfiles("test")
 @SpringBootTest
+@AutoConfigureMockMvc
 @Transactional
 class PostRepositoryTest {
     @Autowired

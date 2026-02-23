@@ -1,6 +1,7 @@
 package com.back.global.security.config.oauth2
 
 import com.back.boundedContexts.member.app.MemberFacade
+import com.back.boundedContexts.member.domain.shared.memberExtensions.authorities
 import com.back.global.security.domain.SecurityUser
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest

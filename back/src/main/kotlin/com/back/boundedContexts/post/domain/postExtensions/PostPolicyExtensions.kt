@@ -1,6 +1,7 @@
 package com.back.boundedContexts.post.domain.postExtensions
 
 import com.back.boundedContexts.member.domain.shared.Member
+import com.back.boundedContexts.member.domain.shared.memberExtensions.isAdmin
 import com.back.boundedContexts.post.domain.Post
 import com.back.global.dto.RsData
 import com.back.global.exception.app.BusinessException

@@ -1,6 +1,7 @@
 package com.back.boundedContexts.member.`in`
 
 import com.back.boundedContexts.member.app.MemberFacade
+import com.back.boundedContexts.member.domain.shared.memberExtensions.isAdmin
 import com.back.standard.extensions.getOrThrow
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Nested

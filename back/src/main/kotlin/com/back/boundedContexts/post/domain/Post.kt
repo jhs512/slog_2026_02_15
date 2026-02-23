@@ -1,31 +1,23 @@
 package com.back.boundedContexts.post.domain
 
 import com.back.boundedContexts.member.domain.shared.Member
-import com.back.boundedContexts.post.out.PostAttrRepository
-import com.back.boundedContexts.post.out.PostCommentRepository
-import com.back.boundedContexts.post.out.PostLikeRepository
-import com.back.global.pgroonga.annotation.PGroongaIndex
 import com.back.global.jpa.domain.BaseTime
-import jakarta.persistence.Basic
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToOne
-import jakarta.persistence.Index
-import jakarta.persistence.Table
+import com.back.global.pgroonga.annotation.PGroongaIndex
+import jakarta.persistence.*
 import org.hibernate.annotations.DynamicUpdate
 
 @Entity
 @DynamicUpdate
 @Table(
     indexes = [
-        Index(name = "idx_post_author_created_at_id_desc", columnList = "author_id, created_at DESC, id DESC"),
-        Index(name = "idx_post_modified_at_id_desc", columnList = "modified_at DESC, id DESC"),
+        Index(name = "idx_post_listed_created_at", columnList = "listed, created_at"),
+        Index(name = "idx_post_listed_modified_at", columnList = "listed, modified_at"),
+        Index(name = "idx_post_author_created_at", columnList = "author_id, created_at"),
+        Index(name = "idx_post_author_modified_at", columnList = "author_id, modified_at"),
     ]
 )
-@PGroongaIndex(columns = ["title", "content"])
+@PGroongaIndex(columns = ["title"])
+@PGroongaIndex(columns = ["content"])
 class Post(
     @field:ManyToOne(fetch = FetchType.LAZY)
     val author: Member,
@@ -50,15 +42,6 @@ class Post(
     // ================================
 
     companion object {
-        lateinit var postAttrRepository_: PostAttrRepository
-        val postAttrRepository by lazy { postAttrRepository_ }
-
-        lateinit var postLikeRepository_: PostLikeRepository
-        val postLikeRepository by lazy { postLikeRepository_ }
-
-        lateinit var postCommentRepository_: PostCommentRepository
-        val postCommentRepository by lazy { postCommentRepository_ }
-
         // Attr 이름 상수
         const val LIKES_COUNT = "likesCount"
         const val COMMENTS_COUNT = "commentsCount"
@@ -70,5 +53,6 @@ class Post(
         this.content = content
         published?.let { this.published = it }
         listed?.let { this.listed = it }
+        if (!this.published) this.listed = false
     }
 }

@@ -1,4 +1,4 @@
-package com.back.boundedContexts.member.subContexts.memberLog.domain
+package com.back.boundedContexts.member.subContexts.memberActionLog.domain
 
 import com.back.boundedContexts.member.domain.shared.Member
 import com.back.global.jpa.domain.BaseEntity
@@ -10,7 +10,7 @@ import org.hibernate.annotations.DynamicUpdate
 
 @Entity
 @DynamicUpdate
-class MemberLog(
+class MemberActionLog(
     val type: String,
     val primaryType: String,
     val primaryId: Int,
@@ -20,6 +20,4 @@ class MemberLog(
     @field:ManyToOne(fetch = FetchType.LAZY) val secondaryOwner: Member,
     @field:ManyToOne(fetch = FetchType.LAZY) val actor: Member,
     @field:Column(columnDefinition = "TEXT") val data: String,
-) : BaseEntity() {
-
-}
+) : BaseEntity()

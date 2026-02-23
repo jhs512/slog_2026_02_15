@@ -19,13 +19,13 @@ class TaskProcessor(
     private val logger = LoggerFactory.getLogger(TaskProcessor::class.java)
     private val executor = Executors.newVirtualThreadPerTaskExecutor()
 
-    @Scheduled(fixedDelay = 100000)
+    @Scheduled(fixedDelayString = "\${custom.task.processor.fixedDelayMs}")
     fun processTasks() {
         val taskIds = transactionTemplate.execute {
             val pendingTasks = taskRepository.findPendingTasksWithLock(10)
             pendingTasks.forEach { it.markAsProcessing() }
             pendingTasks.map { it.id }
-        } ?: emptyList()
+        }
 
         taskIds.forEach { taskId ->
             executor.submit { executeTask(taskId) }
@@ -36,12 +36,11 @@ class TaskProcessor(
         val task = taskRepository.findById(taskId).orElse(null) ?: return@execute
 
         try {
-            val payloadClass = Class.forName(task.taskType)
-            val payload = Ut.JSON.fromString(task.payload, payloadClass) as TaskPayload
-            val handler = taskHandlerRegistry.getHandler(payload::class.java)
+            val entry = taskHandlerRegistry.getEntry(task.taskType)
 
-            if (handler != null) {
-                handler.method.invoke(handler.bean, payload)
+            if (entry != null) {
+                val payload = Ut.JSON.fromString(task.payload, entry.payloadClass) as TaskPayload
+                entry.handlerMethod.method.invoke(entry.handlerMethod.bean, payload)
                 task.markAsCompleted()
             } else {
                 logger.warn("No handler found for task type: ${task.taskType}")

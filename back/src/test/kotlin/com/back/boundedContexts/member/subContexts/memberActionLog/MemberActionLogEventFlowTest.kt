@@ -1,9 +1,9 @@
-package com.back.boundedContexts.member.subContexts.memberLog
+package com.back.boundedContexts.member.subContexts.memberActionLog
 
 import com.back.boundedContexts.member.app.shared.ActorFacade
 import com.back.boundedContexts.member.domain.shared.Member
-import com.back.boundedContexts.member.subContexts.memberLog.domain.MemberLog
-import com.back.boundedContexts.member.subContexts.memberLog.out.MemberLogRepository
+import com.back.boundedContexts.member.subContexts.memberActionLog.domain.MemberActionLog
+import com.back.boundedContexts.member.subContexts.memberActionLog.out.MemberActionLogRepository
 import com.back.boundedContexts.post.app.PostFacade
 import com.back.boundedContexts.post.domain.Post
 import com.back.boundedContexts.post.domain.PostComment
@@ -12,19 +12,22 @@ import com.back.boundedContexts.post.event.PostCommentDeletedEvent
 import com.back.boundedContexts.post.event.PostCommentModifiedEvent
 import com.back.boundedContexts.post.event.PostCommentWrittenEvent
 import com.back.boundedContexts.post.event.PostDeletedEvent
-import com.back.boundedContexts.post.event.PostLikeToggledEvent
+import com.back.boundedContexts.post.event.PostLikedEvent
 import com.back.boundedContexts.post.event.PostModifiedEvent
+import com.back.boundedContexts.post.event.PostUnlikedEvent
 import com.back.boundedContexts.post.event.PostWrittenEvent
 import com.back.standard.extensions.getOrThrow
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 
 @ActiveProfiles("test")
 @SpringBootTest
-class MemberLogEventFlowTest {
+@AutoConfigureMockMvc
+class MemberActionLogEventFlowTest {
     @Autowired
     private lateinit var actorFacade: ActorFacade
 
@@ -32,10 +35,10 @@ class MemberLogEventFlowTest {
     private lateinit var postFacade: PostFacade
 
     @Autowired
-    private lateinit var memberLogRepository: MemberLogRepository
+    private lateinit var memberActionLogRepository: MemberActionLogRepository
 
     @Test
-    fun `회원 이벤트가 발생하면 해당 회원 로그가 기록되어 남는지 확인한다`() {
+    fun `회원 이벤트가 발생하면 해당 회원 액션 로그가 기록되어 남는지 확인한다`() {
         val actor = actorFacade.findByUsername("user1").getOrThrow()
 
         val post = verifyAction(
@@ -80,7 +83,7 @@ class MemberLogEventFlowTest {
 
         val likeResult = verifyAction(
             { postFacade.toggleLike(post, actor) },
-            PostLikeToggledEvent::class.simpleName!!,
+            PostLikedEvent::class.simpleName!!,
             PostLike::class.simpleName!!,
             { it.likeId },
             Post::class.simpleName!!,
@@ -91,7 +94,7 @@ class MemberLogEventFlowTest {
 
         val unliked = verifyAction(
             { postFacade.toggleLike(post, actor) },
-            PostLikeToggledEvent::class.simpleName!!,
+            PostUnlikedEvent::class.simpleName!!,
             PostLike::class.simpleName!!,
             { it.likeId },
             Post::class.simpleName!!,
@@ -161,8 +164,8 @@ class MemberLogEventFlowTest {
     }
 
     private fun lastLogId(): Int =
-        memberLogRepository.findAll().maxOfOrNull { it.id } ?: 0
+        memberActionLogRepository.findAll().maxOfOrNull { it.id } ?: 0
 
-    private fun addedLogs(before: Int): List<MemberLog> =
-        memberLogRepository.findAll().filter { it.id > before }
+    private fun addedLogs(before: Int): List<MemberActionLog> =
+        memberActionLogRepository.findAll().filter { it.id > before }
 }

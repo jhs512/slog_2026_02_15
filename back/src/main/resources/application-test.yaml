@@ -2,9 +2,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
-  properties:
-    hibernate:
-      dialect: com.back.global.jpa.config.CustomTestPostgreSQLDialect
+    properties:
+      hibernate:
+        dialect: com.back.global.jpa.config.CustomTestPostgreSQLDialect
 custom:
   notProdMembers: []
   site:

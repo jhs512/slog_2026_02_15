@@ -1,10 +1,12 @@
-package com.back.boundedContexts.member.subContexts.memberLog.dto
+package com.back.boundedContexts.member.subContexts.memberActionLog.dto
 
 import com.back.standard.dto.EventPayload
+import com.back.standard.dto.Task
 import com.back.standard.dto.TaskPayload
 import java.util.*
 
-class MemberAddLogPayload(
+@Task("member.createActionLog")
+class MemberCreateActionLogPayload(
     override val uid: UUID,
     override val aggregateType: String,
     override val aggregateId: Int,

@@ -2,7 +2,6 @@ package com.back.global.web.util
 
 import com.back.boundedContexts.member.app.shared.ActorFacade
 import com.back.boundedContexts.member.domain.shared.Member
-import com.back.boundedContexts.member.domain.shared.MemberProxy
 import com.back.global.app.app.AppFacade
 import com.back.global.security.domain.SecurityUser
 import jakarta.servlet.http.Cookie
@@ -18,20 +17,8 @@ class Rq(
     private val actorFacade: ActorFacade,
 ) {
     val actorOrNull: Member?
-        get() = (
-                SecurityContextHolder
-                    .getContext()
-                    ?.authentication
-                    ?.principal as? SecurityUser
-                )
-            ?.let {
-                MemberProxy(
-                    actorFacade.getReferenceById(it.id),
-                    it.id,
-                    it.username,
-                    it.nickname
-                )
-            }
+        get() = (SecurityContextHolder.getContext()?.authentication?.principal as? SecurityUser)
+            ?.let { actorFacade.memberOf(it) }
 
     val actor: Member
         get() = actorOrNull ?: throw IllegalStateException("인증된 사용자가 없습니다.")

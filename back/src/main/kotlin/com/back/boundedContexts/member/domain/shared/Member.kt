@@ -2,21 +2,24 @@ package com.back.boundedContexts.member.domain.shared
 
 import com.back.boundedContexts.member.out.shared.MemberAttrRepository
 import com.back.boundedContexts.post.domain.PostMember
-import com.back.global.pgroonga.annotation.PGroongaIndex
 import com.back.global.app.app.AppFacade
 import com.back.global.jpa.domain.BaseTime
+import com.back.global.pgroonga.annotation.PGroongaIndex
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.Index
+import jakarta.persistence.Table
 import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.annotations.NaturalId
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.util.*
 
 private const val PROFILE_IMG_URL = "profileImgUrl"
 
 @Entity
 @DynamicUpdate
+@Table(indexes = [
+    Index(name = "idx_member_created_at", columnList = "created_at"),
+])
 @PGroongaIndex(columns = ["username"])
 @PGroongaIndex(columns = ["nickname"])
 class Member(
@@ -47,11 +50,6 @@ class Member(
     // Constructors
     // ================================
 
-    // 코프링에서 엔티티의 `by lazy` 필드가 제대로 작동하게 하려면
-    // kotlin("plugin.jpa") 에 의해서 만들어지는 인자 없는 생성자로는 부족하다.
-    // 귀찮지만 이렇게 직접 만들어야 한다.
-    constructor() : this(0)
-
     constructor(id: Int) : this(id, "", "")
 
     constructor(id: Int, username: String, nickname: String) : this(
@@ -81,11 +79,11 @@ class Member(
     override val name: String
         get() = nickname
 
-    @delegate:Transient
-    private val profileImgUrlAttr by lazy {
-        attrRepository.findBySubjectAndName(this, PROFILE_IMG_URL)
-            ?: MemberAttr(this, PROFILE_IMG_URL, "")
-    }
+    private val profileImgUrlAttr: MemberAttr
+        get() = getOrPutAttr(PROFILE_IMG_URL) {
+            attrRepository.findBySubjectAndName(this, PROFILE_IMG_URL)
+                ?: MemberAttr(this, PROFILE_IMG_URL, "")
+        }
 
     var profileImgUrl: String
         get() = profileImgUrlAttr.value
@@ -115,18 +113,4 @@ class Member(
         this.apiKey = apiKey
     }
 
-    // ================================
-    // Security 영역
-    // ================================
-
-    @delegate:Transient
-    val isAdmin: Boolean by lazy {
-        username in setOf("system", "admin")
-    }
-
-    val authoritiesAsStringList: List<String>
-        get() = buildList { if (isAdmin) add("ROLE_ADMIN") }
-
-    val authorities: Collection<GrantedAuthority>
-        get() = authoritiesAsStringList.map { SimpleGrantedAuthority(it) }
 }

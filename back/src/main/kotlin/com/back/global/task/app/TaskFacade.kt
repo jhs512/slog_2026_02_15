@@ -14,13 +14,16 @@ class TaskFacade(
     private val taskRepository: TaskRepository,
     private val taskHandlerRegistry: TaskHandlerRegistry
 ) {
-    fun add(payload: TaskPayload) {
+    fun addToQueue(payload: TaskPayload) {
+        val type = taskHandlerRegistry.getType(payload.javaClass)
+            ?: error("No @TaskHandler registered for ${payload.javaClass.simpleName}")
+
         val task = taskRepository.save(
             Task(
                 UUID.randomUUID(),
                 payload.aggregateType,
                 payload.aggregateId,
-                payload.javaClass.name,
+                type,
                 Ut.JSON.toString(payload)
             )
         )

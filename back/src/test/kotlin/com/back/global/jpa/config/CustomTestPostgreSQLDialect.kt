@@ -2,12 +2,11 @@ package com.back.global.jpa.config
 
 import org.hibernate.boot.Metadata
 import org.hibernate.boot.model.relational.SqlStringGenerationContext
-import org.hibernate.dialect.PostgreSQLDialect
 import org.hibernate.mapping.Table
 import org.hibernate.tool.schema.internal.StandardTableExporter
 import org.hibernate.tool.schema.spi.Exporter
 
-class CustomTestPostgreSQLDialect : PostgreSQLDialect() {
+class CustomTestPostgreSQLDialect : CustomPostgreSQLDialect() {
     private val tableExporter = object : StandardTableExporter(this) {
         override fun getSqlCreateStrings(
             table: Table,

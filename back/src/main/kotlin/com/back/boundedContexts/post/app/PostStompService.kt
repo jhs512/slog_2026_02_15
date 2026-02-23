@@ -6,7 +6,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
 
 @Service
-class PostNotificationService(
+class PostStompService(
     private val messagingTemplate: SimpMessagingTemplate,
 ) {
     fun notifyPostModified(post: Post) {

@@ -10,13 +10,7 @@ import com.back.boundedContexts.post.domain.postExtensions.deleteComment
 import com.back.boundedContexts.post.domain.postExtensions.toggleLike
 import com.back.boundedContexts.post.dto.PostCommentDto
 import com.back.boundedContexts.post.dto.PostDto
-import com.back.boundedContexts.post.event.PostCommentDeletedEvent
-import com.back.boundedContexts.post.event.PostCommentModifiedEvent
-import com.back.boundedContexts.post.event.PostCommentWrittenEvent
-import com.back.boundedContexts.post.event.PostDeletedEvent
-import com.back.boundedContexts.post.event.PostLikeToggledEvent
-import com.back.boundedContexts.post.event.PostModifiedEvent
-import com.back.boundedContexts.post.event.PostWrittenEvent
+import com.back.boundedContexts.post.event.*
 import com.back.boundedContexts.post.out.PostAttrRepository
 import com.back.boundedContexts.post.out.PostCommentRepository
 import com.back.boundedContexts.post.out.PostLikeRepository
@@ -38,7 +32,7 @@ class PostFacade(
     private val postAttrRepository: PostAttrRepository,
     private val postCommentRepository: PostCommentRepository,
     private val eventPublisher: EventPublisher,
-    private val postNotificationService: PostNotificationService,
+    private val postStompService: PostStompService,
 ) {
     fun count(): Long = postRepository.count()
 
@@ -80,15 +74,13 @@ class PostFacade(
         published: Boolean? = null,
         listed: Boolean? = null,
     ) {
-        val wasPublishedAndListed = post.published && post.listed
-
         post.modify(title, content, published, listed)
 
         // flush로 @LastModifiedDate 반영 후 알림 전송
         postRepository.flush()
 
         // 글 본문 변경사항 구독자에게 알림
-        postNotificationService.notifyPostModified(post)
+        postStompService.notifyPostModified(post)
 
         eventPublisher.publish(
             PostModifiedEvent(
@@ -224,15 +216,13 @@ class PostFacade(
     fun toggleLike(post: Post, actor: Member): PostLikeToggleResult {
         val likeResult = post.toggleLike(actor)
 
+        postRepository.flush()
+
         eventPublisher.publish(
-            PostLikeToggledEvent(
-                UUID.randomUUID(),
-                post.id,
-                post.author.id,
-                likeResult.likeId,
-                likeResult.isLiked,
-                MemberDto(actor)
-            )
+            if (likeResult.isLiked)
+                PostLikedEvent(UUID.randomUUID(), post.id, post.author.id, likeResult.likeId, MemberDto(actor))
+            else
+                PostUnlikedEvent(UUID.randomUUID(), post.id, post.author.id, likeResult.likeId, MemberDto(actor))
         )
 
         return likeResult

@@ -23,23 +23,28 @@ class PostRepositoryImpl(
         kwType: PostSearchKeywordType1,
         kw: String,
         pageable: Pageable,
-    ): Page<Post> = findPosts(null, kwType, kw, pageable)
+    ): Page<Post> = findPosts(null, kwType, kw, pageable, publicOnly = true)
 
     override fun findQPagedByAuthorAndKw(
         author: Member,
         kwType: PostSearchKeywordType1,
         kw: String,
         pageable: Pageable,
-    ): Page<Post> = findPosts(author, kwType, kw, pageable)
+    ): Page<Post> = findPosts(author, kwType, kw, pageable, publicOnly = false)
 
     private fun findPosts(
         author: Member?,
         kwType: PostSearchKeywordType1,
         kw: String,
         pageable: Pageable,
+        publicOnly: Boolean = false,
     ): Page<Post> {
         val builder = BooleanBuilder()
 
+        if (publicOnly) {
+            builder.and(post.published.isTrue)
+            builder.and(post.listed.isTrue)
+        }
         author?.let { builder.and(post.author.eq(it)) }
         if (kw.isNotBlank()) builder.and(buildKwPredicate(kwType, kw))
 
@@ -56,7 +61,6 @@ class PostRepositoryImpl(
         when (kwType) {
             PostSearchKeywordType1.TITLE -> pgroonga(post.title, kw)
             PostSearchKeywordType1.CONTENT -> pgroonga(post.content, kw)
-            PostSearchKeywordType1.AUTHOR -> post.author.nickname.containsIgnoreCase(kw)
             PostSearchKeywordType1.ALL -> pgroonga(post.title, kw).or(pgroonga(post.content, kw))
         }
 

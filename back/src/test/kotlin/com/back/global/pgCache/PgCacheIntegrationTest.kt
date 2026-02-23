@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cache.CacheManager
 import org.springframework.test.context.ActiveProfiles
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @ActiveProfiles("test")
 @SpringBootTest
+@AutoConfigureMockMvc
 @Transactional
 class PgCacheIntegrationTest {
 

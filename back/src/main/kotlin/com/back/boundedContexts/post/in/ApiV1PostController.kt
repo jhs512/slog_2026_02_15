@@ -7,7 +7,6 @@ import com.back.boundedContexts.post.domain.postExtensions.*
 import com.back.boundedContexts.post.dto.PostDto
 import com.back.boundedContexts.post.dto.PostWithContentDto
 import com.back.global.dto.RsData
-import com.back.global.exception.app.BusinessException
 import com.back.global.web.util.Rq
 import com.back.standard.dto.post.type1.PostSearchKeywordType1
 import com.back.standard.dto.post.type1.PostSearchSortType1
@@ -19,6 +18,8 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import org.springframework.format.annotation.DateTimeFormat
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import java.time.Instant
@@ -87,16 +88,16 @@ class ApiV1PostController(
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         lastModifiedAt: Instant?
-    ): PostWithContentDto {
+    ): ResponseEntity<PostWithContentDto> {
         val post = postFacade.findById(id).getOrThrow()
 
         if (lastModifiedAt != null && !post.modifiedAt.isAfter(lastModifiedAt)) {
-            throw BusinessException("412-1", "변경된 데이터가 없습니다.")
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build()
         }
 
         post.checkActorCanRead(rq.actorOrNull)
 
-        return makePostWithContentDto(post)
+        return ResponseEntity.ok(makePostWithContentDto(post))
     }
 
 

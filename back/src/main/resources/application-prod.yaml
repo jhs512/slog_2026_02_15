@@ -1,6 +1,6 @@
 spring:
   datasource:
-    password: ${SPRING__DATASOURCE__PASSWORD}
+    password: "${SPRING__DATASOURCE__PASSWORD}"
   jpa:
     open-in-view: false
     hibernate:
@@ -25,3 +25,6 @@ custom:
     backUrl: "${custom.prod.backUrl}"
     dbHost: "${custom.prod.dbHost}"
     dbName: "${custom.prod.dbName}"
+  task:
+    processor:
+      fixedDelayMs: "#{1000*3}"

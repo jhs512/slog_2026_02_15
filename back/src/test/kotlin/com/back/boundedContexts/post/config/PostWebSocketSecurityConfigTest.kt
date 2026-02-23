@@ -1,18 +1,16 @@
-package com.back.global.websocket.config
+package com.back.boundedContexts.post.config
 
-import com.back.boundedContexts.member.app.MemberFacade
+import com.back.boundedContexts.member.app.shared.ActorFacade
 import com.back.boundedContexts.member.domain.shared.Member
 import com.back.boundedContexts.post.app.PostFacade
-import com.back.boundedContexts.post.domain.Post
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
+import com.back.standard.extensions.getOrThrow
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.messaging.converter.MappingJackson2MessageConverter
+import org.springframework.messaging.converter.JacksonJsonMessageConverter
 import org.springframework.messaging.simp.stomp.StompFrameHandler
 import org.springframework.messaging.simp.stomp.StompHeaders
 import org.springframework.messaging.simp.stomp.StompSession
@@ -28,37 +26,29 @@ import java.util.concurrent.TimeUnit
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class WebSocketSecurityConfigTest {
+class PostWebSocketSecurityConfigTest {
 
     @LocalServerPort
     private var port: Int = 0
 
     @Autowired
-    private lateinit var postFacade: PostFacade
+    private lateinit var actorFacade: ActorFacade
 
     @Autowired
-    private lateinit var memberFacade: MemberFacade
+    private lateinit var postFacade: PostFacade
 
-    private lateinit var author: Member
-    private lateinit var other: Member
-    private lateinit var privatePost: Post
-    private lateinit var publicPost: Post
-
-    @BeforeAll
-    fun setUp() {
-        author = memberFacade.join("ws-author", null, "작성자")
-        other = memberFacade.join("ws-other", null, "다른사용자")
-        privatePost = postFacade.write(author, "비밀글", "비밀글 내용", published = false)
-        publicPost = postFacade.write(author, "공개글", "공개글 내용", published = true, listed = true)
-    }
+    // 기초 데이터: user1(작성자), user2(다른 사용자), post 1(공개글), post 4(비공개글)
+    private val author by lazy { actorFacade.findByUsername("user1").getOrThrow() }
+    private val other by lazy { actorFacade.findByUsername("user2").getOrThrow() }
+    private val publicPost by lazy { postFacade.findById(1)!! }
+    private val privatePost by lazy { postFacade.findById(4)!! }
 
     private fun connect(member: Member): Pair<StompSession, CompletableFuture<Boolean>> {
         val errorFuture = CompletableFuture<Boolean>()
 
         val stompClient = WebSocketStompClient(
             SockJsClient(listOf(WebSocketTransport(StandardWebSocketClient())))
-        ).apply { messageConverter = MappingJackson2MessageConverter() }
+        ).apply { messageConverter = JacksonJsonMessageConverter() }
 
         val headers = WebSocketHttpHeaders()
         headers.add("Cookie", "apiKey=${member.apiKey}")
@@ -91,8 +81,8 @@ class WebSocketSecurityConfigTest {
             session.subscribe("/topic/posts/${publicPost.id}/modified", noopHandler)
 
             Thread.sleep(500)
-            assertThat(errorFuture.isDone).isFalse()
-            assertThat(session.isConnected).isTrue()
+            Assertions.assertThat(errorFuture.isDone).isFalse()
+            Assertions.assertThat(session.isConnected).isTrue()
             session.disconnect()
         }
 
@@ -103,8 +93,8 @@ class WebSocketSecurityConfigTest {
             session.subscribe("/topic/posts/${privatePost.id}/modified", noopHandler)
 
             Thread.sleep(500)
-            assertThat(errorFuture.isDone).isFalse()
-            assertThat(session.isConnected).isTrue()
+            Assertions.assertThat(errorFuture.isDone).isFalse()
+            Assertions.assertThat(session.isConnected).isTrue()
             session.disconnect()
         }
 
@@ -114,7 +104,7 @@ class WebSocketSecurityConfigTest {
 
             session.subscribe("/topic/posts/${privatePost.id}/modified", noopHandler)
 
-            assertThat(errorFuture.get(5, TimeUnit.SECONDS)).isTrue()
+            Assertions.assertThat(errorFuture.get(5, TimeUnit.SECONDS)).isTrue()
         }
     }
 }

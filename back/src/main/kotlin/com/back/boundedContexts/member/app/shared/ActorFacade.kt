@@ -1,7 +1,9 @@
 package com.back.boundedContexts.member.app.shared
 
 import com.back.boundedContexts.member.domain.shared.Member
+import com.back.boundedContexts.member.domain.shared.MemberProxy
 import com.back.boundedContexts.member.out.shared.MemberRepository
+import com.back.global.security.domain.SecurityUser
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import kotlin.jvm.optionals.getOrNull
@@ -11,6 +13,9 @@ class ActorFacade(
     private val authTokenService: AuthTokenService,
     private val memberRepository: MemberRepository,
 ) {
+    fun memberOf(securityUser: SecurityUser): Member =
+        MemberProxy(getReferenceById(securityUser.id), securityUser.id, securityUser.username, securityUser.nickname)
+
     @Transactional(readOnly = true)
     fun findByUsername(username: String): Member? = memberRepository.findByUsername(username)
 

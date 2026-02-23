@@ -30,9 +30,9 @@ class PGroongaMatchFunction(booleanType: BasicType<Boolean>) :
         returnType: ReturnableType<*>?,
         walker: SqlAstTranslator<*>,
     ) {
-        sqlAppender.appendSql("(cast(")
+        sqlAppender.appendSql("(")
         sqlAstArguments[0].accept(walker)
-        sqlAppender.appendSql(" as text) &@~ ")
+        sqlAppender.appendSql(" &@~ ")
         sqlAstArguments[1].accept(walker)
         sqlAppender.appendSql(")")
     }

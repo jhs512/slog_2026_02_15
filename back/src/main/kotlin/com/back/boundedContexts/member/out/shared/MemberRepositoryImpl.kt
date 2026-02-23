@@ -10,6 +10,7 @@ import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import org.hibernate.Session
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.support.PageableExecutionUtils
@@ -22,11 +23,10 @@ class MemberRepositoryImpl(
     private lateinit var entityManager: EntityManager
 
     override fun findByUsername(username: String): Member? {
-        return entityManager
-            .createNativeQuery("SELECT * FROM member WHERE username = :username", Member::class.java)
-            .setParameter("username", username)
-            .resultList
-            .firstOrNull() as? Member
+        return entityManager.unwrap(Session::class.java)
+            .byNaturalId(Member::class.java)
+            .using(Member::username.name, username)
+            .load()
     }
 
     override fun findQPagedByKw(

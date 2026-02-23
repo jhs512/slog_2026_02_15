@@ -43,5 +43,6 @@ class PostNotProdInitData(
         val post1 = postFacade.write(memberUser1, "제목 1", "내용 1", true, true)
         val post2 = postFacade.write(memberUser2, "제목 2", "내용 2", true, true)
         val post3 = postFacade.write(memberUser3, "제목 3", "내용 3", true, true)
+        val post4 = postFacade.write(memberUser1, "비공개 글", "비공개 내용", false, false)
     }
 }

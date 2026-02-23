@@ -5,7 +5,7 @@ import com.back.boundedContexts.member.out.shared.MemberAttrRepository
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class MemberAppConfig(
+class AuthAppConfig(
     memberAttrRepository: MemberAttrRepository,
 ) {
     init {

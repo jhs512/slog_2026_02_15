@@ -50,7 +50,8 @@ class InternalRestClient(
             }
         }
 
-        val result = mockMvc.perform(requestBuilder).andReturn()
+        val result = mockMvc.perform(requestBuilder)
+            .andReturn()
 
         return Response(result.response.status, result.response.contentAsString)
     }

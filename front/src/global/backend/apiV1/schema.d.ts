@@ -152,7 +152,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/member/api/v1/members/login": {
+    "/member/api/v1/auth/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -237,7 +237,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/member/api/v1/members/me": {
+    "/member/api/v1/auth/me": {
         parameters: {
             query?: never;
             header?: never;
@@ -288,7 +288,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/member/api/v1/members/logout": {
+    "/member/api/v1/auth/logout": {
         parameters: {
             query?: never;
             header?: never;
@@ -719,9 +719,9 @@ export interface operations {
             query?: {
                 page?: number;
                 pageSize?: number;
-                kwType?: "TITLE" | "CONTENT" | "AUTHOR" | "ALL";
+                kwType?: "TITLE" | "CONTENT" | "ALL";
                 kw?: string;
-                sort?: "CREATED_AT" | "CREATED_AT_ASC" | "MODIFIED_AT" | "MODIFIED_AT_ASC" | "AUTHOR_NAME" | "AUTHOR_NAME_ASC";
+                sort?: "CREATED_AT" | "CREATED_AT_ASC" | "MODIFIED_AT" | "MODIFIED_AT_ASC";
             };
             header?: never;
             path?: never;
@@ -1010,9 +1010,9 @@ export interface operations {
             query?: {
                 page?: number;
                 pageSize?: number;
-                kwType?: "TITLE" | "CONTENT" | "AUTHOR" | "ALL";
+                kwType?: "TITLE" | "CONTENT" | "ALL";
                 kw?: string;
-                sort?: "CREATED_AT" | "CREATED_AT_ASC" | "MODIFIED_AT" | "MODIFIED_AT_ASC" | "AUTHOR_NAME" | "AUTHOR_NAME_ASC";
+                sort?: "CREATED_AT" | "CREATED_AT_ASC" | "MODIFIED_AT" | "MODIFIED_AT_ASC";
             };
             header?: never;
             path?: never;

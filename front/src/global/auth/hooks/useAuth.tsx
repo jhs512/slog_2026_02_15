@@ -22,7 +22,7 @@ export default function useAuth() {
   const isAdmin = isLogin && loginMember.isAdmin;
 
   useEffect(() => {
-    client.GET("/member/api/v1/members/me").then((res) => {
+    client.GET("/member/api/v1/auth/me", {}).then((res) => {
       if (res.error) {
         setIsPending(false);
         return;
@@ -38,7 +38,7 @@ export default function useAuth() {
   };
 
   const logout = (onSuccess: () => void) => {
-    client.DELETE("/member/api/v1/members/logout").then((res) => {
+    client.DELETE("/member/api/v1/auth/logout", {}).then((res) => {
       if (res.error) {
         toast.error(res.error.msg);
         return;
