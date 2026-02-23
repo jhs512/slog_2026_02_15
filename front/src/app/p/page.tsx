@@ -32,17 +32,13 @@ type PostSort =
   | "CREATED_AT"
   | "CREATED_AT_ASC"
   | "MODIFIED_AT"
-  | "MODIFIED_AT_ASC"
-  | "AUTHOR_NAME"
-  | "AUTHOR_NAME_ASC";
+  | "MODIFIED_AT_ASC";
 
 const SORT_OPTIONS: { value: PostSort; label: string }[] = [
   { value: "CREATED_AT", label: "작성일 ↓" },
   { value: "CREATED_AT_ASC", label: "작성일 ↑" },
   { value: "MODIFIED_AT", label: "수정일 ↓" },
   { value: "MODIFIED_AT_ASC", label: "수정일 ↑" },
-  { value: "AUTHOR_NAME", label: "작성자 ↓" },
-  { value: "AUTHOR_NAME_ASC", label: "작성자 ↑" },
 ];
 
 function formatDate(dateString: string): string {
