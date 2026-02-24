@@ -39,11 +39,11 @@ open class CustomPostgreSQLDialect : PostgreSQLDialect() {
             .resolve(Boolean::class.javaObjectType, SqlTypes.BOOLEAN) as BasicType<Boolean>
         functionContributions.functionRegistry.register(
             "pgroonga_post_match",
-            PGroongaCompositeMatchFunction("pgroonga_post_match", "idx_post_title_content_pgroonga", booleanType)
+            PGroongaCompositeMatchFunction("pgroonga_post_match", booleanType)
         )
         functionContributions.functionRegistry.register(
             "pgroonga_member_match",
-            PGroongaCompositeMatchFunction("pgroonga_member_match", "idx_member_username_nickname_pgroonga", booleanType)
+            PGroongaCompositeMatchFunction("pgroonga_member_match", booleanType)
         )
     }
 }

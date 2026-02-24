@@ -69,7 +69,7 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         dialect: com.back.global.jpa.config.CustomPostgreSQLDialect
