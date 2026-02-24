@@ -1,7 +1,6 @@
 package com.back.global.pgroonga.config
 
 import com.back.global.pgroonga.annotation.PGroongaIndex
-import jakarta.persistence.Column
 import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.Table
 import org.slf4j.LoggerFactory
@@ -9,7 +8,6 @@ import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
-import java.lang.reflect.Field
 import javax.sql.DataSource
 
 @Configuration
@@ -52,13 +50,11 @@ class PGroongaIndexConfig {
                     val quotedTableName = tableName
                         .split(".")
                         .joinToString(".") { part -> "\"$part\"" }
-                    val quotedCols = anno.columns.joinToString(", ") { col ->
-                        "\"$col\" ${resolveOpclass(entityClass, col)}"
-                    }
+                    val arrayExpr = "(ARRAY[${anno.columns.joinToString(", ") { "\"$it\"::text" }}])"
 
                     val ddl = """
                         CREATE INDEX IF NOT EXISTS $indexName
-                        ON $quotedTableName USING pgroonga ($quotedCols)
+                        ON $quotedTableName USING pgroonga ($arrayExpr)
                         WITH (tokenizer = '${anno.tokenizer}')
                     """.trimIndent()
 
@@ -74,30 +70,5 @@ class PGroongaIndexConfig {
                 }
             }
         }
-    }
-
-    private fun resolveOpclass(entityClass: Class<*>, columnName: String): String {
-        val field = findField(entityClass, columnName)
-        val columnDef = field?.getAnnotation(Column::class.java)?.columnDefinition ?: ""
-        return if (columnDef.contains("text", ignoreCase = true)) OPCLASS_TEXT
-        else OPCLASS_VARCHAR
-    }
-
-    private fun findField(entityClass: Class<*>, columnName: String): Field? {
-        var cls: Class<*>? = entityClass
-        while (cls != null) {
-            cls.declaredFields.forEach { field ->
-                val colAnno = field.getAnnotation(Column::class.java)
-                val effectiveName = colAnno?.name?.takeIf { it.isNotEmpty() } ?: field.name
-                if (effectiveName.equals(columnName, ignoreCase = true)) return field
-            }
-            cls = cls.superclass
-        }
-        return null
-    }
-
-    companion object {
-        private const val OPCLASS_TEXT = "pgroonga_text_full_text_search_ops_v2"
-        private const val OPCLASS_VARCHAR = "pgroonga_varchar_full_text_search_ops_v2"
     }
 }
