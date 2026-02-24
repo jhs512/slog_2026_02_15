@@ -179,8 +179,13 @@ function PageContent() {
                   alt={member.name}
                   className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                 />
-                <span>
-                  {member.id} : {member.username} / {member.name}
+                <span className="flex-1 min-w-0">
+                  <span className="block">
+                    {member.id} : {member.username} / {member.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    가입일: {new Date(member.createdAt).toLocaleDateString("ko-KR")}
+                  </span>
                 </span>
               </Link>
             </li>
