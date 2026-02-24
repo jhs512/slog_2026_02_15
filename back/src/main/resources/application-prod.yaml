@@ -18,6 +18,9 @@ logging:
     org.hibernate.orm.jdbc.extract: INFO
     org.hibernate.orm.jdbc.batch: INFO
     org.springframework.transaction.interceptor: INFO
+sentry:
+  dsn: "${SENTRY__DSN}"
+  sendDefaultPii: true
 custom:
   site:
     cookieDomain: "${custom.prod.cookieDomain}"

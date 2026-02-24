@@ -6,6 +6,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.jpa") version "2.2.21"
     id("org.hibernate.orm") version "7.2.1.Final"
+    id("io.sentry.jvm.gradle") version "6.1.0"
 }
 
 group = "com"
@@ -81,6 +82,14 @@ hibernate {
         enableDirtyTracking = true
         enableAssociationManagement = false
     }
+}
+
+sentry {
+    includeSourceContext = true
+
+    org = "earth-5x"
+    projectName = "java-spring-boot"
+    authToken = System.getenv("SENTRY_AUTH_TOKEN")
 }
 
 tasks.withType<Test> {
