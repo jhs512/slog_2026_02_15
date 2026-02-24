@@ -28,8 +28,8 @@ class CustomAuthenticationFilter(
 ) : OncePerRequestFilter() {
 
     private val publicApiPaths = setOf(
-        "/member/api/v1/members/login",
-        "/member/api/v1/members/logout",
+        "/member/api/v1/members/auth/login",
+        "/member/api/v1/members/auth/logout",
         "/member/api/v1/members/join",
     )
 

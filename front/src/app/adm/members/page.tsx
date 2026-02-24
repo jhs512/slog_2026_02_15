@@ -172,9 +172,16 @@ function PageContent() {
             <li key={member.id}>
               <Link
                 href={`./members/${member.id}`}
-                className="block p-3 border rounded hover:bg-accent/50 transition-colors"
+                className="flex items-center gap-3 p-3 border rounded hover:bg-accent/50 transition-colors"
               >
-                {member.id} : {member.username} / {member.name}
+                <img
+                  src={member.profileImageUrl}
+                  alt={member.name}
+                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                />
+                <span>
+                  {member.id} : {member.username} / {member.name}
+                </span>
               </Link>
             </li>
           ))}

@@ -5,6 +5,8 @@ import com.back.boundedContexts.member.domain.shared.QMember.member
 import com.back.standard.dto.member.type1.MemberSearchKeywordType1
 import com.back.standard.util.QueryDslUtil
 import com.querydsl.core.BooleanBuilder
+import com.querydsl.core.types.dsl.BooleanExpression
+import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.core.types.dsl.StringPath
 import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
@@ -47,38 +49,19 @@ class MemberRepositoryImpl(
         ) { countQuery.fetchOne() ?: 0L }
     }
 
-    private fun buildKwPredicate(kwType: MemberSearchKeywordType1, kw: String): com.querydsl.core.types.Predicate {
-        val cols = targetCols(kwType)
-
-        return when {
-            kw.contains(" AND ") -> {
-                val terms = kw.split(" AND ").filter { it.isNotBlank() }
-                val andBuilder = BooleanBuilder()
-                terms.forEach { term -> andBuilder.and(colsContain(cols, term)) }
-                andBuilder
-            }
-            kw.contains(" OR ") -> {
-                val terms = kw.split(" OR ").filter { it.isNotBlank() }
-                val orBuilder = BooleanBuilder()
-                terms.forEach { term -> orBuilder.or(colsContain(cols, term)) }
-                orBuilder
-            }
-            else -> colsContain(cols, kw)
-        }
-    }
-
-    private fun targetCols(kwType: MemberSearchKeywordType1): List<StringPath> =
+    private fun buildKwPredicate(kwType: MemberSearchKeywordType1, kw: String): BooleanExpression =
         when (kwType) {
-            MemberSearchKeywordType1.USERNAME -> listOf(member.username)
-            MemberSearchKeywordType1.NICKNAME -> listOf(member.nickname)
-            MemberSearchKeywordType1.ALL -> listOf(member.username, member.nickname)
+            MemberSearchKeywordType1.USERNAME -> pgroonga(member.username, kw)
+            MemberSearchKeywordType1.NICKNAME -> pgroonga(member.nickname, kw)
+            MemberSearchKeywordType1.ALL -> pgroonga(member.username, kw).or(pgroonga(member.nickname, kw))
         }
 
-    private fun colsContain(cols: List<StringPath>, term: String): com.querydsl.core.types.Predicate {
-        val orBuilder = BooleanBuilder()
-        cols.forEach { col -> orBuilder.or(col.containsIgnoreCase(term)) }
-        return orBuilder
-    }
+    private fun pgroonga(col: StringPath, kw: String): BooleanExpression =
+        Expressions.booleanTemplate(
+            "function('pgroonga_match', {0}, {1}) = true",
+            col,
+            Expressions.constant(kw),
+        )
 
     private fun createItemsQuery(builder: BooleanBuilder, pageable: Pageable): JPAQuery<Member> {
         val query = queryFactory

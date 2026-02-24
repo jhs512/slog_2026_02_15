@@ -215,12 +215,16 @@ class ApiV1AdmMemberControllerTest {
 
         @Test
         @WithUserDetails("admin")
-        fun `성공 - GET member api v1 adm members?kwType=ALL&kw=안드로이드 AND 가이드`() {
+        fun `성공 - GET member api v1 adm members?kwType=ALL&kw=안드로이드 가이드 (공백=AND)`() {
             makeMemberSearchFixture()
 
             val resultActions = mvc
                 .perform(
-                    get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=ALL&kw=안드로이드 AND 가이드")
+                    get("/member/api/v1/adm/members")
+                        .param("page", "1")
+                        .param("pageSize", "10")
+                        .param("kwType", "ALL")
+                        .param("kw", "안드로이드 가이드")
                 )
                 .andDo(print())
 
