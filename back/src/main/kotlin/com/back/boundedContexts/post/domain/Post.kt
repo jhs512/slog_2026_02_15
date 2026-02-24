@@ -16,11 +16,11 @@ import org.hibernate.annotations.DynamicUpdate
         Index(name = "idx_post_author_modified_at", columnList = "author_id, modified_at"),
     ]
 )
-@PGroongaIndex(columns = ["title"])
-@PGroongaIndex(columns = ["content"])
+@PGroongaIndex(columns = ["title", "content"])
 class Post(
     @field:ManyToOne(fetch = FetchType.LAZY)
     val author: Member,
+    @field:Column(columnDefinition = "TEXT")
     var title: String,
     @Basic(fetch = FetchType.LAZY)
     @field:Column(columnDefinition = "TEXT")

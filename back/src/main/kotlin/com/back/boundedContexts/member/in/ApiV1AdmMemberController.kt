@@ -3,7 +3,6 @@ package com.back.boundedContexts.member.`in`
 import PageDto
 import com.back.boundedContexts.member.app.MemberFacade
 import com.back.boundedContexts.member.dto.MemberWithUsernameDto
-import com.back.standard.dto.member.type1.MemberSearchKeywordType1
 import com.back.standard.dto.member.type1.MemberSearchSortType1
 import com.back.standard.extensions.getOrThrow
 import io.swagger.v3.oas.annotations.Operation
@@ -26,7 +25,6 @@ class ApiV1AdmMemberController(
     fun getItems(
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(defaultValue = "30") pageSize: Int,
-        @RequestParam(defaultValue = "ALL") kwType: MemberSearchKeywordType1,
         @RequestParam(defaultValue = "") kw: String,
         @RequestParam(defaultValue = "CREATED_AT") sort: MemberSearchSortType1,
     ): PageDto<MemberWithUsernameDto> {
@@ -42,7 +40,7 @@ class ApiV1AdmMemberController(
             30
         }
 
-        val memberPage = memberFacade.findPagedByKw(kwType, kw, sort, page, pageSize)
+        val memberPage = memberFacade.findPagedByKw(kw, sort, page, pageSize)
 
         return PageDto(
             memberPage

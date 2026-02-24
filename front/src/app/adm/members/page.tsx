@@ -9,6 +9,7 @@ import Pagination from "@/components/Pagination";
 import withAdmin from "@/global/auth/hoc/withAdmin";
 import type { components } from "@/global/backend/apiV1/schema";
 import client from "@/global/backend/client";
+
 import { formatDate } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,6 @@ import { ArrowUpDown, Search } from "lucide-react";
 
 type MemberWithUsernameDto = components["schemas"]["MemberWithUsernameDto"];
 type PageableDto = components["schemas"]["PageableDto"];
-type MemberKwType = "USERNAME" | "NICKNAME" | "ALL";
 type MemberSort =
   | "CREATED_AT"
   | "CREATED_AT_ASC"
@@ -26,12 +26,6 @@ type MemberSort =
   | "USERNAME_ASC"
   | "NICKNAME"
   | "NICKNAME_ASC";
-
-const KW_TYPE_OPTIONS: { value: MemberKwType; label: string }[] = [
-  { value: "ALL", label: "전체" },
-  { value: "USERNAME", label: "사용자명" },
-  { value: "NICKNAME", label: "별명" },
-];
 
 const SORT_OPTIONS: { value: MemberSort; label: string }[] = [
   { value: "CREATED_AT", label: "최신순" },
@@ -48,7 +42,6 @@ function PageContent() {
 
   const currentPage = Number(searchParams.get("page") || "1");
   const currentPageSize = Number(searchParams.get("pageSize") || "30");
-  const currentKwType = (searchParams.get("kwType") || "ALL") as MemberKwType;
   const currentKw = searchParams.get("kw") || "";
   const currentSort = (searchParams.get("sort") || "CREATED_AT") as MemberSort;
 
@@ -56,7 +49,6 @@ function PageContent() {
   const [pageable, setPageable] = useState<PageableDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [kwInput, setKwInput] = useState(currentKw);
-  const [kwTypeInput, setKwTypeInput] = useState<MemberKwType>(currentKwType);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,7 +58,6 @@ function PageContent() {
           query: {
             page: currentPage,
             pageSize: currentPageSize,
-            kwType: currentKwType,
             kw: currentKw,
             sort: currentSort,
           },
@@ -82,7 +73,7 @@ function PageContent() {
     return () => {
       cancelled = true;
     };
-  }, [currentPage, currentPageSize, currentKwType, currentKw, currentSort]);
+  }, [currentPage, currentPageSize, currentKw, currentSort]);
 
   const updateParams = (params: Record<string, string>) => {
     const sp = new URLSearchParams(searchParams.toString());
@@ -98,7 +89,7 @@ function PageContent() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    updateParams({ kwType: kwTypeInput, kw: kwInput, page: "1" });
+    updateParams({ kw: kwInput, page: "1" });
   };
 
   const handleSortChange = (sort: string) => {
@@ -120,17 +111,6 @@ function PageContent() {
 
       {/* 검색 */}
       <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-        <select
-          value={kwTypeInput}
-          onChange={(e) => setKwTypeInput(e.target.value as MemberKwType)}
-          className="text-sm border rounded px-2 py-1 bg-background"
-        >
-          {KW_TYPE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
         <Input
           placeholder="검색어를 입력하세요"
           value={kwInput}

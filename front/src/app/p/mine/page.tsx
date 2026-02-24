@@ -9,6 +9,7 @@ import PostWriteButton from "@/domain/post/components/PostWriteButton";
 import withLogin from "@/global/auth/hoc/withLogin";
 import type { components } from "@/global/backend/apiV1/schema";
 import client from "@/global/backend/client";
+
 import { formatDate } from "@/lib/utils";
 
 import { Badge } from "@/components/ui/badge";

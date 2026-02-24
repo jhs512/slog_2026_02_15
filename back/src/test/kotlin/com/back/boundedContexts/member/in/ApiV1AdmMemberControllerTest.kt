@@ -125,12 +125,12 @@ class ApiV1AdmMemberControllerTest {
 
         @Test
         @WithUserDetails("admin")
-        fun `성공 - GET member api v1 adm members?kwType=USERNAME&kw=android`() {
+        fun `성공 - GET member api v1 adm members?kw=android (username+nickname 통합 검색)`() {
             makeMemberSearchFixture()
 
             val resultActions = mvc
                 .perform(
-                    get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=USERNAME&kw=android")
+                    get("/member/api/v1/adm/members?page=1&pageSize=10&kw=android")
                 )
                 .andDo(print())
 
@@ -147,75 +147,7 @@ class ApiV1AdmMemberControllerTest {
 
         @Test
         @WithUserDetails("admin")
-        fun `성공 - GET member api v1 adm members?kwType=USERNAME&kw=KAKAO (부분일치)`() {
-            memberFacade.join("super-KAKAO-user", "1234", "안드로이드 가이드")
-            memberFacade.join("KAKAO-hero", "1234", "일반 사용자")
-            memberFacade.join("other-user", "1234", "KAKAO 관리자")
-
-            val resultActions = mvc
-                .perform(
-                    get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=USERNAME&kw=KAKAO")
-                )
-                .andDo(print())
-
-            resultActions
-                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
-                .andExpect(handler().methodName("getItems"))
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.content.length()").value(2))
-                .andExpect(jsonPath("$.content[*].username").value(Matchers.containsInAnyOrder("super-KAKAO-user", "KAKAO-hero")))
-        }
-
-        @Test
-        @WithUserDetails("admin")
-        fun `성공 - GET member api v1 adm members?kwType=NICKNAME&kw=안드로이드`() {
-            makeMemberSearchFixture()
-
-            val resultActions = mvc
-                .perform(
-                    get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=NICKNAME&kw=안드로이드")
-                )
-                .andDo(print())
-
-            resultActions
-                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
-                .andExpect(handler().methodName("getItems"))
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.content.length()").value(2))
-                .andExpect(
-                    jsonPath("$.content[*].name")
-                        .value(Matchers.containsInAnyOrder("안드로이드 가이드", "안드로이드 레시피"))
-                )
-        }
-
-        @Test
-        @WithUserDetails("admin")
-        fun `성공 - GET member api v1 adm members?kwType=NICKNAME&kw=dev%_guide (와일드카드 이스케이프)`() {
-            memberFacade.join("nicktest1", "1234", "dev%_guide")
-            memberFacade.join("nicktest2", "1234", "devabcguide")
-
-            val resultActions = mvc
-                .perform(
-                    get("/member/api/v1/adm/members")
-                        .param("page", "1")
-                        .param("pageSize", "10")
-                        .param("kwType", "NICKNAME")
-                        .param("kw", "dev%_guide")
-                )
-                .andDo(print())
-
-            resultActions
-                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
-                .andExpect(handler().methodName("getItems"))
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.content[0].username").value("nicktest1"))
-                .andExpect(jsonPath("$.content[0].name").value("dev%_guide"))
-        }
-
-        @Test
-        @WithUserDetails("admin")
-        fun `성공 - GET member api v1 adm members?kwType=ALL&kw=안드로이드 가이드 (공백=AND)`() {
+        fun `성공 - GET member api v1 adm members?kw=안드로이드 가이드 (공백=AND)`() {
             makeMemberSearchFixture()
 
             val resultActions = mvc
@@ -223,7 +155,6 @@ class ApiV1AdmMemberControllerTest {
                     get("/member/api/v1/adm/members")
                         .param("page", "1")
                         .param("pageSize", "10")
-                        .param("kwType", "ALL")
                         .param("kw", "안드로이드 가이드")
                 )
                 .andDo(print())
@@ -241,12 +172,12 @@ class ApiV1AdmMemberControllerTest {
 
         @Test
         @WithUserDetails("admin")
-        fun `성공 - GET member api v1 adm members?kwType=ALL&kw=안드로이드 OR 가이드`() {
+        fun `성공 - GET member api v1 adm members?kw=안드로이드 OR 가이드`() {
             makeMemberSearchFixture()
 
             val resultActions = mvc
                 .perform(
-                    get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=ALL&kw=안드로이드 OR 가이드")
+                    get("/member/api/v1/adm/members?page=1&pageSize=10&kw=안드로이드 OR 가이드")
                 )
                 .andDo(print())
 
@@ -267,7 +198,7 @@ class ApiV1AdmMemberControllerTest {
 
         @Test
         @WithUserDetails("admin")
-        fun `성공 - GET member api v1 adm members?kwType=ALL&kw=guide`() {
+        fun `성공 - GET member api v1 adm members?kw=guide`() {
             makeMemberSearchFixture()
 
             val resultActions = mvc
@@ -275,29 +206,7 @@ class ApiV1AdmMemberControllerTest {
                     get("/member/api/v1/adm/members")
                         .param("page", "1")
                         .param("pageSize", "10")
-                        .param("kwType", "ALL")
                         .param("kw", "guide")
-                )
-                .andDo(print())
-
-            resultActions
-                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
-                .andExpect(handler().methodName("getItems"))
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.content.length()").value(3))
-                .andExpect(jsonPath("$.content[*].username").value(Matchers.containsInAnyOrder("guide-search", "dev-guide", "android-guide")))
-                .andExpect(jsonPath("$.content[*].name").value(Matchers.hasItem("개발 가이드")))
-                .andExpect(jsonPath("$.content[*].name").value(Matchers.hasItem("안드로이드 레시피")))
-        }
-
-        @Test
-        @WithUserDetails("admin")
-        fun `성공 - GET member api v1 adm members?kw=guide (kwType 생략 시 ALL)`() {
-            makeMemberSearchFixture()
-
-            val resultActions = mvc
-                .perform(
-                    get("/member/api/v1/adm/members?page=1&pageSize=10&kw=guide")
                 )
                 .andDo(print())
 
@@ -331,7 +240,7 @@ class ApiV1AdmMemberControllerTest {
         fun `실패 - 일반 사용자 검색`() {
             val resultActions = mvc
                 .perform(
-                    get("/member/api/v1/adm/members?page=1&pageSize=10&kwType=ALL&kw=android")
+                    get("/member/api/v1/adm/members?page=1&pageSize=10&kw=android")
                 )
                 .andDo(print())
 

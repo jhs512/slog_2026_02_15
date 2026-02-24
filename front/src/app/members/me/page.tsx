@@ -5,12 +5,12 @@ import Image from "next/image";
 import withLogin from "@/global/auth/hoc/withLogin";
 import { useAuthContext } from "@/global/auth/hooks/useAuth";
 
+import { formatDate } from "@/lib/utils";
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { Calendar, Clock, User } from "lucide-react";
-
-import { formatDate } from "@/lib/utils";
 
 export default withLogin(function Page() {
   const { loginMember } = useAuthContext();

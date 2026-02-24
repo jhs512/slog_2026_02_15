@@ -20,8 +20,7 @@ private const val PROFILE_IMG_URL = "profileImgUrl"
 @Table(indexes = [
     Index(name = "idx_member_created_at", columnList = "created_at"),
 ])
-@PGroongaIndex(columns = ["username"])
-@PGroongaIndex(columns = ["nickname"])
+@PGroongaIndex(columns = ["username", "nickname"])
 class Member(
     id: Int,
     @field:NaturalId

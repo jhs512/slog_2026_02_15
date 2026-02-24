@@ -719,7 +719,6 @@ export interface operations {
             query?: {
                 page?: number;
                 pageSize?: number;
-                kwType?: "TITLE" | "CONTENT" | "ALL";
                 kw?: string;
                 sort?: "CREATED_AT" | "CREATED_AT_ASC" | "MODIFIED_AT" | "MODIFIED_AT_ASC";
             };
@@ -1010,7 +1009,6 @@ export interface operations {
             query?: {
                 page?: number;
                 pageSize?: number;
-                kwType?: "TITLE" | "CONTENT" | "ALL";
                 kw?: string;
                 sort?: "CREATED_AT" | "CREATED_AT_ASC" | "MODIFIED_AT" | "MODIFIED_AT_ASC";
             };
@@ -1161,7 +1159,6 @@ export interface operations {
             query?: {
                 page?: number;
                 pageSize?: number;
-                kwType?: "USERNAME" | "NICKNAME" | "ALL";
                 kw?: string;
                 sort?: "CREATED_AT" | "CREATED_AT_ASC" | "USERNAME" | "USERNAME_ASC" | "NICKNAME" | "NICKNAME_ASC";
             };

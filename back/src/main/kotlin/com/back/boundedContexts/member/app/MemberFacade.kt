@@ -5,7 +5,6 @@ import com.back.boundedContexts.member.domain.shared.Member
 import com.back.boundedContexts.member.out.shared.MemberRepository
 import com.back.global.dto.RsData
 import com.back.global.exception.app.BusinessException
-import com.back.standard.dto.member.type1.MemberSearchKeywordType1
 import com.back.standard.dto.member.type1.MemberSearchSortType1
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -92,14 +91,12 @@ class MemberFacade(
 
     @Transactional(readOnly = true)
     fun findPagedByKw(
-        kwType: MemberSearchKeywordType1,
         kw: String,
         sort: MemberSearchSortType1,
         page: Int,
         pageSize: Int
     ) =
         memberRepository.findQPagedByKw(
-            kwType,
             kw,
             PageRequest.of(
                 page - 1,

@@ -2,7 +2,6 @@ package com.back.boundedContexts.post.`in`
 
 import com.back.boundedContexts.member.app.shared.ActorFacade
 import com.back.boundedContexts.post.app.PostFacade
-import com.back.standard.dto.post.type1.PostSearchKeywordType1
 import com.back.standard.dto.post.type1.PostSearchSortType1
 import com.back.standard.extensions.getOrThrow
 import org.hamcrest.Matchers
@@ -377,7 +376,6 @@ class ApiV1PostControllerTest {
                 .andDo(print())
 
             val posts = postFacade.findPagedByKw(
-                PostSearchKeywordType1.ALL,
                 "",
                 PostSearchSortType1.CREATED_AT,
                 1,
@@ -400,7 +398,6 @@ class ApiV1PostControllerTest {
                 .andDo(print())
 
             val posts = postFacade.findPagedByKw(
-                PostSearchKeywordType1.ALL,
                 "",
                 PostSearchSortType1.CREATED_AT,
                 1,
@@ -424,7 +421,6 @@ class ApiV1PostControllerTest {
                 .andDo(print())
 
             val posts = postFacade.findPagedByKw(
-                PostSearchKeywordType1.ALL,
                 "   ",
                 PostSearchSortType1.CREATED_AT,
                 1,
@@ -447,7 +443,6 @@ class ApiV1PostControllerTest {
                 .andDo(print())
 
             val postPage = postFacade.findPagedByKw(
-                PostSearchKeywordType1.ALL,
                 "",
                 PostSearchSortType1.CREATED_AT,
                 1,
@@ -481,11 +476,10 @@ class ApiV1PostControllerTest {
         }
 
         @Test
-        fun `성공 - GET post api v1 posts?kwType=ALL&kw=제목 (제목+본문 통합 검색)`() {
+        fun `성공 - GET post api v1 posts?kw=제목 (제목+본문 통합 검색)`() {
             val resultActions = mvc
                 .perform(
                     get("/post/api/v1/posts")
-                        .param("kwType", "ALL")
                         .param("kw", "제목")
                 )
                 .andDo(print())
@@ -495,28 +489,6 @@ class ApiV1PostControllerTest {
                 .andExpect(handler().methodName("getItems"))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.content").isArray)
-        }
-
-        @Test
-        fun `성공 - GET post api v1 posts?kwType=TITLE&kw=스프링 (제목 검색)`() {
-            val actor = actorFacade.findByUsername("user1").getOrThrow()
-            val titlePost = postFacade.write(actor, "스프링 입문", "백엔드 이야기", true, true)
-            val contentOnlyPost = postFacade.write(actor, "일반 제목", "스프링 기본 문서", true, true)
-
-            val resultActions = mvc
-                .perform(
-                    get("/post/api/v1/posts")
-                        .param("kwType", "TITLE")
-                        .param("kw", "스프링")
-                )
-                .andDo(print())
-
-            resultActions
-                .andExpect(handler().handlerType(ApiV1PostController::class.java))
-                .andExpect(handler().methodName("getItems"))
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.content[*].id").value(Matchers.hasItem(titlePost.id)))
-                .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(contentOnlyPost.id))))
         }
 
         @Test
@@ -547,27 +519,6 @@ class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(unlistedPost.id))))
         }
 
-        @Test
-        fun `성공 - GET post api v1 posts?kwType=CONTENT&kw=자바 (본문 검색)`() {
-            val actor = actorFacade.findByUsername("user1").getOrThrow()
-            val contentPost = postFacade.write(actor, "일반 제목", "자바 핵심 정리", true, true)
-            val titleOnlyPost = postFacade.write(actor, "자바 개념 정리", "스프링 기초부터 시작", true, true)
-
-            val resultActions = mvc
-                .perform(
-                    get("/post/api/v1/posts")
-                        .param("kwType", "CONTENT")
-                        .param("kw", "자바")
-                )
-                .andDo(print())
-
-            resultActions
-                .andExpect(handler().handlerType(ApiV1PostController::class.java))
-                .andExpect(handler().methodName("getItems"))
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.content[*].id").value(Matchers.hasItem(contentPost.id)))
-                .andExpect(jsonPath("$.content[*].id").value(Matchers.not(Matchers.hasItem(titleOnlyPost.id))))
-        }
     }
 
 

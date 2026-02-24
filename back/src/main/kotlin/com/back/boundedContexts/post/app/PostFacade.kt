@@ -16,7 +16,6 @@ import com.back.boundedContexts.post.out.PostCommentRepository
 import com.back.boundedContexts.post.out.PostLikeRepository
 import com.back.boundedContexts.post.out.PostRepository
 import com.back.global.event.app.EventPublisher
-import com.back.standard.dto.post.type1.PostSearchKeywordType1
 import com.back.standard.dto.post.type1.PostSearchSortType1
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -93,14 +92,12 @@ class PostFacade(
 
     fun findPagedByAuthor(
         author: Member,
-        kwType: PostSearchKeywordType1,
         kw: String,
         sort: PostSearchSortType1,
         page: Int,
         pageSize: Int,
     ): Page<Post> = postRepository.findQPagedByAuthorAndKw(
         author,
-        kwType,
         kw,
         PageRequest.of(page - 1, pageSize, sort.sortBy)
     )
@@ -233,14 +230,12 @@ class PostFacade(
 
 
     fun findPagedByKw(
-        kwType: PostSearchKeywordType1,
         kw: String,
         sort: PostSearchSortType1,
         page: Int,
         pageSize: Int,
     ): Page<Post> =
         postRepository.findQPagedByKw(
-            kwType,
             kw,
             PageRequest.of(page - 1, pageSize, sort.sortBy)
         )

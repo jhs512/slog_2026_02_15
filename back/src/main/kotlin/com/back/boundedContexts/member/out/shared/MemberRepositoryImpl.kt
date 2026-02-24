@@ -2,12 +2,9 @@ package com.back.boundedContexts.member.out.shared
 
 import com.back.boundedContexts.member.domain.shared.Member
 import com.back.boundedContexts.member.domain.shared.QMember.member
-import com.back.standard.dto.member.type1.MemberSearchKeywordType1
 import com.back.standard.util.QueryDslUtil
 import com.querydsl.core.BooleanBuilder
-import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.core.types.dsl.Expressions
-import com.querydsl.core.types.dsl.StringPath
 import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.EntityManager
@@ -32,13 +29,19 @@ class MemberRepositoryImpl(
     }
 
     override fun findQPagedByKw(
-        kwType: MemberSearchKeywordType1,
         kw: String,
         pageable: Pageable,
     ): Page<Member> {
         val builder = BooleanBuilder()
 
-        if (kw.isNotBlank()) builder.and(buildKwPredicate(kwType, kw))
+        if (kw.isNotBlank()) builder.and(
+            Expressions.booleanTemplate(
+                "function('pgroonga_member_match', {0}, {1}, {2}) = true",
+                member.username,
+                member.nickname,
+                Expressions.constant(kw),
+            )
+        )
 
         val itemsQuery = createItemsQuery(builder, pageable)
         val countQuery = createCountQuery(builder)
@@ -48,20 +51,6 @@ class MemberRepositoryImpl(
             pageable,
         ) { countQuery.fetchOne() ?: 0L }
     }
-
-    private fun buildKwPredicate(kwType: MemberSearchKeywordType1, kw: String): BooleanExpression =
-        when (kwType) {
-            MemberSearchKeywordType1.USERNAME -> pgroonga(member.username, kw)
-            MemberSearchKeywordType1.NICKNAME -> pgroonga(member.nickname, kw)
-            MemberSearchKeywordType1.ALL -> pgroonga(member.username, kw).or(pgroonga(member.nickname, kw))
-        }
-
-    private fun pgroonga(col: StringPath, kw: String): BooleanExpression =
-        Expressions.booleanTemplate(
-            "function('pgroonga_match', {0}, {1}) = true",
-            col,
-            Expressions.constant(kw),
-        )
 
     private fun createItemsQuery(builder: BooleanBuilder, pageable: Pageable): JPAQuery<Member> {
         val query = queryFactory

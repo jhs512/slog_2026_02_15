@@ -1,6 +1,6 @@
 package com.back.global.jpa.config
 
-import com.back.global.pgroonga.config.PGroongaMatchFunction
+import com.back.global.pgroonga.config.PGroongaCompositeMatchFunction
 import org.hibernate.boot.Metadata
 import org.hibernate.boot.model.relational.SqlStringGenerationContext
 import org.hibernate.dialect.PostgreSQLDialect
@@ -38,8 +38,12 @@ open class CustomPostgreSQLDialect : PostgreSQLDialect() {
             .basicTypeRegistry
             .resolve(Boolean::class.javaObjectType, SqlTypes.BOOLEAN) as BasicType<Boolean>
         functionContributions.functionRegistry.register(
-            "pgroonga_match",
-            PGroongaMatchFunction(booleanType)
+            "pgroonga_post_match",
+            PGroongaCompositeMatchFunction("pgroonga_post_match", "idx_post_title_content_pgroonga", booleanType)
+        )
+        functionContributions.functionRegistry.register(
+            "pgroonga_member_match",
+            PGroongaCompositeMatchFunction("pgroonga_member_match", "idx_member_username_nickname_pgroonga", booleanType)
         )
     }
 }
