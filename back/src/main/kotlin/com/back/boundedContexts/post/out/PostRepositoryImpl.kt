@@ -61,8 +61,43 @@ class PostRepositoryImpl(
         when (kwType) {
             PostSearchKeywordType1.TITLE -> pgroonga(post.title, kw)
             PostSearchKeywordType1.CONTENT -> pgroonga(post.content, kw)
-            PostSearchKeywordType1.ALL -> pgroonga(post.title, kw).or(pgroonga(post.content, kw))
+            PostSearchKeywordType1.ALL -> buildAllKwPredicate(kw)
         }
+
+    // -"quoted phrase" 또는 -word 형태의 부정 항 추출
+    private val negativeTermRegex = Regex("""-"[^"]*"|-\S+""")
+
+    /**
+     * ALL 검색: 부정 항(-term, -"phrase")을 파싱하여 title/content 전체에 전역 적용.
+     *
+     * 단순 OR 구조로는 제외가 컬럼별로만 동작하는 버그가 있음:
+     *   (title &@~ 'A -B') OR (content &@~ 'A -B')
+     *   → title에 B가 있어도 content에서 매칭되면 포함됨
+     *
+     * 파싱 후 구조:
+     *   (title &@~ positiveKw OR content &@~ positiveKw)
+     *   AND NOT (title &@~ negKw OR content &@~ negKw)
+     */
+    private fun buildAllKwPredicate(kw: String): BooleanExpression {
+        val negatives = negativeTermRegex.findAll(kw).map { it.value.removePrefix("-") }.toList()
+        val positiveKw = negativeTermRegex.replace(kw, "").trim()
+
+        val positiveExpr: BooleanExpression? = if (positiveKw.isNotBlank()) {
+            pgroonga(post.title, positiveKw).or(pgroonga(post.content, positiveKw))
+        } else null
+
+        val negativeExpr: BooleanExpression? = if (negatives.isNotEmpty()) {
+            val negKw = negatives.joinToString(" ")
+            pgroonga(post.title, negKw).or(pgroonga(post.content, negKw)).not()
+        } else null
+
+        return when {
+            positiveExpr != null && negativeExpr != null -> positiveExpr.and(negativeExpr)
+            positiveExpr != null -> positiveExpr
+            negativeExpr != null -> negativeExpr
+            else -> Expressions.asBoolean(Expressions.constant(true))
+        }
+    }
 
     private fun pgroonga(col: StringPath, kw: String): BooleanExpression =
         Expressions.booleanTemplate(

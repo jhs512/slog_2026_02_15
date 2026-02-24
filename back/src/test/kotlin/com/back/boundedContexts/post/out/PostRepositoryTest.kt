@@ -70,4 +70,44 @@ class PostRepositoryTest {
         assertThat(postPage.content).isNotEmpty
         assertThat(postPage.content).allMatch { it.title.contains("사과") && !it.title.contains("배") }
     }
+
+    @Test
+    fun `ALL 타입에서 제목에 있는 단어를 마이너스로 제외하면 본문에서만 매칭돼도 제외된다`() {
+        val author = memberFacade.findByUsername("user1").getOrThrow()
+        // title에 "제외단어"가 있고, content에 "검색어"가 있는 글 → 제외되어야 함
+        postFacade.write(author, "제외단어 포함 제목", "검색어 있는 본문", true, true)
+        // title에 "제외단어"가 없고, content에 "검색어"가 있는 글 → 결과에 포함되어야 함
+        postFacade.write(author, "일반 제목", "검색어 있는 본문", true, true)
+
+        val postPage = postRepository.findQPagedByKw(
+            PostSearchKeywordType1.ALL,
+            "검색어 -제외단어",
+            PageRequest.of(0, 10, PostSearchSortType1.CREATED_AT.sortBy),
+        )
+
+        assertThat(postPage.content).isNotEmpty
+        assertThat(postPage.content).noneMatch { it.title.contains("제외단어") || it.content.contains("제외단어") }
+        assertThat(postPage.content).allMatch { it.title.contains("검색어") || it.content.contains("검색어") }
+    }
+
+    @Test
+    fun `ALL 타입에서 복수 마이너스와 복수 플러스가 모두 동작한다`() {
+        val author = memberFacade.findByUsername("user1").getOrThrow()
+        postFacade.write(author, "사과 바나나", "맛있는 과일", true, true)
+        postFacade.write(author, "사과 오렌지", "맛있는 과일", true, true)
+        postFacade.write(author, "포도 바나나", "맛있는 과일", true, true)
+
+        // 사과 필수, 바나나 제외
+        val postPage = postRepository.findQPagedByKw(
+            PostSearchKeywordType1.ALL,
+            "+사과 -바나나",
+            PageRequest.of(0, 10, PostSearchSortType1.CREATED_AT.sortBy),
+        )
+
+        assertThat(postPage.content).isNotEmpty
+        assertThat(postPage.content).allMatch {
+            (it.title.contains("사과") || it.content.contains("사과")) &&
+                !it.title.contains("바나나") && !it.content.contains("바나나")
+        }
+    }
 }
