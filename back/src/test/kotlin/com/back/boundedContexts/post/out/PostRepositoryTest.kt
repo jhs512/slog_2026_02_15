@@ -110,4 +110,26 @@ class PostRepositoryTest {
                 !it.title.contains("바나나") && !it.content.contains("바나나")
         }
     }
+
+    @Test
+    fun `테라폼 한밭대 GIT 리눅스 시나리오 - 제목에 GIT있는 글은 -GIT으로 제외된다`() {
+        val author = memberFacade.findByUsername("user1").getOrThrow()
+        // 제목에 GIT이 있고, 본문에 테라폼/한밭대가 있는 글 → -GIT 으로 제외되어야 함
+        postFacade.write(author, "스프링부트/GIT", "테라폼 한밭대 강의 정리", true, true)
+        // 제목에 리눅스가 있고, 본문에 테라폼/한밭대가 있는 글 → -리눅스 으로 제외되어야 함
+        postFacade.write(author, "리눅스/도커", "테라폼 한밭대 강의 정리", true, true)
+        // PGroonga &@~ 에서 공백은 AND → 테라폼/한밭대 둘 다 있어야 매칭됨
+        postFacade.write(author, "테라폼 한밭대 입문", "클라우드 수업", true, true)
+
+        val postPage = postRepository.findQPagedByKw(
+            PostSearchKeywordType1.ALL,
+            "테라폼 +한밭대 -리눅스 -GIT",
+            PageRequest.of(0, 10, PostSearchSortType1.CREATED_AT.sortBy),
+        )
+
+        // 스프링부트/GIT, 리눅스/도커 둘 다 제외
+        assertThat(postPage.content).noneMatch { it.title.contains("GIT") || it.title.contains("리눅스") }
+        // 테라폼 한밭대 입문 글은 포함
+        assertThat(postPage.content).anyMatch { it.title.contains("테라폼") && it.title.contains("한밭대") }
+    }
 }

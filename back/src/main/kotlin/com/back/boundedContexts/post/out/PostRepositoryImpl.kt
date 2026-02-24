@@ -86,9 +86,11 @@ class PostRepositoryImpl(
             pgroonga(post.title, positiveKw).or(pgroonga(post.content, positiveKw))
         } else null
 
+        // PGroonga query syntax에서 공백은 AND이므로 각 부정 항을 별도로 적용
         val negativeExpr: BooleanExpression? = if (negatives.isNotEmpty()) {
-            val negKw = negatives.joinToString(" ")
-            pgroonga(post.title, negKw).or(pgroonga(post.content, negKw)).not()
+            negatives.map { neg ->
+                pgroonga(post.title, neg).or(pgroonga(post.content, neg)).not()
+            }.reduce { acc, expr -> acc.and(expr) }
         } else null
 
         return when {
