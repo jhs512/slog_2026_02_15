@@ -10,6 +10,7 @@ import withAdmin from "@/global/auth/hoc/withAdmin";
 import type { components } from "@/global/backend/apiV1/schema";
 import client from "@/global/backend/client";
 
+import SearchHelpButton from "@/lib/business/components/SearchHelpButton";
 import { formatDate } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
@@ -120,6 +121,7 @@ function PageContent() {
         <Button type="submit" variant="outline" size="icon">
           <Search className="w-4 h-4" />
         </Button>
+        <SearchHelpButton />
       </form>
 
       {/* 정렬 + 총 개수 */}
