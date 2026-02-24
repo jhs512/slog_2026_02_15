@@ -10,6 +10,7 @@ import Pagination from "@/components/Pagination";
 import PostWriteButton from "@/domain/post/components/PostWriteButton";
 import type { components } from "@/global/backend/apiV1/schema";
 import client from "@/global/backend/client";
+import { formatDate } from "@/lib/utils";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,17 +41,6 @@ const SORT_OPTIONS: { value: PostSort; label: string }[] = [
   { value: "MODIFIED_AT", label: "수정일 ↓" },
   { value: "MODIFIED_AT_ASC", label: "수정일 ↑" },
 ];
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("ko-KR", {
-    year: "2-digit",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 

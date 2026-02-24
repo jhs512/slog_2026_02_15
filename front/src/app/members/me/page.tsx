@@ -10,15 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { Calendar, Clock, User } from "lucide-react";
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+import { formatDate } from "@/lib/utils";
 
 export default withLogin(function Page() {
   const { loginMember } = useAuthContext();

@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useAuthContext } from "@/global/auth/hooks/useAuth";
 
 import ToastUIEditorViewer from "@/lib/business/components/ToastUIEditorViewer";
+import { formatDate } from "@/lib/utils";
 
 import {
   AlertDialog,
@@ -37,17 +38,6 @@ import {
 } from "lucide-react";
 
 import usePostClient from "../_hooks/usePostClient";
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("ko-KR", {
-    year: "2-digit",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 function hasPpt(content: string): boolean {
   return /<details[^>]*\bppt-id\s*=/.test(content);

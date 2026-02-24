@@ -10,6 +10,8 @@ import client from "@/global/backend/client";
 
 import { Button } from "@/components/ui/button";
 
+import { formatDate } from "@/lib/utils";
+
 type MemberWithUsernameDto = components["schemas"]["MemberWithUsernameDto"];
 
 export default withAdmin(function Page({
@@ -41,8 +43,8 @@ export default withAdmin(function Page({
     { label: "아이디", value: member.username },
     { label: "이름", value: member.name },
     { label: "관리자 여부", value: member.isAdmin ? "예" : "아니오" },
-    { label: "가입일", value: new Date(member.createdAt).toLocaleString() },
-    { label: "수정일", value: new Date(member.modifiedAt).toLocaleString() },
+    { label: "가입일", value: formatDate(member.createdAt) },
+    { label: "수정일", value: formatDate(member.modifiedAt) },
   ];
 
   return (

@@ -9,6 +9,7 @@ import Pagination from "@/components/Pagination";
 import withAdmin from "@/global/auth/hoc/withAdmin";
 import type { components } from "@/global/backend/apiV1/schema";
 import client from "@/global/backend/client";
+import { formatDate } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -184,7 +185,7 @@ function PageContent() {
                     {member.id} : {member.username} / {member.name}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    가입일: {new Date(member.createdAt).toLocaleDateString("ko-KR")}
+                    가입일: {formatDate(member.createdAt)}
                   </span>
                 </span>
               </Link>
