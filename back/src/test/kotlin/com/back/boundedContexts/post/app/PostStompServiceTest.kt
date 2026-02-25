@@ -12,6 +12,7 @@ import org.springframework.messaging.simp.stomp.StompFrameHandler
 import org.springframework.messaging.simp.stomp.StompHeaders
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.transaction.TestTransaction
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.socket.client.standard.StandardWebSocketClient
 import org.springframework.web.socket.messaging.WebSocketStompClient
@@ -69,6 +70,10 @@ class PostStompServiceTest {
         Thread.sleep(200) // 구독 확립 대기
 
         postStompService.notifyPostModified(post)
+
+        // TX 커밋 → afterCommit → pg_notify 발동 (poll 전에 커밋해야 STOMP 메시지가 도착)
+        TestTransaction.flagForCommit()
+        TestTransaction.end()
 
         val message = received.poll(5, TimeUnit.SECONDS)
         assertThat(message)
