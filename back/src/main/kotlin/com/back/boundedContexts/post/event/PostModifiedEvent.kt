@@ -5,7 +5,6 @@ import com.back.boundedContexts.post.dto.PostDto
 import com.back.standard.dto.EventPayload
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonGetter
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
 
@@ -13,8 +12,7 @@ data class PostModifiedEvent @JsonCreator constructor(
     override val uid: UUID,
     override val aggregateType: String,
     override val aggregateId: Int,
-    @field:JsonIgnore
-    @field:JsonProperty("postDto")
+    @field:JsonProperty(value = "postDto", access = JsonProperty.Access.WRITE_ONLY)
     val postDto: PostDto,
     val actorDto: MemberDto,
 ) : EventPayload {
