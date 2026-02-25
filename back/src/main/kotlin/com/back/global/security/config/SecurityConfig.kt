@@ -93,7 +93,7 @@ class SecurityConfig(
 
             exceptionHandling {
                 authenticationEntryPoint = AuthenticationEntryPoint { _, response, _ ->
-                    response.contentType = APPLICATION_JSON_VALUE
+                    response.contentType = "${APPLICATION_JSON_VALUE}; charset=UTF-8"
                     response.status = 401
                     response.writer.write(
                         Ut.JSON.toString(
@@ -103,7 +103,7 @@ class SecurityConfig(
                 }
 
                 accessDeniedHandler = AccessDeniedHandler { _, response, _ ->
-                    response.contentType = APPLICATION_JSON_VALUE
+                    response.contentType = "${APPLICATION_JSON_VALUE}; charset=UTF-8"
                     response.status = 403
                     response.writer.write(
                         Ut.JSON.toString(
