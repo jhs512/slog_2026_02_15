@@ -70,10 +70,12 @@ class PgPubSubConfig(
 
     private fun dispatch(channel: String, payload: String) {
         handlers[channel]?.forEach { entry ->
-            runCatching {
-                entry.method.invoke(entry.bean, payload)
-            }.onFailure { e ->
-                log.error("PgPubSub 핸들러 오류: channel='{}' method='{}'", channel, entry.method.name, e)
+            Thread.ofVirtual().name("pg-pubsub-handler").start {
+                runCatching {
+                    entry.method.invoke(entry.bean, payload)
+                }.onFailure { e ->
+                    log.error("PgPubSub 핸들러 오류: channel='{}' method='{}'", channel, entry.method.name, e)
+                }
             }
         }
     }
