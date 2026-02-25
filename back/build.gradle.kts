@@ -8,6 +8,7 @@ plugins {
     id("org.hibernate.orm") version "7.2.1.Final"
     id("io.sentry.jvm.gradle") version "6.1.0"
 }
+val sentryVersion by extra("8.27.0")
 
 group = "com"
 version = "0.0.1-SNAPSHOT"
@@ -36,6 +37,7 @@ dependencies {
 
     implementation("io.github.openfeign.querydsl:querydsl-jpa:7.1")
     implementation("io.github.openfeign.querydsl:querydsl-kotlin:7.1")
+    implementation("io.sentry:sentry-spring-boot-4-starter")
     kapt("io.github.openfeign.querydsl:querydsl-apt:7.1:jpa")
 
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -67,6 +69,11 @@ dependencies {
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+    }
+}
+dependencyManagement {
+    imports {
+        mavenBom("io.sentry:sentry-bom:$sentryVersion")
     }
 }
 
