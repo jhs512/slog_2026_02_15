@@ -5,13 +5,10 @@ import com.back.global.pgPubSub.app.PgPubSub
 import com.back.global.websocket.domain.StompMessage
 import com.back.global.websocket.out.StompMessageRepository
 import org.springframework.messaging.simp.SimpMessagingTemplate
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionSynchronization
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import tools.jackson.databind.ObjectMapper
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 /**
  * 멀티 인스턴스 환경에서 STOMP 브로드캐스트를 담당한다.
@@ -55,11 +52,6 @@ class StompService(
         val msg = stompMessageRepository.findById(idStr.toInt()).orElse(null) ?: return
 
         messagingTemplate.convertAndSend(msg.destination, objectMapper.readTree(msg.payload))
-    }
-
-    @Scheduled(cron = "0 0 3 * * *") // 매일 새벽 3시
-    fun deleteOldMessages() {
-        stompMessageRepository.deleteOlderThan(Instant.now().minus(7, ChronoUnit.DAYS))
     }
 
     companion object {
