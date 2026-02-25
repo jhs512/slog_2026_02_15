@@ -1,6 +1,6 @@
 package com.back.global.jpa.config
 
-import com.back.global.pgroonga.config.PGroongaCompositeMatchFunction
+import com.back.global.pGroonga.config.PGroongaCompositeMatchFunction
 import org.hibernate.boot.Metadata
 import org.hibernate.boot.model.relational.SqlStringGenerationContext
 import org.hibernate.dialect.PostgreSQLDialect

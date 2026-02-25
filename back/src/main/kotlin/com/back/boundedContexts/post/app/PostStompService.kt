@@ -2,17 +2,14 @@ package com.back.boundedContexts.post.app
 
 import com.back.boundedContexts.post.domain.Post
 import com.back.boundedContexts.post.dto.PostWithContentDto
-import org.springframework.messaging.simp.SimpMessagingTemplate
+import com.back.global.websocket.app.StompService
 import org.springframework.stereotype.Service
 
 @Service
 class PostStompService(
-    private val messagingTemplate: SimpMessagingTemplate,
+    private val stompService: StompService,
 ) {
     fun notifyPostModified(post: Post) {
-        messagingTemplate.convertAndSend(
-            "/topic/posts/${post.id}/modified",
-            PostWithContentDto(post)
-        )
+        stompService.send("/topic/posts/${post.id}/modified", PostWithContentDto(post))
     }
 }

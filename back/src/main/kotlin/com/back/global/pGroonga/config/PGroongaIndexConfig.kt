@@ -1,6 +1,6 @@
-package com.back.global.pgroonga.config
+package com.back.global.pGroonga.config
 
-import com.back.global.pgroonga.annotation.PGroongaIndex
+import com.back.global.pGroonga.annotation.PGroongaIndex
 import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.Table
 import org.slf4j.LoggerFactory

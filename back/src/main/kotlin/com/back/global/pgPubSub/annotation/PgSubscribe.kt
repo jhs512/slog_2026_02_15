@@ -1,4 +1,4 @@
-package com.back.global.pgpubsub.annotation
+package com.back.global.pgPubSub.annotation
 
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)

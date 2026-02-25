@@ -40,39 +40,28 @@ defaults:
 
 jobs:
   # ---------------------------------------------------------
-  # 1) 태그/릴리즈 생성
+  # 1) 다음 버전 계산 (dry-run, 태그 생성 X)
   # ---------------------------------------------------------
-  makeTagAndRelease:
+  calculateTag:
     runs-on: ubuntu-latest
     outputs:
-      tag_name: ${{ steps.create_tag.outputs.new_tag }} # 이후 잡에서 사용할 태그명
+      tag_name: ${{ steps.dry_run.outputs.new_tag }} # 이후 잡에서 사용할 태그명
     steps:
       - uses: actions/checkout@v6
 
-      # 버전 태그 자동 생성 (vX.Y.Z)
-      - name: Create Tag
-        id: create_tag
+      - name: 다음 버전 태그 계산 (dry-run)
+        id: dry_run
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      # 릴리즈 생성
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.create_tag.outputs.new_tag }}
-          name: Release ${{ steps.create_tag.outputs.new_tag }}
-          body: ${{ steps.create_tag.outputs.changelog }}
-          draft: false
-          prerelease: false
+          dry_run: true
 
   # ---------------------------------------------------------
   # 2) 도커 이미지 빌드/푸시 (캐시 최대 활용)
   # ---------------------------------------------------------
   buildImageAndPush:
     name: 도커 이미지 빌드와 푸시
-    needs: makeTagAndRelease
+    needs: calculateTag
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -113,7 +102,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.IMAGE_REPOSITORY }}:${{ needs.makeTagAndRelease.outputs.tag_name }}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.IMAGE_REPOSITORY }}:${{ needs.calculateTag.outputs.tag_name }}
             ghcr.io/${{ env.OWNER_LC }}/${{ env.IMAGE_REPOSITORY }}:latest
 
   # ---------------------------------------------------------
@@ -122,7 +111,7 @@ jobs:
   deploy:
     name: Blue/Green 무중단 배포
     runs-on: ubuntu-latest
-    needs: [makeTagAndRelease, buildImageAndPush]
+    needs: [calculateTag, buildImageAndPush]
     steps:
       # AWS 자격 구성
       - uses: aws-actions/configure-aws-credentials@v4
@@ -141,17 +130,10 @@ jobs:
           [[ -n "${INSTANCE_ID}" && "${INSTANCE_ID}" != "None" ]] || { echo "No running instance found"; exit 1; }
           echo "INSTANCE_ID=${INSTANCE_ID}" >> "${GITHUB_ENV}"
 
-      # 원격(SSM)으로 Blue/Green 스위치 수행
-      - name: AWS SSM Send-Command
-        uses: peterkimzz/aws-ssm-send-command@master
-        with:
-          aws-region: ${{ secrets.AWS_REGION }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          instance-ids: ${{ env.INSTANCE_ID }}
-          working-directory: /
-          comment: Deploy
-          command: |
+      # 원격(SSM)으로 Blue/Green 스위치 수행 (동기 + 로그 수집)
+      - name: AWS SSM 배포
+        run: |
+          DEPLOY_SCRIPT=$(cat << 'SCRIPT_EOF'
             set -Eeuo pipefail
 
             # ---------------------------------------------------------
@@ -175,7 +157,7 @@ jobs:
             set +a
             OWNER_LC="${{ github.repository_owner }}"
             OWNER_LC="${OWNER_LC,,}"
-            IMAGE_TAG="${{ needs.makeTagAndRelease.outputs.tag_name }}"
+            IMAGE_TAG="${{ needs.calculateTag.outputs.tag_name }}"
             IMAGE_REPOSITORY="${{ env.IMAGE_REPOSITORY }}"
             IMAGE="ghcr.io/${OWNER_LC}/${IMAGE_REPOSITORY}:${IMAGE_TAG}"
             SLOT1="${{ env.CONTAINER_1_NAME }}"
@@ -286,8 +268,9 @@ jobs:
             ELAPSED=0
             sleep 8  # 초기 부팅 여유
 
+            CONTAINER_IP=$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${GREEN}")
             while (( ELAPSED < TIMEOUT )); do
-              CODE=$(docker exec "${GREEN}" curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:${PORT_IN}/actuator/health" || echo 000)
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://${CONTAINER_IP}:${PORT_IN}/actuator/health" || echo 000)
               [[ "${CODE}" == "200" ]] && { echo "✅ ${GREEN} healthy"; break; }
               sleep "${INTERVAL}"
               ELAPSED=$((ELAPSED + INTERVAL))
@@ -337,3 +320,60 @@ jobs:
             } || true
 
             echo "🏁 Blue/Green switch complete. now blue = ${GREEN}"
+          SCRIPT_EOF
+          )
+
+          PARAMS=$(jq -nc --arg s "$DEPLOY_SCRIPT" '{"commands":[$s]}')
+
+          COMMAND_ID=$(aws ssm send-command \
+            --region "${{ secrets.AWS_REGION }}" \
+            --instance-ids "${{ env.INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters "$PARAMS" \
+            --query "Command.CommandId" \
+            --output text)
+          echo "SSM Command ID: ${COMMAND_ID}"
+
+          # 완료까지 대기 (기본 최대 10분)
+          aws ssm wait command-executed \
+            --command-id "${COMMAND_ID}" \
+            --instance-id "${{ env.INSTANCE_ID }}" || true
+
+          # 결과 조회 및 출력
+          INVOCATION=$(aws ssm get-command-invocation \
+            --command-id "${COMMAND_ID}" \
+            --instance-id "${{ env.INSTANCE_ID }}")
+          STATUS=$(echo "$INVOCATION" | jq -r '.Status')
+
+          echo "===== stdout ====="
+          echo "$INVOCATION" | jq -r '.StandardOutputContent'
+          echo "===== stderr ====="
+          echo "$INVOCATION" | jq -r '.StandardErrorContent'
+          echo "=================="
+          echo "Status: ${STATUS}"
+
+          [[ "$STATUS" == "Success" ]] || exit 1
+
+  # ---------------------------------------------------------
+  # 4) 배포 성공 후 태그/릴리즈 생성
+  # ---------------------------------------------------------
+  makeTagAndRelease:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create Tag
+        id: create_tag
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.create_tag.outputs.new_tag }}
+          name: Release ${{ steps.create_tag.outputs.new_tag }}
+          body: ${{ steps.create_tag.outputs.changelog }}
+          draft: false
+          prerelease: false

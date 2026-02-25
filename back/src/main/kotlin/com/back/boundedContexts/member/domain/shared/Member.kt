@@ -4,7 +4,7 @@ import com.back.boundedContexts.member.out.shared.MemberAttrRepository
 import com.back.boundedContexts.post.domain.PostMember
 import com.back.global.app.app.AppFacade
 import com.back.global.jpa.domain.BaseTime
-import com.back.global.pgroonga.annotation.PGroongaIndex
+import com.back.global.pGroonga.annotation.PGroongaIndex
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Index

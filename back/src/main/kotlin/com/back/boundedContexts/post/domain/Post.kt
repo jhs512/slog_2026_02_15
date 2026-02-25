@@ -2,7 +2,7 @@ package com.back.boundedContexts.post.domain
 
 import com.back.boundedContexts.member.domain.shared.Member
 import com.back.global.jpa.domain.BaseTime
-import com.back.global.pgroonga.annotation.PGroongaIndex
+import com.back.global.pGroonga.annotation.PGroongaIndex
 import jakarta.persistence.*
 import org.hibernate.annotations.DynamicUpdate
 
