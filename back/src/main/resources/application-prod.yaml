@@ -20,6 +20,7 @@ logging:
     org.springframework.transaction.interceptor: INFO
 sentry:
   dsn: "${SENTRY__DSN}"
+  environment: production
   sendDefaultPii: true
 custom:
   site:
