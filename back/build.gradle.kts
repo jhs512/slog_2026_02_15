@@ -92,11 +92,13 @@ hibernate {
 }
 
 sentry {
-    includeSourceContext = true
+    val token = System.getenv("SENTRY_AUTH_TOKEN")?.takeIf { it.isNotBlank() }
+
+    includeSourceContext = token != null
 
     org = "earth-5x"
     projectName = "java-spring-boot"
-    authToken = System.getenv("SENTRY_AUTH_TOKEN")
+    authToken = token
 }
 
 tasks.withType<Test> {

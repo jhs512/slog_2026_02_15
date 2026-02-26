@@ -23,6 +23,7 @@ COPY settings.gradle.kts .
 
 RUN gradle dependencies --no-daemon
 
+COPY .env.test .
 COPY src src
 
 # PG 초기화 → 시작 → 테스트 DB 생성 → 빌드(테스트 포함) → PG 종료
