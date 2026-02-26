@@ -66,15 +66,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # 빌드 컨텍스트에 .env 생성 (비어있어도 실패하지 않게)
-      - name: .env 파일 생성
-        env:
-          DOT_ENV: ${{ secrets.DOT_ENV }}
-        run: |
-          # .env가 없으면 빌드 캐시가 매번 깨질 수 있으므로 항상 생성
-          mkdir -p "${{ env.back_DIR }}"
-          printf "%s" "${DOT_ENV}" > "${{ env.back_DIR }}/.env"
-
       - name: Docker Buildx 설치
         uses: docker/setup-buildx-action@v3
 
@@ -130,6 +121,13 @@ jobs:
           [[ -n "${INSTANCE_ID}" && "${INSTANCE_ID}" != "None" ]] || { echo "No running instance found"; exit 1; }
           echo "INSTANCE_ID=${INSTANCE_ID}" >> "${GITHUB_ENV}"
 
+      # .env를 base64로 인코딩해 SSM 스크립트에 안전하게 주입
+      - name: .env base64 인코딩
+        env:
+          DOT_ENV: ${{ secrets.DOT_ENV }}
+        run: |
+          echo "DOT_ENV_B64=$(printf '%s' "${DOT_ENV}" | base64 -w0)" >> "${GITHUB_ENV}"
+
       # 원격(SSM)으로 Blue/Green 스위치 수행 (동기 + 로그 수집)
       - name: AWS SSM 배포
         run: |
@@ -167,6 +165,13 @@ jobs:
 
             echo "🔹 Use image: ${IMAGE}"
             docker pull "${IMAGE}"
+
+            # ---------------------------------------------------------
+            # 1-1) .env 파일 기록 (/tmp/.env + 타임스탬프 백업)
+            # ---------------------------------------------------------
+            printf '%s' "${{ env.DOT_ENV_B64 }}" | base64 -d > /tmp/.env
+            cp /tmp/.env "/tmp/.env.$(date +%Y_%m_%d__%H%M%S)"
+            chmod 600 /tmp/.env
 
             # ---------------------------------------------------------
             # 2) NPMplus API 로그인 (쿠키 기반 인증)
@@ -215,7 +220,7 @@ jobs:
                         forward_scheme: "http",
                         forward_host: $host,
                         forward_port: $port,
-                        npmplus_proxy_response_buffering: true
+                        npmplus_proxy_response_buffering: false
                       }
                     ],
                     meta: {letsencrypt_agree: false, dns_challenge: false}
@@ -257,6 +262,7 @@ jobs:
               --restart unless-stopped \
               --network "${NET}" \
               -e TZ=Asia/Seoul \
+              -v /tmp/.env:/app/.env:ro \
               "${IMAGE}"
 
             # ---------------------------------------------------------
@@ -278,9 +284,10 @@ jobs:
             [[ "${CODE:-000}" == "200" ]] || { echo "❌ ${GREEN} health failed"; docker logs --tail=200 "${GREEN}" || true; docker rm -f "${GREEN}" || true; exit 1; }
 
             # ---------------------------------------------------------
-            # 6) 업스트림 전환 (forward_host/forward_port + locations 동시 업데이트)
+            # 6) 업스트림 전환 (기존 설정 조회 후 forward_host/locations만 덮어씀)
             # ---------------------------------------------------------
-            NEW_CFG=$(jq -n --arg host "${GREEN}" --argjson port ${PORT_IN} '{
+            EXISTING_CFG=$(curl -sk -b "${COOKIE_JAR}" -X GET "https://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}")
+            NEW_CFG=$(echo "${EXISTING_CFG}" | jq --arg host "${GREEN}" --argjson port ${PORT_IN} '. + {
               forward_host: $host,
               forward_port: $port,
               locations: [
@@ -289,7 +296,7 @@ jobs:
                   forward_scheme: "http",
                   forward_host: $host,
                   forward_port: $port,
-                  npmplus_proxy_response_buffering: true
+                  npmplus_proxy_response_buffering: false
                 }
               ]
             }')

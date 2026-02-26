@@ -23,7 +23,6 @@ COPY settings.gradle.kts .
 
 RUN gradle dependencies --no-daemon
 
-COPY .env .
 COPY src src
 
 # PG 초기화 → 시작 → 테스트 DB 생성 → 빌드(테스트 포함) → PG 종료
@@ -47,6 +46,5 @@ ENV JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.en
 WORKDIR /app
 
 COPY --from=builder /app/build/libs/*.jar app.jar
-COPY --from=builder /app/.env .env
 
 ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "app.jar"]
