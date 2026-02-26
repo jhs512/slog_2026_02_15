@@ -191,6 +191,7 @@ jobs:
             PROXY_ID=$(curl -sk -b "${COOKIE_JAR}" -X GET "https://127.0.0.1:81/api/nginx/proxy-hosts" \
               | jq ".[] | select(.domain_names[]==\"${APP_1_DOMAIN}\") | .id")
 
+            IS_NEW_PROXY=false
             if [[ -z "${PROXY_ID}" || "${PROXY_ID}" == "null" ]]; then
               echo "📝 Proxy host not found for ${APP_1_DOMAIN}, creating..."
               PROXY_ID=$(curl -sk -b "${COOKIE_JAR}" -X POST "https://127.0.0.1:81/api/nginx/proxy-hosts" \
@@ -227,28 +228,31 @@ jobs:
                   }')" | jq '.id')
               [[ -n "${PROXY_ID}" && "${PROXY_ID}" != "null" ]] || { echo "❌ Failed to create proxy host"; exit 1; }
               echo "✅ Created proxy host ID: ${PROXY_ID}"
+              IS_NEW_PROXY=true
             fi
-
-            # 현재 프록시가 바라보는 업스트림(컨테이너명) 조회
-            CURRENT_HOST=$(curl -sk -b "${COOKIE_JAR}" -X GET "https://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
-              | jq -r '.forward_host')
-
-            echo "🔎 CURRENT_HOST: ${CURRENT_HOST:-none}"
 
             # ---------------------------------------------------------
             # 3) 역할(blue/green) 판정
-            #    - blue : 현재 운영 중(CURRENT_HOST)
+            #    - blue : 현재 운영 중
             #    - green: 다음 운영(교체 대상)
             # ---------------------------------------------------------
-            if [[ "${CURRENT_HOST:-}" == "${SLOT1}" ]]; then
-              BLUE="${SLOT1}"
-              GREEN="${SLOT2}"
-            elif [[ "${CURRENT_HOST:-}" == "${SLOT2}" ]]; then
-              BLUE="${SLOT2}"
+            if [[ "${IS_NEW_PROXY}" == "true" ]]; then
+              BLUE="none"
               GREEN="${SLOT1}"
             else
-              BLUE="none"   # 초기 배포
-              GREEN="${SLOT1}"
+              CURRENT_HOST=$(curl -sk -b "${COOKIE_JAR}" -X GET "https://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
+                | jq -r '.forward_host')
+              echo "🔎 CURRENT_HOST: ${CURRENT_HOST:-none}"
+              if [[ "${CURRENT_HOST:-}" == "${SLOT1}" ]]; then
+                BLUE="${SLOT1}"
+                GREEN="${SLOT2}"
+              elif [[ "${CURRENT_HOST:-}" == "${SLOT2}" ]]; then
+                BLUE="${SLOT2}"
+                GREEN="${SLOT1}"
+              else
+                BLUE="none"
+                GREEN="${SLOT1}"
+              fi
             fi
             echo "🎨 role -> blue(now): ${BLUE}, green(next): ${GREEN}"
 
