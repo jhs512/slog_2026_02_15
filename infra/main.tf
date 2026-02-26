@@ -220,6 +220,7 @@ docker run -d \
   --network common \
   -p 80:80 \
   -p 443:443 \
+  -p 443:443/udp \
   -p 81:81 \
   -e TZ=Asia/Seoul \
   -e 'INITIAL_ADMIN_EMAIL=admin@npm.com' \

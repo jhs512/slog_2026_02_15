@@ -1,6 +1,7 @@
 package com.back.boundedContexts.post.`in`
 
 import com.back.boundedContexts.post.app.PostFacade
+import com.back.boundedContexts.post.domain.postExtensions.checkActorCanRead
 import com.back.boundedContexts.post.domain.postExtensions.findCommentById
 import com.back.boundedContexts.post.domain.postExtensions.getComments
 import com.back.boundedContexts.post.dto.PostCommentDto
@@ -42,6 +43,7 @@ class ApiV1PostCommentController(
         @PathVariable postId: Int
     ): List<PostCommentDto> {
         val post = postFacade.findById(postId).getOrThrow()
+        post.checkActorCanRead(rq.actorOrNull)
 
         return post
             .getComments()
@@ -56,6 +58,7 @@ class ApiV1PostCommentController(
         @PathVariable id: Int
     ): PostCommentDto {
         val post = postFacade.findById(postId).getOrThrow()
+        post.checkActorCanRead(rq.actorOrNull)
 
         val postComment = post.findCommentById(id).getOrThrow()
 
@@ -73,9 +76,10 @@ class ApiV1PostCommentController(
 
         val postComment = post.findCommentById(id).getOrThrow()
 
-        postComment.checkActorCanDelete(rq.actorOrNull)
+        val actor = rq.actor
+        postComment.checkActorCanDelete(actor)
 
-        postFacade.deleteComment(post, postComment, rq.actor)
+        postFacade.deleteComment(post, postComment, actor)
 
         return RsData(
             "200-1",
@@ -101,9 +105,10 @@ class ApiV1PostCommentController(
 
         val postComment = post.findCommentById(id).getOrThrow()
 
-        postComment.checkActorCanModify(rq.actorOrNull)
+        val actor = rq.actor
+        postComment.checkActorCanModify(actor)
 
-        postFacade.modifyComment(postComment, rq.actor, reqBody.content)
+        postFacade.modifyComment(postComment, actor, reqBody.content)
 
         return RsData(
             "200-1",
