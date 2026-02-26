@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import type { components } from "@/global/backend/apiV1/schema";
 import client from "@/global/backend/client";
+import { toast } from "sonner";
 
 type PostCommentDto = components["schemas"]["PostCommentDto"];
 type RsDataVoid = components["schemas"]["RsDataVoid"];
@@ -23,7 +24,7 @@ export default function usePostComments(postId: number) {
       })
       .then((res) => {
         if (res.error) {
-          alert(res.error.msg);
+          toast.error(res.error.msg);
           return;
         }
         setPostComments(res.data);
@@ -45,7 +46,7 @@ export default function usePostComments(postId: number) {
       })
       .then((res) => {
         if (res.error) {
-          alert(res.error.msg);
+          toast.error(res.error.msg);
           return;
         }
 
@@ -74,7 +75,7 @@ export default function usePostComments(postId: number) {
       })
       .then((res) => {
         if (res.error) {
-          alert(res.error.msg);
+          toast.error(res.error.msg);
           return;
         }
 
@@ -105,7 +106,7 @@ export default function usePostComments(postId: number) {
       })
       .then((res) => {
         if (res.error) {
-          alert(res.error.msg);
+          toast.error(res.error.msg);
           return;
         }
 

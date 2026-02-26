@@ -56,8 +56,11 @@ function PageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const currentPage = Number(searchParams.get("page") || "1");
-  const currentPageSize = Number(searchParams.get("pageSize") || "30");
+  const currentPage = Math.max(1, Number(searchParams.get("page") || "1"));
+  const currentPageSize = Math.min(
+    100,
+    Math.max(1, Number(searchParams.get("pageSize") || "30")),
+  );
   const currentKw = searchParams.get("kw") || "";
   const currentSort = (searchParams.get("sort") || "CREATED_AT") as PostSort;
 
