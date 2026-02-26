@@ -286,8 +286,7 @@ jobs:
             # ---------------------------------------------------------
             # 6) 업스트림 전환 (기존 설정 조회 후 forward_host/locations만 덮어씀)
             # ---------------------------------------------------------
-            EXISTING_CFG=$(curl -sk -b "${COOKIE_JAR}" -X GET "https://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}")
-            NEW_CFG=$(echo "${EXISTING_CFG}" | jq --arg host "${GREEN}" --argjson port ${PORT_IN} '. + {
+            NEW_CFG=$(jq -n --arg host "${GREEN}" --argjson port ${PORT_IN} '{
               forward_host: $host,
               forward_port: $port,
               locations: [
