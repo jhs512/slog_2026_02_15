@@ -112,9 +112,7 @@ function resolveMermaidWidths() {
       );
 
       const blob = new Blob([svgText], { type: "image/svg+xml" });
-      const prevSrc = svgImg.src;
       svgImg.src = URL.createObjectURL(blob);
-      if (prevSrc.startsWith("blob:")) URL.revokeObjectURL(prevSrc);
       svgImg.width = Math.round(vbW);
     } catch {
       // SVG fetch/파싱 실패 시 PNG 프로브로 폴백

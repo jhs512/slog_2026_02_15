@@ -29,9 +29,9 @@ class AuthTokenService(
             ?: return null
 
         return AccessTokenPayload(
-            (parsed["id"] as? Number)?.toInt() ?: return null,
-            parsed["username"] as? String ?: return null,
-            parsed["name"] as? String ?: return null
+            parsed["id"] as Int,
+            parsed["username"] as String,
+            parsed["name"] as String
         )
     }
 }
