@@ -32,6 +32,7 @@ custom:
     backUrl: "${custom.prod.backUrl}"
     dbHost: "${custom.prod.dbHost}"
     dbName: "${custom.prod.dbName}"
+    redisHost: "${custom.prod.redisHost}"
   task:
     processor:
       fixedDelayMs: "#{1000*3}"
