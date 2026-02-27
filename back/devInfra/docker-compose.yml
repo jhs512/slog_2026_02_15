@@ -1,5 +1,13 @@
 name: slog_dev
 services:
+  redis_1:
+    image: redis:latest
+    container_name: redis_1
+    ports:
+      - "6379:6379"
+    environment:
+      TZ: Asia/Seoul
+    command: redis-server --maxmemory 50mb --maxmemory-policy allkeys-lru --requirepass lldj123414
   slog_dev_db:
     image: jangka512/pgj:latest
     container_name: slog_dev_db

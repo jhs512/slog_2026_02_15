@@ -8,6 +8,8 @@
 | `8080` (Spring Boot 포트) | `application.yaml`, `DevInitData.kt` | `.env`, `next.config.ts` | — | `deploy.yml` |
 | `3000` (Next.js 포트) | `application.yaml` (frontUrl) | `.env` | — | — |
 | `5432` (PostgreSQL 포트) | `application.yaml`, `docker-compose.yml` | — | `main.tf` | — |
+| `6379` (Redis 포트) | `application.yaml` | — | `main.tf` | — |
+| `redis_1` (Redis 컨테이너) | `application.yaml` (redisHost) | — | `main.tf` | — |
 | `81` (NPMplus 포트) | — | — | — | `deploy.yml` (`NPM_BASE_URL`) |
 | `postgres` (DB 유저) | `application.yaml`, `docker-compose.yml` | — | `main.tf` | — |
 | `slog_dev` / `slog_test` / `slog_prod` | `application.yaml`, `docker-compose.yml`, `Dockerfile` | — | — | — |

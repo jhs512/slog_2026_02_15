@@ -236,7 +236,7 @@ docker run -d \
   -p 6379:6379 \
   -e TZ=Asia/Seoul \
   -v /dockerProjects/redis_1/volumes/data:/data \
-  redis --requirepass '${var.password_1}'
+  redis --requirepass '${var.password_1}' --maxmemory 50mb --maxmemory-policy allkeys-lru
 
 # postgresql(pgj) 설치
 docker run -d \

@@ -1,9 +1,9 @@
-package com.back.global.pgCache.config
+package com.back.global.redisCache.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("custom.cache")
-data class PgCacheProperties(
+data class RedisCacheProperties(
     val ttlSeconds: Long = 3600,
     val ttlOverrides: Map<String, Long> = emptyMap(),
 )
