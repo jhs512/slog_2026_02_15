@@ -163,6 +163,7 @@ jobs:
             SLOT2="${{ env.CONTAINER_2_NAME }}"
             PORT_IN="${{ env.CONTAINER_PORT }}"
             NET="${{ env.DOCKER_NETWORK }}"
+            NPM_BASE_URL="${{ env.NPM_BASE_URL }}"
 
             echo "🔹 Use image: ${IMAGE}"
             docker pull "${IMAGE}"
