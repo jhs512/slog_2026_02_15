@@ -70,7 +70,25 @@ export default function SearchHelpButton() {
           <DialogHeader>
             <DialogTitle>검색 문법 안내</DialogTitle>
           </DialogHeader>
-          <div className="overflow-x-auto">
+          {/* 모바일: 카드 리스트 */}
+          <div className="sm:hidden divide-y">
+            {ROWS.map((row) => (
+              <div key={row.syntax} className="flex items-start gap-3 py-3">
+                <code className="shrink-0 bg-muted px-2 py-0.5 rounded text-xs font-mono">
+                  {row.example}
+                </code>
+                <div className="min-w-0">
+                  <p className="text-sm">{row.desc}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {row.syntax}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 데스크탑: 테이블 */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">

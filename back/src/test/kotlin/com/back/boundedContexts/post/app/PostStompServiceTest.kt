@@ -1,8 +1,6 @@
 package com.back.boundedContexts.post.app
 
-import com.back.global.pgPubSub.app.PgPubSubManager
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -12,7 +10,6 @@ import org.springframework.messaging.simp.stomp.StompFrameHandler
 import org.springframework.messaging.simp.stomp.StompHeaders
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.transaction.TestTransaction
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.socket.client.standard.StandardWebSocketClient
 import org.springframework.web.socket.messaging.WebSocketStompClient
@@ -33,15 +30,6 @@ class PostStompServiceTest {
 
     @Autowired
     private lateinit var postFacade: PostFacade
-
-    @Autowired
-    private lateinit var pgPubSubManager: PgPubSubManager
-
-    // PG LISTEN 루프가 준비되기 전에 publish 하면 알림이 유실됨
-    @BeforeEach
-    fun waitForListener() {
-        pgPubSubManager.listenReady.get(5, TimeUnit.SECONDS)
-    }
 
     @Test
     @Transactional // post.author 등 lazy 필드 접근을 위해 세션 유지
@@ -71,13 +59,9 @@ class PostStompServiceTest {
 
         postStompService.notifyPostModified(post)
 
-        // TX 커밋 → afterCommit → pg_notify 발동 (poll 전에 커밋해야 STOMP 메시지가 도착)
-        TestTransaction.flagForCommit()
-        TestTransaction.end()
-
         val message = received.poll(5, TimeUnit.SECONDS)
         assertThat(message)
-            .describedAs("5초 내에 메시지를 수신해야 함 (PG listen → dispatch → STOMP 전달)")
+            .describedAs("5초 내에 메시지를 수신해야 함 (Redis publish → dispatch → STOMP 전달)")
             .isNotNull()
         assertThat(message!!["id"]).isEqualTo(post.id)
         assertThat(message["title"]).isEqualTo(post.title)

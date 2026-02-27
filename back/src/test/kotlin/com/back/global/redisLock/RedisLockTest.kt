@@ -1,74 +1,58 @@
-package com.back.global.pgAdvisoryLock
+package com.back.global.redisLock
 
-import com.back.global.pgAdvisoryLock.annotation.PgAdvisoryLock
-import com.back.global.pgAdvisoryLock.app.PgAdvisoryLockAcquisitionException
-import com.back.global.pgAdvisoryLock.app.PgAdvisoryLockAspect
+import com.back.global.redisLock.annotation.RedisLock
+import com.back.global.redisLock.app.RedisLockAcquisitionException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import org.redisson.api.RedissonClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.test.context.ActiveProfiles
 import java.util.concurrent.atomic.AtomicInteger
-import javax.sql.DataSource
 
 @ActiveProfiles("test")
 @SpringBootTest
-class PgAdvisoryLockTest {
+class RedisLockTest {
 
     @TestConfiguration
     class Cfg {
         @Bean
-        fun lockTestService(dataSource: DataSource) = LockTestService(dataSource)
+        fun lockTestService(redissonClient: RedissonClient) = LockTestService(redissonClient)
     }
 
-    open class LockTestService(private val dataSource: DataSource) {
+    open class LockTestService(private val redissonClient: RedissonClient) {
 
-        @PgAdvisoryLock(key = "'pglock:test:static'")
+        @RedisLock(key = "'test:static'")
         open fun staticKey(holdMs: Long = 0) {
             if (holdMs > 0) Thread.sleep(holdMs)
         }
 
-        @PgAdvisoryLock(key = "#id")
+        @RedisLock(key = "#id")
         open fun paramKey(id: String) {}
 
-        @PgAdvisoryLock(key = "'pglock:' + #prefix + ':' + #id")
+        @RedisLock(key = "'test:' + #prefix + ':' + #id")
         open fun expressionKey(prefix: String, id: Int) {}
 
-        @PgAdvisoryLock(key = "'pglock:test:throwing'")
+        @RedisLock(key = "'test:throwing'")
         open fun throwingMethod() {
             throw RuntimeException("의도된 예외")
         }
 
-        /** 현재 키에 대한 락이 해제되어 있으면 true */
-        open fun isLockFree(key: String): Boolean {
-            val lockId = PgAdvisoryLockAspect.keyToLong(key)
-            dataSource.connection.use { conn ->
-                // pg_try_advisory_lock 성공 시 락 없음 → 즉시 해제 후 true 반환
-                val acquired = conn.prepareStatement("SELECT pg_try_advisory_lock(?)").use { ps ->
-                    ps.setLong(1, lockId)
-                    ps.executeQuery().use { rs -> rs.next() && rs.getBoolean(1) }
-                }
-                if (acquired) {
-                    conn.prepareStatement("SELECT pg_advisory_unlock(?)").use { ps ->
-                        ps.setLong(1, lockId)
-                        ps.executeQuery()
-                    }
-                }
-                return acquired
-            }
-        }
     }
 
     @Autowired lateinit var svc: LockTestService
+    @Autowired lateinit var redissonClient: RedissonClient
+
+    private fun isLockFree(key: String): Boolean = !redissonClient.getLock("redislock:$key").isLocked
 
     @Test
     fun `기본 동작 - 락 획득 및 정상 해제`() {
         assertDoesNotThrow { svc.staticKey() }
-        assertThat(svc.isLockFree("pglock:test:static")).isTrue()
+        assertThat(isLockFree("test:static")).isTrue()
     }
 
     @Test
@@ -102,7 +86,7 @@ class PgAdvisoryLockTest {
             try {
                 svc.staticKey()
                 successCount.incrementAndGet()
-            } catch (_: PgAdvisoryLockAcquisitionException) {
+            } catch (_: RedisLockAcquisitionException) {
                 failCount.incrementAndGet()
             }
         }
@@ -121,10 +105,10 @@ class PgAdvisoryLockTest {
         assertThrows<RuntimeException> { svc.throwingMethod() }
 
         // 락이 해제되었는지 확인
-        assertThat(svc.isLockFree("pglock:test:throwing")).isTrue()
+        assertThat(isLockFree("test:throwing")).isTrue()
 
         // 두 번째 호출: 동일 키로 다시 획득 가능 (LockAcquisitionException이 아닌 RuntimeException)
         val ex = assertThrows<RuntimeException> { svc.throwingMethod() }
-        assertThat(ex).isNotInstanceOf(PgAdvisoryLockAcquisitionException::class.java)
+        assertThat(ex).isNotInstanceOf(RedisLockAcquisitionException::class.java)
     }
 }

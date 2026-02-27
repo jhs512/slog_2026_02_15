@@ -5,6 +5,7 @@ import com.back.global.task.out.TaskRepository
 import com.back.standard.dto.TaskPayload
 import com.back.standard.util.Ut
 import org.slf4j.LoggerFactory
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.support.TransactionTemplate
@@ -20,6 +21,7 @@ class TaskProcessingScheduledJob(
     private val executor = Executors.newVirtualThreadPerTaskExecutor()
 
     @Scheduled(fixedDelayString = "\${custom.task.processor.fixedDelayMs}")
+    @SchedulerLock(name = "processTasks", lockAtLeastFor = "PT1M")
     fun processTasks() {
         val taskIds = transactionTemplate.execute {
             val pendingTasks = taskRepository.findPendingTasksWithLock(10)

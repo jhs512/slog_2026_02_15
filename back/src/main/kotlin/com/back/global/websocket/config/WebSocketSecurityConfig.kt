@@ -24,7 +24,9 @@ class WebSocketSecurityConfig(
         messages: MessageMatcherDelegatingAuthorizationManager.Builder,
     ): AuthorizationManager<Message<*>> {
         postWebSocketSecurityConfigurer.configure(messages)
+
         messages.anyMessage().permitAll()
+
         return messages.build()
     }
 }

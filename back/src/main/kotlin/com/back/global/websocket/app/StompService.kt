@@ -1,76 +1,42 @@
 package com.back.global.websocket.app
 
-import com.back.global.pgPubSub.annotation.PgSubscribe
-import com.back.global.pgPubSub.app.PgPubSub
-import com.back.global.websocket.domain.StompMessage
-import com.back.global.websocket.out.StompMessageRepository
+import org.springframework.data.redis.connection.Message
+import org.springframework.data.redis.connection.MessageListener
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
-import org.springframework.transaction.support.TransactionSynchronization
-import org.springframework.transaction.support.TransactionSynchronizationManager
 import tools.jackson.databind.ObjectMapper
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * 멀티 인스턴스 환경에서 STOMP 브로드캐스트를 담당한다.
  *
- * 흐름: send() → stomp_message 테이블에 저장 → TX 커밋 후 pg_notify(id)
- *      → 모든 인스턴스의 onBroadcast() → DB에서 payload 조회 → SimpMessagingTemplate → 브라우저
- *
- * pg_notify 페이로드를 숫자 id로 제한해 8000바이트 한계를 우회한다.
+ * 흐름: send() → Redis publish(destination + payload JSON)
+ *      → 모든 인스턴스의 onMessage() → SimpMessagingTemplate → 브라우저
  */
 @Service
 class StompService(
-    private val pgPubSub: PgPubSub,
+    private val redisTemplate: StringRedisTemplate,
     private val messagingTemplate: SimpMessagingTemplate,
     private val objectMapper: ObjectMapper,
-    private val stompMessageRepository: StompMessageRepository,
-) {
+) : MessageListener {
     companion object {
-        private const val CHANNEL = "stomp-multicast"
-    }
-
-    private val lastProcessedId = AtomicInteger(stompMessageRepository.findMaxId() ?: 0)
-
-    init {
-        pgPubSub.addOnConnectListener { replayMissed() }
-    }
-
-    private fun replayMissed() {
-        stompMessageRepository.findAllByIdGreaterThanOrderByIdAsc(lastProcessedId.get()).forEach { msg ->
-            messagingTemplate.convertAndSend(msg.destination, objectMapper.readTree(msg.payload))
-            lastProcessedId.updateAndGet { maxOf(it, msg.id) }
-        }
+        const val CHANNEL = "stomp-multicast"
     }
 
     fun send(destination: String, payload: Any) {
-        val msg = stompMessageRepository.save(
-            StompMessage(
-                destination = destination,
-                payload = objectMapper.writeValueAsString(payload),
-            )
+        val json = objectMapper.writeValueAsString(
+            mapOf("destination" to destination, "payload" to payload)
         )
 
-        val id = msg.id
-
-        // TX 커밋 후 notify → 구독자가 DB에서 레코드를 확실히 찾을 수 있도록
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
-                override fun afterCommit() {
-                    pgPubSub.publish(CHANNEL, id)
-                }
-            })
-        } else {
-            pgPubSub.publish(CHANNEL, id)
-        }
+        redisTemplate.convertAndSend(CHANNEL, json)
     }
 
-    @PgSubscribe(CHANNEL)
-    internal fun onMulticast(id: Int) {
-        val msg = stompMessageRepository
-            .findById(id).orElse(null) ?: return
+    override fun onMessage(message: Message, pattern: ByteArray?) {
+        val node = objectMapper.readTree(message.body)
 
-        messagingTemplate.convertAndSend(msg.destination, objectMapper.readTree(msg.payload))
-        lastProcessedId.updateAndGet { maxOf(it, id) }
+        val destination = node.get("destination").textValue()!!
+        val payload = objectMapper.treeToValue(node.get("payload"), Any::class.java)
+
+        messagingTemplate.convertAndSend(destination, payload)
     }
 }

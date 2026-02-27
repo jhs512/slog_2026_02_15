@@ -34,6 +34,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.redisson:redisson-spring-boot-starter:4.2.0")
+    implementation("net.javacrumbs.shedlock:shedlock-spring:7.6.0")
+    implementation("net.javacrumbs.shedlock:shedlock-provider-redis-spring:7.6.0")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
     implementation("io.github.openfeign.querydsl:querydsl-jpa:7.1")
@@ -47,7 +50,7 @@ dependencies {
     implementation("org.springframework:spring-test") // InternalRestClient에서 사용
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-security-oauth2-client")
-    implementation("org.springframework.session:spring-session-jdbc")
+    implementation("org.springframework.session:spring-session-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
     implementation("org.springframework.security:spring-security-messaging")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
