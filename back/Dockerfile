@@ -3,7 +3,7 @@ FROM jangka512/pgj:latest AS builder
 
 # JDK 24 + Gradle 설치 (toolchain languageVersion=24에 맞춤)
 RUN apt-get update \
- && apt-get install -y --no-install-recommends curl unzip \
+ && apt-get install -y --no-install-recommends curl unzip redis-server \
  && curl -sL https://download.java.net/java/GA/jdk24/1f9ff9062db4449d8ca828c504ffae90/36/GPL/openjdk-24_linux-x64_bin.tar.gz | tar xz -C /opt \
  && ln -s /opt/jdk-24 /opt/java \
  && curl -sL https://services.gradle.org/distributions/gradle-9.3.0-bin.zip -o /tmp/gradle.zip \
@@ -34,6 +34,7 @@ RUN set -e \
  && su postgres -c "pg_ctl -D $PGDATA start -o '-c listen_addresses=localhost' -w" \
  && su postgres -c "psql -c \"ALTER USER postgres PASSWORD 'lldj123414';\"" \
  && su postgres -c "psql -c \"CREATE DATABASE slog_test;\"" \
+ && redis-server --daemonize yes --requirepass lldj123414 \
  && gradle build --no-daemon \
  && su postgres -c "pg_ctl -D $PGDATA stop -w"
 
