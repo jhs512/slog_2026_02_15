@@ -193,6 +193,8 @@ chmod 600 /swapfile
 mkswap /swapfile
 swapon /swapfile
 sh -c 'echo "/swapfile swap swap defaults 0 0" >> /etc/fstab'
+echo 'vm.swappiness = 10' >> /etc/sysctl.conf
+sysctl -p
 
 # 타임존 설정
 timedatectl set-timezone Asia/Seoul

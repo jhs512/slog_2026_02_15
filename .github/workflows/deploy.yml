@@ -138,9 +138,15 @@ jobs:
             # ---------------------------------------------------------
             # 0) 실행 로그(라인 타임스탬프 부착)
             # ---------------------------------------------------------
-            LOG="/tmp/ssm-$(date +%Y%m%d_%H%M%S).log"
+            SCRIPT_TS="$(date +%Y%m%d_%H%M%S)"
+            LOG="/tmp/ssm-${SCRIPT_TS}.log"
             exec > >(awk '{ fflush(); print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }' | tee -a "$LOG")
             exec 2> >(awk '{ fflush(); print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }' | tee -a "$LOG" >&2)
+
+            # 스크립트 자체를 /tmp에 보관 (재실행 및 이력 확인용)
+            cp "$0" "/tmp/blue_green.${SCRIPT_TS}.sh"
+            cp "$0" "/tmp/blue_green.sh"
+            chmod 755 "/tmp/blue_green.${SCRIPT_TS}.sh" "/tmp/blue_green.sh"
 
             # ---------------------------------------------------------
             # 1) 변수 정의
@@ -273,7 +279,7 @@ jobs:
             echo "⏱ health-check: ${GREEN}"
             TIMEOUT=120
             INTERVAL=3
-            ELAPSED=0
+            ELAPSED=8
             sleep 8  # 초기 부팅 여유
 
             CONTAINER_IP=$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${GREEN}")
@@ -288,22 +294,51 @@ jobs:
             # ---------------------------------------------------------
             # 6) 업스트림 전환 (기존 설정 조회 후 forward_host/locations만 덮어씀)
             # ---------------------------------------------------------
-            NEW_CFG=$(jq -n --arg host "${GREEN}" --argjson port ${PORT_IN} '{
-              forward_host: $host,
-              forward_port: $port,
-              locations: [
-                {
-                  path: "/sse/",
-                  forward_scheme: "http",
-                  forward_host: $host,
-                  forward_port: $port,
-                  npmplus_proxy_response_buffering: false
-                }
-              ]
-            }')
-            curl -sk -b "${COOKIE_JAR}" -X PUT "${NPM_BASE_URL}/api/nginx/proxy-hosts/${PROXY_ID}" \
+            CURRENT_CFG=$(curl -sk -b "${COOKIE_JAR}" -X GET "${NPM_BASE_URL}/api/nginx/proxy-hosts/${PROXY_ID}")
+            NEW_CFG=$(echo "${CURRENT_CFG}" | jq \
+              --arg host "${GREEN}" \
+              --argjson port ${PORT_IN} \
+              '{
+                access_list_id,
+                advanced_config,
+                allow_websocket_upgrade,
+                block_exploits,
+                caching_enabled,
+                certificate_id,
+                domain_names,
+                forward_host: $host,
+                forward_port: $port,
+                forward_scheme,
+                hsts_enabled,
+                hsts_subdomains,
+                http2_support,
+                locations: [
+                  {
+                    path: "/sse/",
+                    forward_scheme: "http",
+                    forward_host: $host,
+                    forward_port: $port,
+                    npmplus_proxy_response_buffering: false
+                  }
+                ],
+                meta,
+                npmplus_auth_request,
+                npmplus_crowdsec_appsec,
+                npmplus_fancyindex,
+                npmplus_http3_support,
+                npmplus_noindex,
+                npmplus_proxy_request_buffering,
+                npmplus_proxy_response_buffering,
+                npmplus_upstream_compression,
+                npmplus_x_frame_options,
+                ssl_forced,
+                trust_forwarded_proto
+              }')
+            SWITCH_CODE=$(curl -sk -b "${COOKIE_JAR}" -o /dev/null -w "%{http_code}" \
+              -X PUT "${NPM_BASE_URL}/api/nginx/proxy-hosts/${PROXY_ID}" \
               -H "Content-Type: application/json" \
-              -d "${NEW_CFG}" >/dev/null
+              -d "${NEW_CFG}")
+            [[ "${SWITCH_CODE}" == "200" ]] || { echo "❌ NPM switch failed (HTTP ${SWITCH_CODE})"; exit 1; }
             echo "🔁 switch upstream → ${GREEN}:${PORT_IN}"
 
             # ---------------------------------------------------------
