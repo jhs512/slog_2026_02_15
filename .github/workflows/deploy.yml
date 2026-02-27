@@ -28,7 +28,6 @@ on:
       - "back/Dockerfile"
     branches:
       - main
-      - release
 
 # 권한 최소화/명시화
 permissions:
