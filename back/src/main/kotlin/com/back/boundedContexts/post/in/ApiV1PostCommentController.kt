@@ -6,7 +6,7 @@ import com.back.boundedContexts.post.domain.postExtensions.findCommentById
 import com.back.boundedContexts.post.domain.postExtensions.getComments
 import com.back.boundedContexts.post.dto.PostCommentDto
 import com.back.global.dto.RsData
-import com.back.global.web.util.Rq
+import com.back.global.web.app.Rq
 import com.back.standard.extensions.getOrThrow
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
@@ -25,7 +25,7 @@ class ApiV1PostCommentController(
     private val postFacade: PostFacade,
     private val rq: Rq
 ) {
-    val actor
+    private val actor
         get() = rq.actor
 
     private fun makePostCommentDto(postComment: com.back.boundedContexts.post.domain.PostComment): PostCommentDto {

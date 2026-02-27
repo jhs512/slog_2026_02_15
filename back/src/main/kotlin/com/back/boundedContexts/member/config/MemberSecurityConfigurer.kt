@@ -5,7 +5,7 @@ import org.springframework.security.config.annotation.web.AuthorizeHttpRequestsD
 import org.springframework.stereotype.Component
 
 @Component
-class MemberSecurityConfig {
+class MemberSecurityConfigurer {
     fun configure(authorize: AuthorizeHttpRequestsDsl) {
         authorize.apply {
             authorize(HttpMethod.POST, "/member/api/*/members", permitAll)

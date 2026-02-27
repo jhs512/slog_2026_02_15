@@ -4,7 +4,7 @@ import org.springframework.security.config.annotation.web.AuthorizeHttpRequestsD
 import org.springframework.stereotype.Component
 
 @Component
-class AuthSecurityConfig {
+class AuthSecurityConfigurer {
     fun configure(authorize: AuthorizeHttpRequestsDsl) {
         authorize.apply {
             authorize("/member/api/*/auth/login", permitAll)

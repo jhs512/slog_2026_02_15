@@ -2,7 +2,7 @@ package com.back.boundedContexts.member.`in`
 
 import com.back.boundedContexts.member.app.MemberFacade
 import com.back.boundedContexts.member.domain.shared.Member
-import com.back.global.app.app.CustomConfigProperties
+import com.back.global.app.config.CustomConfigProperties
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean

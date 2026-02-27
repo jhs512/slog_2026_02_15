@@ -1,7 +1,6 @@
 package com.back.global.task.app
 
 import com.back.global.app.app.AppFacade
-import com.back.global.task.config.TaskHandlerRegistry
 import com.back.global.task.domain.Task
 import com.back.global.task.out.TaskRepository
 import com.back.standard.dto.TaskPayload

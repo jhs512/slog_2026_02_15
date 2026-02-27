@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 import java.util.function.Supplier
 
 @Component
-class PostWebSocketSecurityConfig(
+class PostWebSocketSecurityConfigurer(
     @Lazy private val postFacade: PostFacade,
     private val actorFacade: ActorFacade,
 ) {

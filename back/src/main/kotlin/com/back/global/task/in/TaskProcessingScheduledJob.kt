@@ -1,6 +1,6 @@
 package com.back.global.task.`in`
 
-import com.back.global.task.config.TaskHandlerRegistry
+import com.back.global.task.app.TaskHandlerRegistry
 import com.back.global.task.out.TaskRepository
 import com.back.standard.dto.TaskPayload
 import com.back.standard.util.Ut
@@ -11,12 +11,12 @@ import org.springframework.transaction.support.TransactionTemplate
 import java.util.concurrent.Executors
 
 @Component
-class TaskProcessor(
+class TaskProcessingScheduledJob(
     private val taskRepository: TaskRepository,
     private val taskHandlerRegistry: TaskHandlerRegistry,
     private val transactionTemplate: TransactionTemplate
 ) {
-    private val logger = LoggerFactory.getLogger(TaskProcessor::class.java)
+    private val logger = LoggerFactory.getLogger(TaskProcessingScheduledJob::class.java)
     private val executor = Executors.newVirtualThreadPerTaskExecutor()
 
     @Scheduled(fixedDelayString = "\${custom.task.processor.fixedDelayMs}")

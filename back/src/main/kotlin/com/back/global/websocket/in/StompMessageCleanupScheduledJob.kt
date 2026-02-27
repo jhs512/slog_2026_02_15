@@ -7,7 +7,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 @Component
-class StompMessageCleanup(
+class StompMessageCleanupScheduledJob(
     private val stompMessageRepository: StompMessageRepository,
 ) {
     @Scheduled(cron = "0 0 3 * * *") // 매일 새벽 3시

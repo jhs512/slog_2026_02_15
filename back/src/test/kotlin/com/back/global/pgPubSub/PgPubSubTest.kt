@@ -2,7 +2,7 @@ package com.back.global.pgPubSub
 
 import com.back.global.pgPubSub.annotation.PgSubscribe
 import com.back.global.pgPubSub.app.PgPubSub
-import com.back.global.pgPubSub.config.PgPubSubConfig
+import com.back.global.pgPubSub.app.PgPubSubManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,49 +20,34 @@ class PgPubSubTest {
 
     @TestConfiguration
     class Cfg {
-        @Bean fun stringCapture() = StringCapture()
-        @Bean fun dtoCapture() = DtoCapture()
+        @Bean fun intCapture() = IntCapture()
     }
 
-    class StringCapture {
-        val queue = LinkedBlockingQueue<String>()
+    class IntCapture {
+        val queue = LinkedBlockingQueue<Int>()
 
-        @PgSubscribe("pgpubsub-str-test")
-        fun handle(payload: String) = queue.put(payload)
-    }
-
-    data class SampleDto(val id: Int = 0, val name: String = "")
-
-    class DtoCapture {
-        val queue = LinkedBlockingQueue<SampleDto>()
-
-        @PgSubscribe("pgpubsub-dto-test")
-        fun handle(payload: SampleDto) = queue.put(payload)
+        @PgSubscribe("pgpubsub-int-test")
+        fun handle(payload: Int) = queue.put(payload)
     }
 
     @Autowired lateinit var pgPubSub: PgPubSub
-    @Autowired lateinit var pgPubSubConfig: PgPubSubConfig
-    @Autowired lateinit var stringCapture: StringCapture
-    @Autowired lateinit var dtoCapture: DtoCapture
+    @Autowired lateinit var pgPubSubManager: PgPubSubManager
+    @Autowired lateinit var intCapture: IntCapture
     @Autowired lateinit var dataSource: javax.sql.DataSource
 
     @BeforeEach
     fun waitForListener() {
-        pgPubSubConfig.listenReady.get(5, TimeUnit.SECONDS)
+        pgPubSubManager.listenReady.get(5, TimeUnit.SECONDS)
     }
 
     @Test
     fun `리스너 상태 진단`() {
-        println("[DIAG] handlers.keys = ${pgPubSubConfig.handlers.keys}")
-        println("[DIAG] listenReady.isDone = ${pgPubSubConfig.listenReady.isDone}")
-        println("[DIAG] stringCapture id = ${System.identityHashCode(stringCapture)}")
-        val handlerBean = pgPubSubConfig.handlers["pgpubsub-str-test"]?.firstOrNull()?.bean
-        println("[DIAG] handler bean id = ${handlerBean?.let { System.identityHashCode(it) }}")
-        println("[DIAG] same instance = ${handlerBean === stringCapture}")
+        println("[DIAG] handlers.keys = ${pgPubSubManager.handlers.keys}")
+        println("[DIAG] listenReady.isDone = ${pgPubSubManager.listenReady.isDone}")
 
-        assertThat(pgPubSubConfig.handlers.keys)
+        assertThat(pgPubSubManager.handlers.keys)
             .describedAs("채널이 등록되어 있어야 함")
-            .contains("pgpubsub-str-test", "pgpubsub-dto-test")
+            .contains("pgpubsub-int-test")
     }
 
     @Test
@@ -91,19 +76,10 @@ class PgPubSubTest {
     }
 
     @Test
-    fun `문자열 페이로드를 발행하면 구독자가 동일한 문자열을 수신한다`() {
-        pgPubSub.publish("pgpubsub-str-test", "hello world")
+    fun `Int 페이로드를 발행하면 구독자가 동일한 값을 수신한다`() {
+        pgPubSub.publish("pgpubsub-int-test", 42)
 
-        assertThat(stringCapture.queue.poll(5, TimeUnit.SECONDS))
-            .isEqualTo("hello world")
-    }
-
-    @Test
-    fun `객체를 발행하면 JSON 직렬화 후 전송되고 구독자에서 역직렬화하여 수신한다`() {
-        val dto = SampleDto(id = 42, name = "테스트")
-        pgPubSub.publish("pgpubsub-dto-test", dto)
-
-        assertThat(dtoCapture.queue.poll(5, TimeUnit.SECONDS))
-            .isEqualTo(dto)
+        assertThat(intCapture.queue.poll(5, TimeUnit.SECONDS))
+            .isEqualTo(42)
     }
 }

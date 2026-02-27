@@ -8,6 +8,11 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
 interface StompMessageRepository : JpaRepository<StompMessage, Int> {
+    @Query("SELECT MAX(m.id) FROM StompMessage m")
+    fun findMaxId(): Int?
+
+    fun findAllByIdGreaterThanOrderByIdAsc(id: Int): List<StompMessage>
+
     @Modifying
     @Transactional
     @Query("DELETE FROM StompMessage m WHERE m.createdAt < :cutoff")

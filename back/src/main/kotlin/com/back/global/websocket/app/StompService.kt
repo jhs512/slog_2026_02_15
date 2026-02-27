@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionSynchronization
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import tools.jackson.databind.ObjectMapper
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * 멀티 인스턴스 환경에서 STOMP 브로드캐스트를 담당한다.
@@ -25,6 +26,23 @@ class StompService(
     private val objectMapper: ObjectMapper,
     private val stompMessageRepository: StompMessageRepository,
 ) {
+    companion object {
+        private const val CHANNEL = "stomp-multicast"
+    }
+
+    private val lastProcessedId = AtomicInteger(stompMessageRepository.findMaxId() ?: 0)
+
+    init {
+        pgPubSub.addOnConnectListener { replayMissed() }
+    }
+
+    private fun replayMissed() {
+        stompMessageRepository.findAllByIdGreaterThanOrderByIdAsc(lastProcessedId.get()).forEach { msg ->
+            messagingTemplate.convertAndSend(msg.destination, objectMapper.readTree(msg.payload))
+            lastProcessedId.updateAndGet { maxOf(it, msg.id) }
+        }
+    }
+
     fun send(destination: String, payload: Any) {
         val msg = stompMessageRepository.save(
             StompMessage(
@@ -39,22 +57,20 @@ class StompService(
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
                 override fun afterCommit() {
-                    pgPubSub.publish(CHANNEL, id.toString())
+                    pgPubSub.publish(CHANNEL, id)
                 }
             })
         } else {
-            pgPubSub.publish(CHANNEL, id.toString())
+            pgPubSub.publish(CHANNEL, id)
         }
     }
 
     @PgSubscribe(CHANNEL)
-    internal fun onBroadcast(idStr: String) {
-        val msg = stompMessageRepository.findById(idStr.toInt()).orElse(null) ?: return
+    internal fun onMulticast(id: Int) {
+        val msg = stompMessageRepository
+            .findById(id).orElse(null) ?: return
 
         messagingTemplate.convertAndSend(msg.destination, objectMapper.readTree(msg.payload))
-    }
-
-    companion object {
-        private const val CHANNEL = "stomp-multicast"
+        lastProcessedId.updateAndGet { maxOf(it, id) }
     }
 }

@@ -1,24 +1,25 @@
-package com.back.global.pgPubSub.config
+package com.back.global.pgPubSub.app
 
 import com.back.global.pgPubSub.annotation.PgSubscribe
 import com.zaxxer.hikari.HikariDataSource
-import tools.jackson.databind.ObjectMapper
 import org.postgresql.PGConnection
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
-import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
+import org.springframework.stereotype.Component
+import tools.jackson.databind.ObjectMapper
 import java.sql.DriverManager
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.sql.DataSource
 
-@Configuration
-class PgPubSubConfig(
+@Component
+class PgPubSubManager(
     private val dataSource: DataSource,
     private val applicationContext: ApplicationContext,
     private val objectMapper: ObjectMapper,
+    private val pgPubSub: PgPubSub,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -42,10 +43,13 @@ class PgPubSubConfig(
             val bean = runCatching { applicationContext.getBean(beanName) }.getOrNull() ?: return@forEach
             bean.javaClass.methods.forEach { method ->
                 val anno = method.getAnnotation(PgSubscribe::class.java) ?: return@forEach
+
                 require(method.parameterCount == 1) {
                     "@PgSubscribe 메서드는 파라미터가 정확히 하나여야 합니다: ${method.name}"
                 }
+
                 handlers.getOrPut(anno.channel) { mutableListOf() }.add(HandlerEntry(bean, method))
+
                 log.info("PgPubSub 구독 등록: channel='{}' → {}.{}()", anno.channel, bean.javaClass.simpleName, method.name)
             }
         }
@@ -58,22 +62,29 @@ class PgPubSubConfig(
                 // HikariCP 풀을 우회해 직접 커넥션 생성 (LISTEN 전용 커넥션은 풀 관리 대상 제외)
                 DriverManager.getConnection(hikari.jdbcUrl, hikari.username, hikari.password).use { conn ->
                     conn.autoCommit = true
+
                     val pgConn = conn.unwrap(PGConnection::class.java)
+
                     handlers.keys.forEach { channel ->
                         conn.createStatement().use { it.execute("LISTEN \"$channel\"") }
                         log.info("PgPubSub LISTEN 등록: channel='{}'", channel)
                     }
+
                     listenReady.complete(Unit)
+                    pgPubSub.fireOnConnect()
+
                     while (true) {
                         val notifications = pgConn.getNotifications(500) ?: continue
+
                         notifications.forEach { notification ->
-                            dispatch(notification.name, notification.parameter)
+                            dispatch(notification.name, notification.parameter.toInt())
                         }
                     }
                 }
-            } catch (e: InterruptedException) {
+            } catch (_: InterruptedException) {
                 Thread.currentThread().interrupt()
                 log.info("PgPubSub 리스너 종료")
+
                 return
             } catch (e: Exception) {
                 log.warn("PgPubSub 커넥션 오류, 3초 후 재연결: {}", e.message)
@@ -82,14 +93,11 @@ class PgPubSubConfig(
         }
     }
 
-    private fun dispatch(channel: String, payload: String) {
+    private fun dispatch(channel: String, payloadId: Int) {
         handlers[channel]?.forEach { entry ->
             Thread.ofVirtual().name("pg-pubsub-handler").start {
                 runCatching {
-                    val paramType = entry.method.parameterTypes[0]
-                    val arg: Any = if (paramType == String::class.java) payload
-                                   else objectMapper.readValue(payload, paramType)
-                    entry.method.invoke(entry.bean, arg)
+                    entry.method.invoke(entry.bean, payloadId)
                 }.onFailure { e ->
                     log.error("PgPubSub 핸들러 오류: channel='{}' method='{}'", channel, entry.method.name, e)
                 }

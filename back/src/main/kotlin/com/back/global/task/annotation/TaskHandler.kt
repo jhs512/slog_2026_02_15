@@ -1,4 +1,4 @@
-package com.back.global.task.domain
+package com.back.global.task.annotation
 
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)

@@ -320,8 +320,8 @@ export interface components {
         PostModifyRequest: {
             title: string;
             content: string;
-            published: boolean;
-            listed: boolean;
+            published?: boolean;
+            listed?: boolean;
         };
         PostDto: {
             /** Format: int32 */

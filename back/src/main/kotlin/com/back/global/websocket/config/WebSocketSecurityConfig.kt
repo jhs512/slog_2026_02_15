@@ -1,6 +1,6 @@
 package com.back.global.websocket.config
 
-import com.back.boundedContexts.post.config.PostWebSocketSecurityConfig
+import com.back.boundedContexts.post.config.PostWebSocketSecurityConfigurer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.messaging.Message
@@ -12,7 +12,7 @@ import org.springframework.security.messaging.access.intercept.MessageMatcherDel
 @Configuration
 @EnableWebSocketSecurity
 class WebSocketSecurityConfig(
-    private val postWebSocketSecurityConfig: PostWebSocketSecurityConfig,
+    private val postWebSocketSecurityConfigurer: PostWebSocketSecurityConfigurer,
 ) {
     // Spring Security 7이 csrfChannelInterceptor 빈이 없으면 null을 채널에 등록하는 버그 우회
     // HTTP CSRF가 비활성화되어 있으므로 WebSocket CSRF도 no-op으로 처리
@@ -23,7 +23,7 @@ class WebSocketSecurityConfig(
     fun messageAuthorizationManager(
         messages: MessageMatcherDelegatingAuthorizationManager.Builder,
     ): AuthorizationManager<Message<*>> {
-        postWebSocketSecurityConfig.configure(messages)
+        postWebSocketSecurityConfigurer.configure(messages)
         messages.anyMessage().permitAll()
         return messages.build()
     }

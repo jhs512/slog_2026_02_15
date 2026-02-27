@@ -1,4 +1,4 @@
-package com.back.global.app.app
+package com.back.global.app.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component

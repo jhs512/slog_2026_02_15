@@ -1,4 +1,4 @@
-package com.back.global.web.util
+package com.back.global.web.app
 
 import com.back.boundedContexts.member.app.shared.ActorFacade
 import com.back.boundedContexts.member.domain.shared.Member

@@ -1,4 +1,4 @@
-package com.back.global.pGroonga.annotation
+    package com.back.global.pGroonga.annotation
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)

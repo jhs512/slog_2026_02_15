@@ -7,7 +7,7 @@ import com.back.boundedContexts.post.domain.postExtensions.*
 import com.back.boundedContexts.post.dto.PostDto
 import com.back.boundedContexts.post.dto.PostWithContentDto
 import com.back.global.dto.RsData
-import com.back.global.web.util.Rq
+import com.back.global.web.app.Rq
 import com.back.standard.dto.post.type1.PostSearchSortType1
 import com.back.standard.extensions.getOrThrow
 import io.swagger.v3.oas.annotations.Operation
@@ -169,8 +169,11 @@ class ApiV1PostController(
 
 
     data class PostModifyRequest(
-        @field:Size(max = 100)
+        @field:NotBlank
+        @field:Size(min = 2, max = 100)
         val title: String,
+        @field:NotBlank
+        @field:Size(min = 2)
         val content: String,
         val published: Boolean? = null,
         val listed: Boolean? = null,

@@ -4,7 +4,7 @@ import com.back.boundedContexts.member.subContexts.memberActionLog.app.MemberAct
 import com.back.boundedContexts.member.subContexts.memberActionLog.dto.MemberCreateActionLogPayload
 import com.back.boundedContexts.post.event.*
 import com.back.global.task.app.TaskFacade
-import com.back.global.task.domain.TaskHandler
+import com.back.global.task.annotation.TaskHandler
 import com.back.standard.dto.EventPayload
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionPhase

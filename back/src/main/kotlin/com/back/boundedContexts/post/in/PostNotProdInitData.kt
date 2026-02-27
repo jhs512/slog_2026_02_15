@@ -2,7 +2,7 @@ package com.back.boundedContexts.post.`in`
 
 import com.back.boundedContexts.member.app.MemberFacade
 import com.back.boundedContexts.post.app.PostFacade
-import com.back.global.app.app.CustomConfigProperties
+import com.back.global.app.config.CustomConfigProperties
 import com.back.standard.extensions.getOrThrow
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.ApplicationRunner

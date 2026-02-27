@@ -1,15 +1,12 @@
 package com.back.global.app.app
 
 import com.back.standard.util.Ut
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import org.springframework.stereotype.Component
 import org.springframework.core.env.Environment
 import org.springframework.core.io.ClassPathResource
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.security.crypto.password.PasswordEncoder
 import tools.jackson.databind.ObjectMapper
 
-@Configuration
+@Component
 class AppFacade(
     environment: Environment,
     objectMapper: ObjectMapper,
@@ -19,13 +16,8 @@ class AppFacade(
         Ut.JSON.objectMapper = objectMapper
     }
 
-    @Bean
-    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
-
     companion object {
         private lateinit var environment: Environment
-        private var resourcesSampleDirPath: String? = null
-
         val isDev: Boolean by lazy { environment.matchesProfiles("dev") }
         val isTest: Boolean by lazy { environment.matchesProfiles("test") }
         val isProd: Boolean by lazy { environment.matchesProfiles("prod") }
@@ -39,18 +31,10 @@ class AppFacade(
 
         fun getTempDirPath(): String = System.getProperty("java.io.tmpdir")
 
-        fun getResourcesSampleDirPath(): String {
-            if (resourcesSampleDirPath == null) {
-                val resource = ClassPathResource("sample")
-
-                resourcesSampleDirPath = if (resource.exists()) {
-                    resource.file.absolutePath
-                } else {
-                    "src/main/resources/sample"
-                }
-            }
-
-            return resourcesSampleDirPath!!
+        val resourcesSampleDirPath: String by lazy {
+            val resource = ClassPathResource("sample")
+            if (resource.exists()) resource.file.absolutePath
+            else "src/main/resources/sample"
         }
     }
 }

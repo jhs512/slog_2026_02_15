@@ -2,6 +2,7 @@ package com.back.global.websocket.config
 
 import com.back.global.app.app.AppFacade
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
 import org.springframework.messaging.simp.config.MessageBrokerRegistry
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry
@@ -9,8 +10,8 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 @Configuration
 @EnableWebSocketMessageBroker
+@DependsOn("appFacade")
 class WebSocketConfig : WebSocketMessageBrokerConfigurer {
-
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
         // 클라이언트가 구독할 prefix
         registry.enableSimpleBroker("/topic")

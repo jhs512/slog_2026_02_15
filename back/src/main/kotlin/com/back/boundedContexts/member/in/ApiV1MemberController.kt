@@ -3,7 +3,7 @@ package com.back.boundedContexts.member.`in`
 import com.back.boundedContexts.member.app.MemberFacade
 import com.back.boundedContexts.member.dto.MemberDto
 import com.back.global.dto.RsData
-import com.back.global.web.util.Rq
+import com.back.global.web.app.Rq
 import com.back.standard.extensions.getOrThrow
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement

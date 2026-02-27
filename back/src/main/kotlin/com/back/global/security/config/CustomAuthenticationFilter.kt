@@ -7,7 +7,7 @@ import com.back.global.app.app.AppFacade
 import com.back.global.dto.RsData
 import com.back.global.exception.app.BusinessException
 import com.back.global.security.domain.SecurityUser
-import com.back.global.web.util.Rq
+import com.back.global.web.app.Rq
 import com.back.standard.util.Ut
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -92,7 +92,7 @@ class CustomAuthenticationFilter(
         return if (headerAuthorization.isNotBlank()) {
             if (!headerAuthorization.startsWith("Bearer "))
                 throw BusinessException("401-2", "${HttpHeaders.AUTHORIZATION} 헤더가 Bearer 형식이 아닙니다.")
-            val bits = headerAuthorization.split(" ", ignoreCase = false, limit = 3)
+            val bits = headerAuthorization.split(" ", limit = 3)
             bits.getOrNull(1).orEmpty() to bits.getOrNull(2).orEmpty()
         } else {
             rq.getCookieValue("apiKey", "") to rq.getCookieValue("accessToken", "")

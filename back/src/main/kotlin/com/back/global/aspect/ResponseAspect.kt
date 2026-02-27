@@ -1,4 +1,4 @@
-package com.back.global.aspect.config
+package com.back.global.aspect
 
 import com.back.global.dto.RsData
 import jakarta.servlet.http.HttpServletResponse

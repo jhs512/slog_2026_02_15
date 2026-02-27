@@ -1,8 +1,8 @@
 package com.back.global.security.config
 
-import com.back.boundedContexts.member.config.MemberSecurityConfig
-import com.back.boundedContexts.member.config.shared.AuthSecurityConfig
-import com.back.boundedContexts.post.config.PostSecurityConfig
+import com.back.boundedContexts.member.config.MemberSecurityConfigurer
+import com.back.boundedContexts.member.config.shared.AuthSecurityConfigurer
+import com.back.boundedContexts.post.config.PostSecurityConfigurer
 import com.back.global.app.app.AppFacade
 import com.back.global.dto.RsData
 import com.back.global.security.config.oauth2.CustomOAuth2AuthorizationRequestResolver
@@ -28,9 +28,9 @@ class SecurityConfig(
     private val customOAuth2LoginSuccessHandler: CustomOAuth2LoginSuccessHandler,
     private val customOAuth2AuthorizationRequestResolver: CustomOAuth2AuthorizationRequestResolver,
     private val customOAuth2UserService: CustomOAuth2UserService,
-    private val authSecurityConfig: AuthSecurityConfig,
-    private val postSecurityConfig: PostSecurityConfig,
-    private val memberSecurityConfig: MemberSecurityConfig,
+    private val authSecurityConfigurer: AuthSecurityConfigurer,
+    private val postSecurityConfigurer: PostSecurityConfigurer,
+    private val memberSecurityConfigurer: MemberSecurityConfigurer,
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
@@ -48,9 +48,9 @@ class SecurityConfig(
                 // ================================
                 // 모듈별 설정
                 // ================================
-                authSecurityConfig.configure(this)
-                postSecurityConfig.configure(this)
-                memberSecurityConfig.configure(this)
+                authSecurityConfigurer.configure(this)
+                postSecurityConfigurer.configure(this)
+                memberSecurityConfigurer.configure(this)
 
                 // ================================
                 // Admin

@@ -5,7 +5,7 @@ import com.back.boundedContexts.member.dto.MemberDto
 import com.back.boundedContexts.member.dto.MemberWithUsernameDto
 import com.back.global.dto.RsData
 import com.back.global.exception.app.BusinessException
-import com.back.global.web.util.Rq
+import com.back.global.web.app.Rq
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag

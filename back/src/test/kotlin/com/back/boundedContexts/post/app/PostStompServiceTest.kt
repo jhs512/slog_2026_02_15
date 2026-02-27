@@ -1,6 +1,6 @@
 package com.back.boundedContexts.post.app
 
-import com.back.global.pgPubSub.config.PgPubSubConfig
+import com.back.global.pgPubSub.app.PgPubSubManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -35,12 +35,12 @@ class PostStompServiceTest {
     private lateinit var postFacade: PostFacade
 
     @Autowired
-    private lateinit var pgPubSubConfig: PgPubSubConfig
+    private lateinit var pgPubSubManager: PgPubSubManager
 
     // PG LISTEN 루프가 준비되기 전에 publish 하면 알림이 유실됨
     @BeforeEach
     fun waitForListener() {
-        pgPubSubConfig.listenReady.get(5, TimeUnit.SECONDS)
+        pgPubSubManager.listenReady.get(5, TimeUnit.SECONDS)
     }
 
     @Test

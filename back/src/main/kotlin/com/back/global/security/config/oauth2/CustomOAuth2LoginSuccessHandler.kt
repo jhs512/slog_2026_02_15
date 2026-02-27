@@ -1,8 +1,9 @@
 package com.back.global.security.config.oauth2
 
 import com.back.boundedContexts.member.app.shared.ActorFacade
+import com.back.global.exception.app.BusinessException
 import com.back.global.security.config.oauth2.app.OAuth2State
-import com.back.global.web.util.Rq
+import com.back.global.web.app.Rq
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.core.Authentication
@@ -29,7 +30,9 @@ class CustomOAuth2LoginSuccessHandler(
         rq.setCookie("apiKey", actor.apiKey)
         rq.setCookie("accessToken", accessToken)
 
-        val state = OAuth2State.decode(request.getParameter("state"))
+        val stateParam = request.getParameter("state")
+            ?: throw BusinessException("400-1", "state 파라미터가 없습니다.")
+        val state = OAuth2State.decode(stateParam)
         rq.sendRedirect(state.redirectUrl)
     }
 }
