@@ -11,6 +11,7 @@ env:
   EC2_INSTANCE_TAG_NAME: slog-ec2-1 # 배포 대상 EC2 Name 태그
   DOCKER_NETWORK: common # 도커 네트워크
   back_DIR: back # Dockerfile 위치
+  NPM_BASE_URL: https://127.0.0.1:81 # NPMplus 관리 API 베이스 URL
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }} # 커밋이 짧은 시간안에 몰려도 최신 커밋에 대해서만 액션이 수행되도록
@@ -179,7 +180,7 @@ jobs:
             # ---------------------------------------------------------
             COOKIE_JAR="/tmp/npm_cookies.txt"
             LOGIN_CODE=$(curl -sk -o /dev/null -w "%{http_code}" -c "${COOKIE_JAR}" \
-              -X POST https://127.0.0.1:81/api/tokens \
+              -X POST ${NPM_BASE_URL}/api/tokens \
               -H "Content-Type: application/json" \
               -d "$(jq -nc --arg id "admin@npm.com" --arg pw "${PASSWORD_1:-}" '{identity:$id, secret:$pw}')")
 
@@ -188,12 +189,12 @@ jobs:
             [[ -n "${APP_1_DOMAIN:-}" ]] || { echo "APP_1_DOMAIN is empty"; exit 1; }
 
             # 대상 프록시 호스트 ID 조회(도메인 매칭), 없으면 자동 등록
-            PROXY_ID=$(curl -sk -b "${COOKIE_JAR}" -X GET "https://127.0.0.1:81/api/nginx/proxy-hosts" \
+            PROXY_ID=$(curl -sk -b "${COOKIE_JAR}" -X GET "${NPM_BASE_URL}/api/nginx/proxy-hosts" \
               | jq ".[] | select(.domain_names[]==\"${APP_1_DOMAIN}\") | .id")
 
             if [[ -z "${PROXY_ID}" || "${PROXY_ID}" == "null" ]]; then
               echo "📝 Proxy host not found for ${APP_1_DOMAIN}, creating..."
-              PROXY_ID=$(curl -sk -b "${COOKIE_JAR}" -X POST "https://127.0.0.1:81/api/nginx/proxy-hosts" \
+              PROXY_ID=$(curl -sk -b "${COOKIE_JAR}" -X POST "${NPM_BASE_URL}/api/nginx/proxy-hosts" \
                 -H "Content-Type: application/json" \
                 -d "$(jq -nc \
                   --arg domain "${APP_1_DOMAIN}" \
@@ -230,7 +231,7 @@ jobs:
             fi
 
             # 현재 프록시가 바라보는 업스트림(컨테이너명) 조회
-            CURRENT_HOST=$(curl -sk -b "${COOKIE_JAR}" -X GET "https://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
+            CURRENT_HOST=$(curl -sk -b "${COOKIE_JAR}" -X GET "${NPM_BASE_URL}/api/nginx/proxy-hosts/${PROXY_ID}" \
               | jq -r '.forward_host')
 
             echo "🔎 CURRENT_HOST: ${CURRENT_HOST:-none}"
@@ -299,7 +300,7 @@ jobs:
                 }
               ]
             }')
-            curl -sk -b "${COOKIE_JAR}" -X PUT "https://127.0.0.1:81/api/nginx/proxy-hosts/${PROXY_ID}" \
+            curl -sk -b "${COOKIE_JAR}" -X PUT "${NPM_BASE_URL}/api/nginx/proxy-hosts/${PROXY_ID}" \
               -H "Content-Type: application/json" \
               -d "${NEW_CFG}" >/dev/null
             echo "🔁 switch upstream → ${GREEN}:${PORT_IN}"

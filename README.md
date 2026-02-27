@@ -1,14 +1,22 @@
 # 중복 지식 위치 가이드
 
-같은 개념이 여러 곳에 흩어져 있는 것들. 하나를 바꾸면 나머지도 함께 바꿔야 한다.
+하나를 바꾸면 나머지도 함께 바꿔야 한다.
 
-| 관심사 | 백 | 프론트 | 인프라/CI |
-|---|---|---|---|
-| **API 타입** | `back/.../dto/`, Controller 응답 타입 | `front/src/global/backend/apiV1/schema.d.ts` (자동 생성) | — |
-| **인증 방식** | `global/security/config/CustomAuthenticationFilter.kt` | `front/src/global/auth/`, `front/src/global/backend/client.ts` | — |
-| **환경변수** | `back/src/main/resources/application.yaml`, `global/app/config/CustomConfigProperties.kt` | `front/.env.*` | `infra/variables.tf`, `infra/secrets.tf`, `.github/workflows/deploy.yml` |
-| **Docker 이미지** | `back/Dockerfile` | `front/Dockerfile` | `infra/main.tf`, `.github/workflows/deploy.yml` |
-| **STOMP 채널** | `global/websocket/`, `post/app/PostStompService.kt` | `front/src/global/websocket/stompClient.ts` | — |
+| 값 | back | front | infra | .github |
+|---|---|---|---|---|
+| `slog.gg` | `application.yaml` (cookieDomain) | `.env.production` ×2 | `variables.tf` | — |
+| `8080` (Spring Boot 포트) | `application.yaml`, `DevInitData.kt` | `.env`, `next.config.ts` | — | `deploy.yml` |
+| `3000` (Next.js 포트) | `application.yaml` (frontUrl) | `.env` | — | — |
+| `5432` (PostgreSQL 포트) | `application.yaml`, `docker-compose.yml` | — | `main.tf` | — |
+| `81` (NPMplus 포트) | — | — | — | `deploy.yml` (`NPM_BASE_URL`) |
+| `postgres` (DB 유저) | `application.yaml`, `docker-compose.yml` | — | `main.tf` | — |
+| `slog_dev` / `slog_test` / `slog_prod` | `application.yaml`, `docker-compose.yml`, `Dockerfile` | — | — | — |
+| `jangka512/pgj:latest` | `Dockerfile`, `docker-compose.yml` | — | `main.tf` | — |
+| `slog-ec2-1` | — | — | `main.tf` | `deploy.yml` |
+| `slog-1` (GHCR 리포) | — | — | — | `deploy.yml` |
+| `slog_1_1` / `slog_1_2` (Blue/Green 슬롯) | — | — | — | `deploy.yml` |
+| `admin@npm.com` (NPMplus 초기 계정) | — | — | `main.tf` | `deploy.yml` |
+| `lldj123414` ⚠️ (DB 비밀번호) | `application.yaml`, `Dockerfile`, `docker-compose.yml` | — | — | — |
 
 ---
 
