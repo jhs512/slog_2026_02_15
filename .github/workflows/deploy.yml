@@ -269,6 +269,8 @@ jobs:
             docker run -d --name "${GREEN}" \
               --restart unless-stopped \
               --network "${NET}" \
+              --memory=450m \
+              --memory-swap=450m \
               -e TZ=Asia/Seoul \
               -v /tmp/.env:/app/.env:ro \
               "${IMAGE}"
