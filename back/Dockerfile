@@ -1,41 +1,37 @@
 # 빌드 스테이지: jangka512/pgj 기반 (PGroonga + PostGIS + pgvector 포함)
 FROM jangka512/pgj:latest AS builder
 
-# JDK 24 + Gradle 설치 (toolchain languageVersion=24에 맞춤)
+# JDK 24 + Redis 설치 (Gradle은 gradlew 사용)
 RUN apt-get update \
- && apt-get install -y --no-install-recommends curl unzip redis-server \
+ && apt-get install -y --no-install-recommends curl redis-server \
  && curl -sL https://download.java.net/java/GA/jdk24/1f9ff9062db4449d8ca828c504ffae90/36/GPL/openjdk-24_linux-x64_bin.tar.gz | tar xz -C /opt \
  && ln -s /opt/jdk-24 /opt/java \
- && curl -sL https://services.gradle.org/distributions/gradle-9.3.0-bin.zip -o /tmp/gradle.zip \
- && unzip -q /tmp/gradle.zip -d /opt \
- && ln -s /opt/gradle-9.3.0 /opt/gradle \
- && rm /tmp/gradle.zip \
- && apt-get purge -y unzip && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/*
 
 ENV JAVA_HOME=/opt/java
-ENV GRADLE_HOME=/opt/gradle
-ENV PATH="${JAVA_HOME}/bin:${GRADLE_HOME}/bin:${PATH}"
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 WORKDIR /app
 
-COPY build.gradle.kts .
-COPY settings.gradle.kts .
-
-RUN gradle dependencies --no-daemon
+# 의존성 캐시 레이어 (소스 변경 시에도 캐시 유지)
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle.kts settings.gradle.kts .
+RUN chmod +x gradlew && ./gradlew dependencies --no-daemon
 
 COPY .env.test .
 COPY src src
 
 # PG 초기화 → 시작 → 테스트 DB 생성 → 빌드(테스트 포함) → PG 종료
-ENV PGDATA=/var/lib/postgresql/data
 RUN set -e \
+ && PGDATA=/var/lib/postgresql/data \
  && mkdir -p "$PGDATA" && chown postgres:postgres "$PGDATA" \
  && su postgres -c "initdb -D $PGDATA --auth=trust" \
  && su postgres -c "pg_ctl -D $PGDATA start -o '-c listen_addresses=localhost' -w" \
  && su postgres -c "psql -c \"ALTER USER postgres PASSWORD 'lldj123414';\"" \
  && su postgres -c "psql -c \"CREATE DATABASE slog_test;\"" \
  && redis-server --daemonize yes --requirepass lldj123414 \
- && gradle build --no-daemon \
+ && ./gradlew build --no-daemon \
  && su postgres -c "pg_ctl -D $PGDATA stop -w"
 
 # 실행 스테이지
