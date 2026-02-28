@@ -359,6 +359,7 @@ jobs:
                 | grep -F "ghcr.io/${OWNER_LC}/${IMAGE_REPOSITORY}:" \
                 | grep -v -F ":${IMAGE_TAG}" \
                 | grep -v -F ":latest" \
+                | grep -v -F ":<none>" \
                 | xargs -r docker rmi
             } || true
 
