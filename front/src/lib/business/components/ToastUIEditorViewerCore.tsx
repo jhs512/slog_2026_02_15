@@ -383,6 +383,21 @@ const ToastUIEditorViewerCore = forwardRef<any, ToastUIEditorViewerCoreProps>(
       return () => clearTimeout(timer);
     }, [processedContent]);
 
+    // ssr:false 로 로드되는 Viewer는 URL 해시 진입 시점에 DOM이 없어서
+    // 브라우저 기본 해시 스크롤이 동작하지 않음 → viewer 렌더 후 수동 스크롤
+    useEffect(() => {
+      if (typeof window === "undefined") return;
+      const hash = window.location.hash;
+      if (!hash) return;
+
+      const id = decodeURIComponent(hash.slice(1));
+      const timer = setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView();
+      }, 100);
+      return () => clearTimeout(timer);
+    }, [processedContent]);
+
     return (
       <Viewer
         theme={props.theme}

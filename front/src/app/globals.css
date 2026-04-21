@@ -133,6 +133,11 @@ body {
   }
 }
 
+/* sticky header(h-[45px]) 높이 + 여유 — 해시 앵커 스크롤 시 헤더에 가려지지 않도록 */
+html {
+  scroll-padding-top: 60px;
+}
+
 /* Custom 1 : sonner 에 폰트 지정 및 액션 버튼 스타일 */
 [data-sonner-toaster] {
   font-family: var(--font-sans) !important;
