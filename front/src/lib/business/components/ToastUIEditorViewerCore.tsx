@@ -392,7 +392,8 @@ const ToastUIEditorViewerCore = forwardRef<any, ToastUIEditorViewerCoreProps>(
 
       const id = decodeURIComponent(hash.slice(1));
       const timer = setTimeout(() => {
-        const el = document.getElementById(id);
+        const el =
+          document.getElementById(id) ?? document.getElementById(id + "강");
         if (el) el.scrollIntoView();
       }, 100);
       return () => clearTimeout(timer);
