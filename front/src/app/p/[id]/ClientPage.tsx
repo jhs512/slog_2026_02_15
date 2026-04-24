@@ -4,6 +4,7 @@ import type { components } from "@/global/backend/apiV1/schema";
 
 import PostCommentWriteAndList from "./_components/PostCommentWriteAndList";
 import PostInfo from "./_components/PostInfo";
+import PostToc from "./_components/PostToc";
 import usePostClient from "./_hooks/usePostClient";
 import usePostComments from "./_hooks/usePostComments";
 
@@ -24,6 +25,8 @@ export default function ClientPage({
       <div className="mt-8 border-t dark:border-gray-700 pt-8">
         <PostCommentWriteAndList postCommentsState={postCommentsState} />
       </div>
+
+      <PostToc />
     </div>
   );
 }
