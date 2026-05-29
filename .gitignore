@@ -1,1 +1,6 @@
 .DS_Store
+
+# agent / claude local tooling
+.agents/
+.claude/
+skills-lock.json
