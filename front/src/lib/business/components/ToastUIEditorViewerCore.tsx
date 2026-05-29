@@ -11,7 +11,7 @@ import tableMergedCell from "@toast-ui/editor-plugin-table-merged-cell";
 import "@toast-ui/chart/dist/toastui-chart.css";
 import "@toast-ui/editor-plugin-table-merged-cell/dist/toastui-editor-plugin-table-merged-cell.css";
 
-import { forwardRef, useEffect, useMemo } from "react";
+import { forwardRef, useEffect, useMemo, useRef } from "react";
 
 import { Viewer } from "@toast-ui/react-editor";
 
@@ -384,9 +384,13 @@ const ToastUIEditorViewerCore = forwardRef<any, ToastUIEditorViewerCoreProps>(
     }, [processedContent]);
 
     // ssr:false 로 로드되는 Viewer는 URL 해시 진입 시점에 DOM이 없어서
-    // 브라우저 기본 해시 스크롤이 동작하지 않음 → viewer 렌더 후 수동 스크롤
+    // 브라우저 기본 해시 스크롤이 동작하지 않음 → viewer 렌더 후 수동 스크롤.
+    // 단, 실시간 업데이트로 processedContent가 바뀔 때마다 재스크롤되면 안 되므로
+    // 최초 진입 1회만 수행한다.
+    const hasScrolledToHashRef = useRef(false);
     useEffect(() => {
       if (typeof window === "undefined") return;
+      if (hasScrolledToHashRef.current) return;
       const hash = window.location.hash;
       if (!hash) return;
 
@@ -394,7 +398,10 @@ const ToastUIEditorViewerCore = forwardRef<any, ToastUIEditorViewerCoreProps>(
       const timer = setTimeout(() => {
         const el =
           document.getElementById(id) ?? document.getElementById(id + "강");
-        if (el) el.scrollIntoView();
+        if (el) {
+          el.scrollIntoView();
+          hasScrolledToHashRef.current = true;
+        }
       }, 100);
       return () => clearTimeout(timer);
     }, [processedContent]);
