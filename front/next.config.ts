@@ -3,6 +3,15 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  async redirects() {
+    return [
+      {
+        source: "/ken/:id",
+        destination: "/p/:id",
+        permanent: false,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
