@@ -1,6 +1,6 @@
 package com.back.boundedContexts.post.domain
 
-import com.back.boundedContexts.member.domain.shared.HasMember
+import com.back.boundedContexts.member.domain.shared.memberMixin.MemberAware
 import com.back.boundedContexts.member.domain.shared.Member.Companion.attrRepository
 import com.back.boundedContexts.member.domain.shared.MemberAttr
 
@@ -8,7 +8,7 @@ private const val POSTS_COUNT = "postsCount"
 private const val POST_COMMENTS_COUNT = "postCommentsCount"
 private const val DEFAULT_COUNT = "0"
 
-interface PostMember : HasMember {
+interface PostMember : MemberAware {
     // ================================
     // Attr 프로퍼티 (캐싱 포함)
     // ================================

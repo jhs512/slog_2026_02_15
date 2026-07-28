@@ -1,7 +1,6 @@
 package com.back.boundedContexts.member.`in`.shared
 
 import com.back.boundedContexts.member.app.shared.ActorFacade
-import com.back.boundedContexts.member.domain.shared.memberExtensions.isAdmin
 import com.back.standard.extensions.getOrThrow
 import jakarta.servlet.http.Cookie
 import org.assertj.core.api.Assertions.assertThat

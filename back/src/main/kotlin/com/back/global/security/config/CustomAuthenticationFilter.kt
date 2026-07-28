@@ -2,7 +2,6 @@ package com.back.global.security.config
 
 import com.back.boundedContexts.member.app.shared.ActorFacade
 import com.back.boundedContexts.member.domain.shared.Member
-import com.back.boundedContexts.member.domain.shared.memberExtensions.authorities
 import com.back.global.app.app.AppFacade
 import com.back.global.dto.RsData
 import com.back.global.exception.app.BusinessException

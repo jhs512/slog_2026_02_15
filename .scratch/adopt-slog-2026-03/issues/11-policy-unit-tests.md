@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] PostComment 권한 로직을 클래스 본문에서 정책 확장으로 분리 (이 리포의 확장 함수 방식, 믹스인 아님)
 - [ ] Post/PostComment 권한 매트릭스 순수 단위 테스트 (@Nested 구조, Spring 컨텍스트 없음)

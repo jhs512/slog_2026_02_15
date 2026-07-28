@@ -1,7 +1,6 @@
 package com.back.boundedContexts.member.dto
 
 import com.back.boundedContexts.member.domain.shared.Member
-import com.back.boundedContexts.member.domain.shared.memberExtensions.isAdmin
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.Instant

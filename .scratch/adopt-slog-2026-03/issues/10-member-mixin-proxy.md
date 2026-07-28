@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] MemberAware/MemberHasSecurity/MemberHasProfileImgUrl 인터페이스 도입, Member가 구현
 - [ ] MemberProxy가 profileImgUrl 등을 override

@@ -1,8 +1,12 @@
 package com.back.boundedContexts.post.`in`
 
 import com.back.boundedContexts.post.app.PostFacade
+import com.back.boundedContexts.post.domain.postExtensions.checkActorCanDelete
+import com.back.boundedContexts.post.domain.postExtensions.checkActorCanModify
 import com.back.boundedContexts.post.domain.postExtensions.checkActorCanRead
 import com.back.boundedContexts.post.domain.postExtensions.findCommentById
+import com.back.boundedContexts.post.domain.postExtensions.getCheckActorCanDeleteRs
+import com.back.boundedContexts.post.domain.postExtensions.getCheckActorCanModifyRs
 import com.back.boundedContexts.post.domain.postExtensions.getComments
 import com.back.boundedContexts.post.dto.PostCommentDto
 import com.back.global.dto.RsData

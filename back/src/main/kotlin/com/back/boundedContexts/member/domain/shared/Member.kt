@@ -1,8 +1,9 @@
 package com.back.boundedContexts.member.domain.shared
 
+import com.back.boundedContexts.member.domain.shared.memberMixin.MemberHasProfileImgUrl
+import com.back.boundedContexts.member.domain.shared.memberMixin.MemberHasSecurity
 import com.back.boundedContexts.member.out.shared.MemberAttrRepository
 import com.back.boundedContexts.post.domain.PostMember
-import com.back.global.app.app.AppFacade
 import com.back.global.jpa.domain.AfterDDL
 import com.back.global.jpa.domain.BaseTime
 import com.back.global.pGroonga.annotation.PGroongaIndex
@@ -12,8 +13,6 @@ import jakarta.persistence.SequenceGenerator
 import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.annotations.NaturalId
 import java.util.*
-
-private const val PROFILE_IMG_URL = "profileImgUrl"
 
 @Entity
 @DynamicUpdate
@@ -40,7 +39,7 @@ class Member(
     var nickname: String,
     @field:Column(unique = true)
     var apiKey: String,
-) : BaseTime(id), PostMember {
+) : BaseTime(id), PostMember, MemberHasSecurity, MemberHasProfileImgUrl {
 
     // ================================
     // Companion Object
@@ -78,36 +77,15 @@ class Member(
     )
 
     // ================================
-    // 인터페이스(PostMember 등) 구현을 위한 속성
+    // 인터페이스(PostMember, memberMixin 등) 구현을 위한 속성
     // ================================
     override val member: Member get() = this
 
-    // ================================
-    // 가상 속성 (Profile)
-    // ================================
     override val name: String
         get() = nickname
 
-    private val profileImgUrlAttr: MemberAttr
-        get() = getOrPutAttr(PROFILE_IMG_URL) {
-            attrRepository.findBySubjectAndName(this, PROFILE_IMG_URL)
-                ?: MemberAttr(this, PROFILE_IMG_URL, "")
-        }
-
-    var profileImgUrl: String
-        get() = profileImgUrlAttr.value
-        set(value) {
-            profileImgUrlAttr.value = value
-            attrRepository.save(profileImgUrlAttr)
-        }
-
-    val profileImgUrlOrDefault: String
-        get() = profileImgUrl
-            .takeIf { it.isNotBlank() }
-            ?: "https://placehold.co/600x600?text=U_U"
-
-    val redirectToProfileImgUrlOrDefault: String
-        get() = "${AppFacade.siteBackUrl}/member/api/v1/members/${id}/redirectToProfileImg"
+    val isAdmin: Boolean
+        get() = username in setOf("system", "admin")
 
     // ================================
     // Member 전용 메서드
