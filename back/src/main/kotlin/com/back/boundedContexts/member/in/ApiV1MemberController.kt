@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Positive
+import org.springframework.validation.annotation.Validated
 import jakarta.validation.constraints.Size
 import org.springframework.http.CacheControl
 import org.springframework.http.HttpStatus
@@ -20,6 +22,7 @@ import java.net.URI
 import java.util.concurrent.TimeUnit
 
 @RestController
+@Validated
 @RequestMapping("/member/api/v1/members")
 @Tag(name = "ApiV1ActorController", description = "API 회원 컨트롤러")
 @SecurityRequirement(name = "bearerAuth")
@@ -35,7 +38,7 @@ class ApiV1MemberController(
     @ResponseStatus(HttpStatus.FOUND)
     @Transactional(readOnly = true)
     @Operation(summary = "프로필 이미지 리다이렉트(브라우저 캐시 20분)")
-    fun redirectToProfileImg(@PathVariable id: Int): ResponseEntity<Void> {
+    fun redirectToProfileImg(@PathVariable @Positive id: Int): ResponseEntity<Void> {
         val member = memberFacade.findById(id).getOrThrow()
 
         val cacheControl = CacheControl

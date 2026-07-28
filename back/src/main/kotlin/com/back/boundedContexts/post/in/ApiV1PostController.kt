@@ -15,6 +15,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Positive
+import org.springframework.validation.annotation.Validated
 import jakarta.validation.constraints.Size
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.*
 import java.time.Instant
 
 @RestController
+@Validated
 @RequestMapping("/post/api/v1/posts")
 @Tag(name = "ApiV1PostController", description = "API 글 컨트롤러")
 @SecurityRequirement(name = "bearerAuth")
@@ -81,7 +84,7 @@ class ApiV1PostController(
     @Transactional(readOnly = true)
     @Operation(summary = "단건 조회")
     fun getItem(
-        @PathVariable id: Int,
+        @PathVariable @Positive id: Int,
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         lastModifiedAt: Instant?
@@ -106,7 +109,7 @@ class ApiV1PostController(
     @Transactional
     @Operation(summary = "조회수 증가", description = "클라이언트에서 호출. 중복 체크는 클라이언트 로컬 스토리지에서 처리")
     fun incrementHit(
-        @PathVariable id: Int
+        @PathVariable @Positive id: Int
     ): RsData<PostHitResBody> {
         val post = postFacade.findById(id).getOrThrow()
 
@@ -121,7 +124,7 @@ class ApiV1PostController(
     @Transactional
     @Operation(summary = "삭제")
     fun delete(
-        @PathVariable id: Int
+        @PathVariable @Positive id: Int
     ): RsData<Void> {
         val post = postFacade.findById(id).getOrThrow()
 
@@ -184,7 +187,7 @@ class ApiV1PostController(
     @Transactional
     @Operation(summary = "수정")
     fun modify(
-        @PathVariable id: Int,
+        @PathVariable @Positive id: Int,
         @Valid @RequestBody reqBody: PostModifyRequest
     ): RsData<PostDto> {
         val post = postFacade.findById(id).getOrThrow()
@@ -255,7 +258,7 @@ class ApiV1PostController(
     @Transactional
     @Operation(summary = "좋아요 토글")
     fun toggleLike(
-        @PathVariable id: Int
+        @PathVariable @Positive id: Int
     ): RsData<PostLikeToggleResBody> {
         val post = postFacade.findById(id).getOrThrow()
 

@@ -19,14 +19,19 @@ abstract class BaseEntity(
     override fun equals(other: Any?): Boolean {
         if (other === this) return true
         if (other !is BaseEntity) return false
-        // 프록시와 실체를 동일 취급, 미영속(id=0) 엔티티는 동등성 비교 불가
-        if (Hibernate.getClass(this) != Hibernate.getClass(other)) return false
+
+        // Hibernate 프록시와 실체, 그리고 MemberProxy 같은 상속 래퍼를 동일 취급한다
+        val thisClass = Hibernate.getClass(this)
+        val otherClass = Hibernate.getClass(other)
+        if (!thisClass.isAssignableFrom(otherClass) && !otherClass.isAssignableFrom(thisClass)) return false
+
+        // 미영속(id=0) 엔티티는 동등성 비교 불가
         if (id == 0 || other.id == 0) return false
 
         return id == other.id
     }
 
     override fun hashCode(): Int =
-        if (id != 0) 31 * Hibernate.getClass(this).hashCode() + id.hashCode()
+        if (id != 0) id.hashCode()
         else super.hashCode()
 }

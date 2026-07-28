@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] 컨트롤러 `@Validated` + 경로 변수 `@Positive` — 음수/0 id에 400
 - [ ] 생성 엔드포인트 `@ResponseStatus(CREATED)` — 201 반환

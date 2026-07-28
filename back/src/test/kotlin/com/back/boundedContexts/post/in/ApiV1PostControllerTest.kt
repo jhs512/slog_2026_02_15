@@ -279,6 +279,19 @@ class ApiV1PostControllerTest {
     @Nested
     inner class GetItem {
         @Test
+        @WithUserDetails("user1")
+        fun `실패 - 음수 id는 400`() {
+            val resultActions = mvc
+                .perform(
+                    get("/post/api/v1/posts/-1")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(status().isBadRequest)
+        }
+
+        @Test
         fun `성공 - 공개 글`() {
             val id = 1
 

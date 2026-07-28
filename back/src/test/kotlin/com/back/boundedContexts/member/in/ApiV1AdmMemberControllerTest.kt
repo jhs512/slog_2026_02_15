@@ -53,20 +53,15 @@ class ApiV1AdmMemberControllerTest {
 
         @Test
         @WithUserDetails("admin")
-        fun `성공 - 페이지와 페이지 크기 경계 보정 조회`() {
+        fun `실패 - 페이지와 페이지 크기가 범위를 벗어나면 400`() {
             val resultActions = mvc
                 .perform(
                     get("/member/api/v1/adm/members?page=0&pageSize=31")
                 )
                 .andDo(print())
 
-            val members = memberFacade.findPaged(1, 30).content
-
             resultActions
-                .andExpect(handler().handlerType(ApiV1AdmMemberController::class.java))
-                .andExpect(handler().methodName("getItems"))
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.content.length()").value(members.size))
+                .andExpect(status().isBadRequest)
         }
 
         @Test

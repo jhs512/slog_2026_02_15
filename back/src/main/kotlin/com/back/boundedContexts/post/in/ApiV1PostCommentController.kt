@@ -13,11 +13,14 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Positive
+import org.springframework.validation.annotation.Validated
 import jakarta.validation.constraints.Size
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 
 @RestController
+@Validated
 @RequestMapping("/post/api/v1/posts/{postId}/comments")
 @Tag(name = "ApiV1PostCommentController", description = "API 댓글 컨트롤러")
 @SecurityRequirement(name = "bearerAuth")
@@ -40,7 +43,7 @@ class ApiV1PostCommentController(
     @Transactional(readOnly = true)
     @Operation(summary = "다건 조회")
     fun getItems(
-        @PathVariable postId: Int
+        @PathVariable @Positive postId: Int
     ): List<PostCommentDto> {
         val post = postFacade.findById(postId).getOrThrow()
         post.checkActorCanRead(rq.actorOrNull)
@@ -54,8 +57,8 @@ class ApiV1PostCommentController(
     @Transactional(readOnly = true)
     @Operation(summary = "단건 조회")
     fun getItem(
-        @PathVariable postId: Int,
-        @PathVariable id: Int
+        @PathVariable @Positive postId: Int,
+        @PathVariable @Positive id: Int
     ): PostCommentDto {
         val post = postFacade.findById(postId).getOrThrow()
         post.checkActorCanRead(rq.actorOrNull)
@@ -69,8 +72,8 @@ class ApiV1PostCommentController(
     @Transactional
     @Operation(summary = "삭제")
     fun delete(
-        @PathVariable postId: Int,
-        @PathVariable id: Int
+        @PathVariable @Positive postId: Int,
+        @PathVariable @Positive id: Int
     ): RsData<Void> {
         val post = postFacade.findById(postId).getOrThrow()
 
@@ -97,8 +100,8 @@ class ApiV1PostCommentController(
     @Transactional
     @Operation(summary = "수정")
     fun modify(
-        @PathVariable postId: Int,
-        @PathVariable id: Int,
+        @PathVariable @Positive postId: Int,
+        @PathVariable @Positive id: Int,
         @Valid @RequestBody reqBody: PostCommentModifyRequest
     ): RsData<Void> {
         val post = postFacade.findById(postId).getOrThrow()
@@ -126,7 +129,7 @@ class ApiV1PostCommentController(
     @Transactional
     @Operation(summary = "작성")
     fun write(
-        @PathVariable postId: Int,
+        @PathVariable @Positive postId: Int,
         @Valid @RequestBody reqBody: PostCommentWriteRequest
     ): RsData<PostCommentDto> {
         val post = postFacade.findById(postId).getOrThrow()
