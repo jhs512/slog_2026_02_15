@@ -19,6 +19,8 @@ class TaskHandlerConfigurer(
 
     override fun onApplicationEvent(event: ContextRefreshedEvent) {
         applicationContext.beanDefinitionNames.forEach { beanName ->
+            // prototype/request 스코프 빈은 기동 시점 getBean이 예외를 던질 수 있다
+            if (!applicationContext.isSingleton(beanName)) return@forEach
             val bean = applicationContext.getBean(beanName)
 
             bean::class.java.methods

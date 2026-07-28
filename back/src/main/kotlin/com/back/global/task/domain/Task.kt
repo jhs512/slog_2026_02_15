@@ -22,14 +22,14 @@ class Task(
     val aggregateType: String,
     val aggregateId: Int,
     val taskType: String,
-    @Column(columnDefinition = "TEXT")
+    @field:Column(columnDefinition = "TEXT")
     val payload: String,
-    @Enumerated(EnumType.STRING)
+    @field:Enumerated(EnumType.STRING)
     var status: TaskStatus = TaskStatus.PENDING,
     var retryCount: Int = 0,
     var maxRetries: Int = 10,
     var nextRetryAt: Instant = Instant.now(),
-    @Column(columnDefinition = "TEXT")
+    @field:Column(columnDefinition = "TEXT")
     var errorMessage: String? = null
 ) : BaseTime() {
 

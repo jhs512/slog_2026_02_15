@@ -9,9 +9,11 @@ import org.springframework.stereotype.Service
 class MemberApiClient(
     private val internalRestClient: InternalRestClient
 ) {
-    private val authHeaders = mapOf(
-        HttpHeaders.AUTHORIZATION to "Bearer ${AppFacade.systemMemberApiKey}"
-    )
+    // 빈 생성 시점의 AppFacade 초기화 순서 문제를 피하려고 지연 평가
+    private val authHeaders
+        get() = mapOf(
+            HttpHeaders.AUTHORIZATION to "Bearer ${AppFacade.systemMemberApiKey}"
+        )
 
     val randomSecureTip: String
         get() {

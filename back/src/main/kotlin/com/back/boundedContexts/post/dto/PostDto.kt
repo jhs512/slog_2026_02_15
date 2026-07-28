@@ -37,19 +37,5 @@ data class PostDto @JsonCreator constructor(
         post.hitCount,
     )
 
-    fun forEventLog() = PostDto(
-        id,
-        createdAt,
-        modifiedAt,
-        authorId,
-        authorName,
-        authorProfileImgUrl,
-        "",
-        published,
-        listed,
-        likesCount,
-        commentsCount,
-        hitCount,
-        actorHasLiked
-    )
+    fun forEventLog() = copy(title = "")
 }

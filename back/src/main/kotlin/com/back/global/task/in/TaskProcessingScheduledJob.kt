@@ -29,7 +29,7 @@ class TaskProcessingScheduledJob(
             pendingTasks.map { it.id }
         }
 
-        taskIds.forEach { taskId ->
+        taskIds?.forEach { taskId ->
             executor.submit { executeTask(taskId) }
         }
     }

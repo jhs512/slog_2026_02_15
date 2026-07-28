@@ -34,12 +34,13 @@ class MemberRepositoryImpl(
     ): Page<Member> {
         val builder = BooleanBuilder()
 
-        if (kw.isNotBlank()) builder.and(
+        val trimmedKw = kw.trim()
+        if (trimmedKw.isNotBlank()) builder.and(
             Expressions.booleanTemplate(
                 "function('pgroonga_member_match', {0}, {1}, {2}) = true",
                 member.username,
                 member.nickname,
-                Expressions.constant(kw),
+                Expressions.constant(trimmedKw),
             )
         )
 

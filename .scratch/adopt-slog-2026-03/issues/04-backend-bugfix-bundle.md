@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] BaseEntity equals/hashCode: Hibernate 프록시 동일 취급 + 미영속(id=0) 동등성 거부 + identity hashCode 폴백
 - [ ] TaskHandlerConfigurer가 싱글톤 빈만 스캔

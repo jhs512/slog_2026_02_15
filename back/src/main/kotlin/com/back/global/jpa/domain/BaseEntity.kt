@@ -1,6 +1,7 @@
 package com.back.global.jpa.domain
 
 import jakarta.persistence.*
+import org.hibernate.Hibernate
 
 @MappedSuperclass
 abstract class BaseEntity(
@@ -18,8 +19,14 @@ abstract class BaseEntity(
     override fun equals(other: Any?): Boolean {
         if (other === this) return true
         if (other !is BaseEntity) return false
+        // 프록시와 실체를 동일 취급, 미영속(id=0) 엔티티는 동등성 비교 불가
+        if (Hibernate.getClass(this) != Hibernate.getClass(other)) return false
+        if (id == 0 || other.id == 0) return false
+
         return id == other.id
     }
 
-    override fun hashCode(): Int = id.hashCode()
+    override fun hashCode(): Int =
+        if (id != 0) 31 * Hibernate.getClass(this).hashCode() + id.hashCode()
+        else super.hashCode()
 }

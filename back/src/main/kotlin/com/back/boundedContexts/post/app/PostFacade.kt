@@ -39,6 +39,7 @@ class PostFacade(
     private val postStompService: PostStompService,
     private val postSseService: PostSseService,
 ) {
+    @Transactional(readOnly = true)
     fun count(): Long = postRepository.count()
 
     @Transactional
@@ -67,6 +68,7 @@ class PostFacade(
     }
 
 
+    @Transactional(readOnly = true)
     fun findById(id: Int): Post? = postRepository.findById(id).getOrNull()
 
 
@@ -96,6 +98,7 @@ class PostFacade(
         )
     }
 
+    @Transactional(readOnly = true)
     fun findPagedByAuthor(
         author: Member,
         kw: String,
@@ -108,6 +111,7 @@ class PostFacade(
         PageRequest.of(page - 1, pageSize, sort.sortBy)
     )
 
+    @Transactional(readOnly = true)
     fun findTemp(author: Member) = postRepository.findFirstByAuthorAndTitleAndPublishedFalseOrderByIdAsc(author, "임시글")
 
     @Transactional
@@ -249,9 +253,11 @@ class PostFacade(
     }
 
 
+    @Transactional(readOnly = true)
     fun findLatest() = postRepository.findFirstByOrderByIdDesc()
 
 
+    @Transactional(readOnly = true)
     fun findPagedByKw(
         kw: String,
         sort: PostSearchSortType1,
@@ -263,6 +269,7 @@ class PostFacade(
             PageRequest.of(page - 1, pageSize, sort.sortBy)
         )
 
+    @Transactional(readOnly = true)
     fun findLikedPostIds(liker: Member?, posts: List<Post>): Set<Int> {
         if (liker == null || posts.isEmpty()) return emptySet()
 
