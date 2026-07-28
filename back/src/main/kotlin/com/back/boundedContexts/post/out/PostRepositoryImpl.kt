@@ -54,7 +54,7 @@ class PostRepositoryImpl(
 
     private fun buildKwPredicate(kw: String): BooleanExpression =
         Expressions.booleanTemplate(
-            "function('pgroonga_post_match', {0}, {1}, {2}) = true",
+            "function('pgroonga_match', {0}, {1}, {2}) = true",
             post.title,
             post.content,
             Expressions.constant(kw),

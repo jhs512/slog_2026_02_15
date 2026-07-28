@@ -119,7 +119,7 @@ class PostFacade(
         if (actor != null && actor.id == post.author.id) return false
 
         val previousHitCount = post.hitCount
-        post.incrementHitCount()
+        post.incrementHitCount(postAttrRepository)
 
         if (post.published &&
             previousHitCount < NEW_POST_ALERT_HIT_COUNT &&

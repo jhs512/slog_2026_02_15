@@ -13,6 +13,7 @@ import org.hibernate.annotations.DynamicUpdate
         UniqueConstraint(columnNames = ["liker_id", "post_id"])
     ]
 )
+@SequenceGenerator(name = "entity_seq_gen", sequenceName = "post_like_seq", allocationSize = 1)
 class PostLike(
     @field:ManyToOne(fetch = FetchType.LAZY)
     val liker: Member,

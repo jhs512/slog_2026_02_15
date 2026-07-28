@@ -5,6 +5,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.SequenceGenerator
 import org.hibernate.annotations.DynamicUpdate
 import java.time.Instant
 import java.util.*
@@ -16,6 +17,7 @@ enum class TaskStatus {
 
 @Entity
 @DynamicUpdate
+@SequenceGenerator(name = "entity_seq_gen", sequenceName = "task_seq", allocationSize = 1)
 class Task(
     @field:Column(unique = true)
     val uid: UUID,

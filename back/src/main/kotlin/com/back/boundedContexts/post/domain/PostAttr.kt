@@ -14,6 +14,7 @@ import org.hibernate.annotations.NaturalId
         UniqueConstraint(columnNames = ["subject_id", "name"])
     ]
 )
+@SequenceGenerator(name = "entity_seq_gen", sequenceName = "post_attr_seq", allocationSize = 1)
 class PostAttr(
     @field:NaturalId
     @field:ManyToOne(fetch = LAZY)

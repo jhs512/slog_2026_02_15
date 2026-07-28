@@ -3,12 +3,12 @@ package com.back.boundedContexts.member.domain.shared
 import com.back.boundedContexts.member.out.shared.MemberAttrRepository
 import com.back.boundedContexts.post.domain.PostMember
 import com.back.global.app.app.AppFacade
+import com.back.global.jpa.domain.AfterDDL
 import com.back.global.jpa.domain.BaseTime
 import com.back.global.pGroonga.annotation.PGroongaIndex
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Index
-import jakarta.persistence.Table
+import jakarta.persistence.SequenceGenerator
 import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.annotations.NaturalId
 import java.util.*
@@ -17,10 +17,20 @@ private const val PROFILE_IMG_URL = "profileImgUrl"
 
 @Entity
 @DynamicUpdate
-@Table(indexes = [
-    Index(name = "idx_member_created_at", columnList = "created_at"),
-])
+@AfterDDL(
+    """
+    CREATE INDEX IF NOT EXISTS member_idx_created_at_desc
+    ON member (created_at DESC)
+    """
+)
+@AfterDDL(
+    """
+    CREATE INDEX IF NOT EXISTS member_idx_modified_at_desc
+    ON member (modified_at DESC)
+    """
+)
 @PGroongaIndex(columns = ["username", "nickname"])
+@SequenceGenerator(name = "entity_seq_gen", sequenceName = "member_seq", allocationSize = 1)
 class Member(
     id: Int,
     @field:NaturalId

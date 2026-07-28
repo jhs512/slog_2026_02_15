@@ -6,10 +6,12 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.SequenceGenerator
 import org.hibernate.annotations.DynamicUpdate
 
 @Entity
 @DynamicUpdate
+@SequenceGenerator(name = "entity_seq_gen", sequenceName = "member_action_log_seq", allocationSize = 1)
 class MemberActionLog(
     val type: String,
     val primaryType: String,

@@ -13,6 +13,7 @@ import org.hibernate.annotations.NaturalId
         UniqueConstraint(columnNames = ["subject_id", "name"])
     ]
 )
+@SequenceGenerator(name = "entity_seq_gen", sequenceName = "member_attr_seq", allocationSize = 1)
 class MemberAttr(
     @field:NaturalId
     @field:ManyToOne(fetch = LAZY)

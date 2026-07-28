@@ -37,7 +37,7 @@ class MemberRepositoryImpl(
         val trimmedKw = kw.trim()
         if (trimmedKw.isNotBlank()) builder.and(
             Expressions.booleanTemplate(
-                "function('pgroonga_member_match', {0}, {1}, {2}) = true",
+                "function('pgroonga_match', {0}, {1}, {2}) = true",
                 member.username,
                 member.nickname,
                 Expressions.constant(trimmedKw),

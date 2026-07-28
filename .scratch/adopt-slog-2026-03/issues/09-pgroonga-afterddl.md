@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] 엔티티별 pgroonga 매치 함수들을 단일 가변 인자 함수로 통합, 기존 검색 쿼리 동작 동일
 - [ ] 기존 @PGroongaIndex 어노테이션 추상화는 유지

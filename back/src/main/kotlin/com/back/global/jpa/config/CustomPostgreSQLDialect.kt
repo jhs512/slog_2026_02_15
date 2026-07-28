@@ -37,13 +37,10 @@ open class CustomPostgreSQLDialect : PostgreSQLDialect() {
         val booleanType = functionContributions.typeConfiguration
             .basicTypeRegistry
             .resolve(Boolean::class.javaObjectType, SqlTypes.BOOLEAN) as BasicType<Boolean>
+        // 가변 인자 단일 함수 — 새 엔티티에 전문검색을 붙일 때 함수 추가 등록이 필요 없다
         functionContributions.functionRegistry.register(
-            "pgroonga_post_match",
-            PGroongaCompositeMatchFunction("pgroonga_post_match", booleanType)
-        )
-        functionContributions.functionRegistry.register(
-            "pgroonga_member_match",
-            PGroongaCompositeMatchFunction("pgroonga_member_match", booleanType)
+            "pgroonga_match",
+            PGroongaCompositeMatchFunction("pgroonga_match", booleanType)
         )
     }
 }

@@ -5,8 +5,11 @@ import org.hibernate.Hibernate
 
 @MappedSuperclass
 abstract class BaseEntity(
+    // JPA 3.2부터 제너레이터 이름은 정의된 클래스 로컬 스코프다.
+    // 각 엔티티 클래스에 @SequenceGenerator(name = "entity_seq_gen", sequenceName = "<엔티티>_seq", allocationSize = 1)를
+    // 선언하면 엔티티별 시퀀스가 잡힌다.
     @field:Id
-    @field:GeneratedValue(strategy = GenerationType.IDENTITY)
+    @field:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "entity_seq_gen")
     val id: Int = 0
 ) {
     @Transient

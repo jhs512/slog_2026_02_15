@@ -1,6 +1,7 @@
 package com.back.boundedContexts.post.domain
 
 import com.back.boundedContexts.member.domain.shared.Member
+import com.back.global.jpa.domain.AfterDDL
 import com.back.global.jpa.domain.BaseTime
 import com.back.global.pGroonga.annotation.PGroongaIndex
 import jakarta.persistence.*
@@ -8,15 +9,32 @@ import org.hibernate.annotations.DynamicUpdate
 
 @Entity
 @DynamicUpdate
-@Table(
-    indexes = [
-        Index(name = "idx_post_listed_created_at", columnList = "listed, created_at"),
-        Index(name = "idx_post_listed_modified_at", columnList = "listed, modified_at"),
-        Index(name = "idx_post_author_created_at", columnList = "author_id, created_at"),
-        Index(name = "idx_post_author_modified_at", columnList = "author_id, modified_at"),
-    ]
+@AfterDDL(
+    """
+    CREATE INDEX IF NOT EXISTS post_idx_listed_created_at_desc
+    ON post (listed, created_at DESC)
+    """
+)
+@AfterDDL(
+    """
+    CREATE INDEX IF NOT EXISTS post_idx_listed_modified_at_desc
+    ON post (listed, modified_at DESC)
+    """
+)
+@AfterDDL(
+    """
+    CREATE INDEX IF NOT EXISTS post_idx_author_created_at_desc
+    ON post (author_id, created_at DESC)
+    """
+)
+@AfterDDL(
+    """
+    CREATE INDEX IF NOT EXISTS post_idx_author_modified_at_desc
+    ON post (author_id, modified_at DESC)
+    """
 )
 @PGroongaIndex(columns = ["title", "content"])
+@SequenceGenerator(name = "entity_seq_gen", sequenceName = "post_seq", allocationSize = 1)
 class Post(
     @field:ManyToOne(fetch = FetchType.LAZY)
     val author: Member,
