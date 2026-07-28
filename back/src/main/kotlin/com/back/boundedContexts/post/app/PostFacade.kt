@@ -7,6 +7,8 @@ import com.back.boundedContexts.post.domain.PostComment
 import com.back.boundedContexts.post.domain.postExtensions.PostLikeToggleResult
 import com.back.boundedContexts.post.domain.postExtensions.addComment
 import com.back.boundedContexts.post.domain.postExtensions.deleteComment
+import com.back.boundedContexts.post.domain.postExtensions.hitCount
+import com.back.boundedContexts.post.domain.postExtensions.incrementHitCount
 import com.back.boundedContexts.post.domain.postExtensions.toggleLike
 import com.back.boundedContexts.post.dto.PostCommentDto
 import com.back.boundedContexts.post.dto.PostDto
@@ -24,6 +26,9 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
+// 조회수가 이 값을 최초 돌파하는 순간 posts-new 알림을 발행한다 (ADR-0002)
+private const val NEW_POST_ALERT_HIT_COUNT = 10
+
 @Service
 class PostFacade(
     private val postRepository: PostRepository,
@@ -32,6 +37,7 @@ class PostFacade(
     private val postCommentRepository: PostCommentRepository,
     private val eventPublisher: EventPublisher,
     private val postStompService: PostStompService,
+    private val postSseService: PostSseService,
 ) {
     fun count(): Long = postRepository.count()
 
@@ -103,6 +109,23 @@ class PostFacade(
     )
 
     fun findTemp(author: Member) = postRepository.findFirstByAuthorAndTitleAndPublishedFalseOrderByIdAsc(author, "임시글")
+
+    @Transactional
+    fun incrementHit(post: Post, actor: Member?): Boolean {
+        if (actor != null && actor.id == post.author.id) return false
+
+        val previousHitCount = post.hitCount
+        post.incrementHitCount()
+
+        if (post.published &&
+            previousHitCount < NEW_POST_ALERT_HIT_COUNT &&
+            post.hitCount >= NEW_POST_ALERT_HIT_COUNT
+        ) {
+            postSseService.notifyNewPost(post)
+        }
+
+        return true
+    }
 
     /**
      * 임시저장 글 조회 또는 생성

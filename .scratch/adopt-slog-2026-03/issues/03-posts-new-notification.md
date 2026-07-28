@@ -4,7 +4,7 @@
 
 **Blocked by:** 02 — SSE 인프라
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] 조회수 증가 로직이 파사드로 이동, 본인 조회는 미증가(응답 메시지 구분)
 - [ ] 조회수 10 최초 돌파 시에만 posts-new 채널로 글 요약(id, title, 작성자, 프로필 이미지, 작성일) 1회 발행

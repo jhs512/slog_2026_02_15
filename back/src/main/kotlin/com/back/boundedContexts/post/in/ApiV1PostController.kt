@@ -110,9 +110,10 @@ class ApiV1PostController(
     ): RsData<PostHitResBody> {
         val post = postFacade.findById(id).getOrThrow()
 
-        post.incrementHitCount()
+        val incremented = postFacade.incrementHit(post, rq.actorOrNull)
+        val msg = if (incremented) "조회수가 증가했습니다." else "본인 글은 조회수가 증가하지 않습니다."
 
-        return RsData("200-1", "조회수가 증가했습니다.", PostHitResBody(post.hitCount))
+        return RsData("200-1", msg, PostHitResBody(post.hitCount))
     }
 
 
