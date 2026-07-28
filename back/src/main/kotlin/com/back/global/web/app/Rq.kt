@@ -3,6 +3,7 @@ package com.back.global.web.app
 import com.back.boundedContexts.member.app.shared.ActorFacade
 import com.back.boundedContexts.member.domain.shared.Member
 import com.back.global.app.app.AppFacade
+import com.back.global.exception.app.BusinessException
 import com.back.global.security.domain.SecurityUser
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
@@ -21,7 +22,7 @@ class Rq(
             ?.let { actorFacade.memberOf(it) }
 
     val actor: Member
-        get() = actorOrNull ?: throw IllegalStateException("인증된 사용자가 없습니다.")
+        get() = actorOrNull ?: throw BusinessException("401-1", "로그인 후 이용해주세요.")
 
     fun getHeader(name: String, defaultValue: String): String =
         req.getHeader(name) ?: defaultValue
@@ -45,7 +46,8 @@ class Rq(
             isHttpOnly = true
             domain = cookieDomain()
             secure = true
-            setAttribute("SameSite", "Strict")
+            // ADR-0001: 실시간 연결(withCredentials)에 쿠키를 실기 위해 None. CSRF 방어는 CORS + JSON 본문 불변식이 담당.
+            setAttribute("SameSite", "None")
             maxAge = if (value.isNullOrBlank()) 0 else 60 * 60 * 24 * 365
         }
 

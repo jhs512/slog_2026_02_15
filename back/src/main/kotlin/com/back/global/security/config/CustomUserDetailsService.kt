@@ -20,7 +20,7 @@ class CustomUserDetailsService(
         return SecurityUser(
             member.id,
             member.username,
-            "",
+            member.password ?: "",
             member.nickname,
             member.authorities
         )

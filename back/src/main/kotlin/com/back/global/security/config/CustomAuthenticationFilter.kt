@@ -8,7 +8,6 @@ import com.back.global.dto.RsData
 import com.back.global.exception.app.BusinessException
 import com.back.global.security.domain.SecurityUser
 import com.back.global.web.app.Rq
-import com.back.standard.util.Ut
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -20,10 +19,12 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
+import tools.jackson.databind.ObjectMapper
 
 @Component
 class CustomAuthenticationFilter(
     private val actorFacade: ActorFacade,
+    private val objectMapper: ObjectMapper,
     private val rq: Rq,
 ) : OncePerRequestFilter() {
 
@@ -53,25 +54,25 @@ class CustomAuthenticationFilter(
         filterChain: FilterChain
     ) {
         try {
-            work(request, response, filterChain)
+            authenticateIfPossible()
         } catch (e: BusinessException) {
             val rsData: RsData<Void> = e.rsData
             response.contentType = "$APPLICATION_JSON_VALUE; charset=UTF-8"
             response.status = rsData.statusCode
-            response.writer.write(Ut.JSON.toString(rsData))
-        }
-    }
-
-    private fun work(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
-        val (apiKey, accessToken) = extractTokens()
-        if (apiKey.isBlank() && accessToken.isBlank()) {
-            filterChain.doFilter(request, response)
+            response.writer.write(objectMapper.writeValueAsString(rsData))
             return
         }
 
+        filterChain.doFilter(request, response)
+    }
+
+    private fun authenticateIfPossible() {
+        val (apiKey, accessToken) = extractTokens()
+
+        if (apiKey.isBlank() && accessToken.isBlank()) return
+
         if (apiKey == AppFacade.systemMemberApiKey && accessToken.isEmpty()) {
             authenticate(Member.SYSTEM)
-            filterChain.doFilter(request, response)
             return
         }
 
@@ -82,8 +83,6 @@ class CustomAuthenticationFilter(
         }
 
         authenticate(member)
-
-        filterChain.doFilter(request, response)
     }
 
     private fun extractTokens(): Pair<String, String> {

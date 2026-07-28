@@ -8,7 +8,6 @@ import com.back.global.dto.RsData
 import com.back.global.security.config.oauth2.CustomOAuth2AuthorizationRequestResolver
 import com.back.global.security.config.oauth2.CustomOAuth2LoginSuccessHandler
 import com.back.global.security.config.oauth2.CustomOAuth2UserService
-import com.back.standard.util.Ut
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -21,6 +20,7 @@ import org.springframework.security.web.access.AccessDeniedHandler
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import tools.jackson.databind.ObjectMapper
 
 @Configuration
 class SecurityConfig(
@@ -31,6 +31,7 @@ class SecurityConfig(
     private val authSecurityConfigurer: AuthSecurityConfigurer,
     private val postSecurityConfigurer: PostSecurityConfigurer,
     private val memberSecurityConfigurer: MemberSecurityConfigurer,
+    private val objectMapper: ObjectMapper,
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
@@ -96,7 +97,7 @@ class SecurityConfig(
                     response.contentType = "${APPLICATION_JSON_VALUE}; charset=UTF-8"
                     response.status = 401
                     response.writer.write(
-                        Ut.JSON.toString(
+                        objectMapper.writeValueAsString(
                             RsData<Void>("401-1", "로그인 후 이용해주세요.")
                         )
                     )
@@ -106,7 +107,7 @@ class SecurityConfig(
                     response.contentType = "${APPLICATION_JSON_VALUE}; charset=UTF-8"
                     response.status = 403
                     response.writer.write(
-                        Ut.JSON.toString(
+                        objectMapper.writeValueAsString(
                             RsData<Void>("403-1", "권한이 없습니다.")
                         )
                     )

@@ -100,6 +100,35 @@ class ApiV1AuthControllerTest {
         }
 
         @Test
+        fun `성공 - 로그인 쿠키는 SameSite=None과 Secure 속성으로 발급된다`() {
+            val resultActions = mvc
+                .perform(
+                    post("/member/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                            """
+                            {
+                                "username": "user1",
+                                "password": "1234"
+                            }
+                            """
+                        )
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(status().isOk)
+                .andExpect { result ->
+                    listOf("apiKey", "accessToken").forEach { name ->
+                        val cookie = result.response.getCookie(name).getOrThrow()
+                        assertThat(cookie.getAttribute("SameSite")).describedAs("$name SameSite").isEqualTo("None")
+                        assertThat(cookie.secure).describedAs("$name Secure").isTrue
+                        assertThat(cookie.isHttpOnly).describedAs("$name HttpOnly").isTrue
+                    }
+                }
+        }
+
+        @Test
         fun `실패 - 잘못된 비밀번호`() {
             val resultActions = mvc
                 .perform(

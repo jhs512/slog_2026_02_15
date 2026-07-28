@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] 로그인/토큰 재발급 응답의 Set-Cookie에 `SameSite=None; Secure` 속성이 있다 (MockMvc 검증)
 - [ ] 미인증 상태에서 Rq.actor 접근 시 401 코드의 비즈니스 예외 JSON 응답
