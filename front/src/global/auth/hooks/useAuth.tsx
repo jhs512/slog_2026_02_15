@@ -1,3 +1,5 @@
+import { useRouter } from "next/navigation";
+
 import { createContext, use, useEffect, useState } from "react";
 
 import client from "@/global/backend/client";
@@ -14,6 +16,7 @@ type LoginMember = {
 };
 
 export default function useAuth() {
+  const router = useRouter();
   const [loginMember, setLoginMember] = useState<LoginMember>(
     null as unknown as LoginMember,
   );
@@ -37,7 +40,8 @@ export default function useAuth() {
     setLoginMember(null as unknown as LoginMember);
   };
 
-  const logout = (onSuccess: () => void) => {
+  // full reload 없이 SPA 방식으로 로그아웃 처리 (깜빡임 방지)
+  const logout = () => {
     client.DELETE("/member/api/v1/auth/logout", {}).then((res) => {
       if (res.error) {
         toast.error(res.error.msg);
@@ -46,7 +50,7 @@ export default function useAuth() {
 
       clearLoginMember();
 
-      onSuccess();
+      router.replace("/");
     });
   };
 

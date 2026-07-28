@@ -7,6 +7,7 @@ let stompClient: Client | null = null;
 
 // 연결 대기 중인 구독 요청들
 const pendingSubscriptions: Array<{
+  id: string;
   destination: string;
   callback: (message: IMessage) => void;
   resolve: (sub: StompSubscription) => void;
@@ -33,6 +34,7 @@ export function getStompClient(): Client {
     heartbeatOutgoing: 4000,
     onConnect: () => {
       // 1) 대기 중인 구독 처리
+      const pendingIds = new Set<string>();
       while (pendingSubscriptions.length > 0) {
         const pending = pendingSubscriptions.shift()!;
         const sub = stompClient!.subscribe(
@@ -40,11 +42,14 @@ export function getStompClient(): Client {
           pending.callback,
         );
         pending.resolve(sub);
+        pendingIds.add(pending.id);
       }
 
-      // 2) 기존 활성 구독 재구독 (reconnect 시)
-      for (const entry of activeSubscriptions.values()) {
-        stompClient!.subscribe(entry.destination, entry.callback);
+      // 2) 기존 활성 구독 재구독 (reconnect 시, 방금 처리한 pending은 제외)
+      for (const [id, entry] of activeSubscriptions.entries()) {
+        if (!pendingIds.has(id)) {
+          stompClient!.subscribe(entry.destination, entry.callback);
+        }
       }
 
       // 3) reconnect 리스너 호출 (놓친 변경사항 fetch 등)
@@ -86,6 +91,7 @@ export function subscribe(
   // 연결 대기 큐에 추가
   const promise = new Promise<ManagedSubscription>((resolve) => {
     pendingSubscriptions.push({
+      id,
       destination,
       callback,
       resolve: (sub) => resolve(wrapResult(sub)),

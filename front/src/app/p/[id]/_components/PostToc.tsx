@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { List, X } from "lucide-react";
-
 import { cn } from "@/lib/utils";
+
+import { List, X } from "lucide-react";
 
 type TocItem = {
   id: string;
@@ -51,12 +51,16 @@ export default function PostToc() {
   }, []);
 
   useEffect(() => {
-    collect();
+    // 효과 본문에서 동기 setState를 피하기 위해 최초 수집은 다음 프레임으로 미룬다
+    const raf = requestAnimationFrame(collect);
     const root = document.querySelector(CONTENT_SELECTOR);
-    if (!root) return;
+    if (!root) return () => cancelAnimationFrame(raf);
     const obs = new MutationObserver(() => collect());
     obs.observe(root, { childList: true, subtree: true });
-    return () => obs.disconnect();
+    return () => {
+      cancelAnimationFrame(raf);
+      obs.disconnect();
+    };
   }, [collect]);
 
   useEffect(() => {
@@ -65,9 +69,7 @@ export default function PostToc() {
       (entries) => {
         const visible = entries
           .filter((e) => e.isIntersecting)
-          .sort(
-            (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
-          );
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
         if (visible.length > 0) {
           setActiveElement(visible[0].target as HTMLElement);
         }

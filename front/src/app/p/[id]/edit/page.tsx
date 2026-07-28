@@ -31,7 +31,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { Code, Eye, FileEdit, List, Pencil, Save } from "lucide-react";
 
-// 임시저장은 빈 값 허용, 공개 시에만 필수 체크
+// 임시저장은 빈 값 허용, 비공개 이상일 때만 필수 체크
 const postFormSchema = z
   .object({
     title: z.string().max(100, "제목은 100자 이하여야 합니다."),
@@ -41,27 +41,27 @@ const postFormSchema = z
   })
   .refine(
     (data) => {
-      // 공개(published)일 때만 제목 필수
-      if (data.published) {
+      // 제목이 있으면(비공개 이상) 2자 이상 필수
+      if (data.published || data.title.trim().length > 0) {
         return data.title.trim().length >= 2;
       }
       return true;
     },
     {
-      message: "공개 글의 제목은 2자 이상이어야 합니다.",
+      message: "제목은 2자 이상이어야 합니다.",
       path: ["title"],
     },
   )
   .refine(
     (data) => {
-      // 공개(published)일 때만 내용 필수
+      // 미노출/공개일 때만 내용 필수
       if (data.published) {
         return data.content.trim().length >= 2;
       }
       return true;
     },
     {
-      message: "공개 글의 내용은 2자 이상이어야 합니다.",
+      message: "미노출/공개 글의 내용은 2자 이상이어야 합니다.",
       path: ["content"],
     },
   );
@@ -206,7 +206,15 @@ export default withLogin(function Page({
             <Badge variant="outline">#{id}</Badge>
             {!published && (
               <Badge variant="secondary" className="ml-2">
-                임시저장
+                {form.watch("title").trim() ? "비공개" : "임시저장"}
+              </Badge>
+            )}
+            {published && !form.watch("listed") && (
+              <Badge
+                variant="outline"
+                className="ml-2 border-orange-500 text-orange-600"
+              >
+                미노출
               </Badge>
             )}
           </CardTitle>
@@ -224,7 +232,7 @@ export default withLogin(function Page({
                       제목
                       {!published && (
                         <span className="text-muted-foreground text-xs">
-                          (임시저장은 선택)
+                          (비공개/임시저장은 선택)
                         </span>
                       )}
                     </FormLabel>
@@ -259,7 +267,7 @@ export default withLogin(function Page({
                         className="flex items-center gap-1 cursor-pointer"
                       >
                         <Eye className="w-4 h-4" />
-                        공개
+                        미노출/공개
                       </Label>
                     </div>
                   )}
@@ -307,7 +315,7 @@ export default withLogin(function Page({
                       내용
                       {!published && (
                         <span className="text-muted-foreground text-xs ml-2">
-                          (임시저장은 선택)
+                          (비공개/임시저장은 선택)
                         </span>
                       )}
                     </FormLabel>

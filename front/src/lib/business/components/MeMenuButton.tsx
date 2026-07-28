@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import { useAuthContext } from "@/global/auth/hooks/useAuth";
 
@@ -17,11 +16,7 @@ import {
 import { LogOut, MonitorCog, User } from "lucide-react";
 
 export default function MeMenuButton() {
-  const { loginMember, isAdmin, logout: _logout } = useAuthContext();
-  const router = useRouter();
-  const logout = () => {
-    _logout(() => router.replace("/"));
-  };
+  const { loginMember, isAdmin, logout } = useAuthContext();
 
   return (
     <DropdownMenu>

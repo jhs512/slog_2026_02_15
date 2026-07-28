@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import { useAuthContext } from "@/global/auth/hooks/useAuth";
 
@@ -37,17 +37,12 @@ export default function NarrowHeaderContent({
 }: {
   className?: string;
 }) {
-  const { isLogin, isAdmin, loginMember, logout: _logout } = useAuthContext();
-  const router = useRouter();
+  const { isLogin, isAdmin, loginMember, logout } = useAuthContext();
   const pathname = usePathname();
 
   // /p/[id]/edit 또는 /p/[id]/edit/monaco 패턴에서 글 번호 추출
   const editMatch = pathname.match(/^\/p\/(\d+)\/edit/);
   const editPostId = editMatch ? editMatch[1] : null;
-
-  const logout = () => {
-    _logout(() => router.replace("/"));
-  };
 
   return (
     <div className={`${className} px-2 py-1`}>

@@ -122,7 +122,7 @@ function PageContent() {
   const totalElements = pageable?.totalElements ?? posts.length;
 
   const getStatusBadge = (post: PostDto) => {
-    if (!post.published) {
+    if (!post.published && !post.title) {
       return (
         <Badge variant="secondary" className="gap-1">
           <Lock className="w-3 h-3" />
@@ -130,11 +130,19 @@ function PageContent() {
         </Badge>
       );
     }
+    if (!post.published) {
+      return (
+        <Badge variant="secondary" className="gap-1">
+          <Lock className="w-3 h-3" />
+          비공개
+        </Badge>
+      );
+    }
     if (!post.listed) {
       return (
         <Badge variant="outline" className="gap-1">
           <Eye className="w-3 h-3" />
-          비공개
+          미노출
         </Badge>
       );
     }

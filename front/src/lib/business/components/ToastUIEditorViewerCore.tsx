@@ -397,7 +397,8 @@ const ToastUIEditorViewerCore = forwardRef<any, ToastUIEditorViewerCoreProps>(
       const id = decodeURIComponent(hash.slice(1));
       const timer = setTimeout(() => {
         const el =
-          document.getElementById(id) ?? document.getElementById(id + "강");
+          document.getElementById(id) ??
+          document.querySelector(`[id^="${CSS.escape(id)}"]`);
         if (el) {
           el.scrollIntoView();
           hasScrolledToHashRef.current = true;

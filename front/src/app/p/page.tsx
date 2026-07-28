@@ -185,10 +185,14 @@ function PageContent() {
                       <Badge variant="outline">{post.id}</Badge>
                       <span className="flex-1">{post.title}</span>
                       {!post.published && (
-                        <Lock className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+                        <span title={post.title ? "비공개" : "임시저장"}>
+                          <Lock className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+                        </span>
                       )}
                       {post.published && !post.listed && (
-                        <ListX className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+                        <span title="미노출">
+                          <ListX className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+                        </span>
                       )}
                     </CardTitle>
                   </CardHeader>

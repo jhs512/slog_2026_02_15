@@ -79,13 +79,20 @@ export default function PostInfo({
   };
 
   const getStatusBadge = () => {
-    if (!post.published) {
+    if (!post.published && !post.title) {
       return <Badge variant="secondary">임시저장</Badge>;
     }
-    if (!post.listed) {
+    if (!post.published) {
       return (
         <Badge variant="outline" className="border-yellow-500 text-yellow-600">
           비공개
+        </Badge>
+      );
+    }
+    if (!post.listed) {
+      return (
+        <Badge variant="outline" className="border-orange-500 text-orange-600">
+          미노출
         </Badge>
       );
     }

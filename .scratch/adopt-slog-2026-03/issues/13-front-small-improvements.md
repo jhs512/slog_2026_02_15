@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] 해시 스크롤: 하드코딩 접미사 폴백 → CSS.escape + prefix 셀렉터. scroll-padding-top과 최초 1회 가드는 유지
 - [ ] logout() 시그니처 단순화 (호출부 콜백 제거), 내부는 기존 SPA 방식(clearLoginMember + router) 유지

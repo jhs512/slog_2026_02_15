@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] 임시저장 / 비공개 / 미노출 3단계 표시 (라벨·색·아이콘·툴팁)
 - [ ] 수정 페이지 검증: 제목이 있으면 2자 이상 필수, 안내 문구 재작성
