@@ -53,6 +53,7 @@ class CustomAuthenticationFilter(
         filterChain: FilterChain
     ) {
         try {
+            checkOrigin(request)
             authenticateIfPossible()
         } catch (e: BusinessException) {
             val rsData: RsData<Void> = e.rsData
@@ -63,6 +64,17 @@ class CustomAuthenticationFilter(
         }
 
         filterChain.doFilter(request, response)
+    }
+
+    // ADR-0001: SameSite=None 환경의 CSRF 방어.
+    // 본문 없는 POST(/hit, /like, /temp)는 preflight 없는 simple request가 될 수 있으므로,
+    // 브라우저가 cross-site 요청에 항상 실어 보내는 Origin 헤더를 검증한다.
+    // Origin이 없는 요청(curl, 서버 간 호출, 테스트)은 브라우저 CSRF 경로가 아니므로 통과시킨다.
+    private fun checkOrigin(request: HttpServletRequest) {
+        if (request.method !in setOf("POST", "PUT", "PATCH", "DELETE")) return
+        val origin = request.getHeader(HttpHeaders.ORIGIN) ?: return
+        if (origin == AppFacade.siteFrontUrl || origin == AppFacade.siteBackUrl) return
+        throw BusinessException("403-2", "허용되지 않은 출처의 요청입니다.")
     }
 
     private fun authenticateIfPossible() {

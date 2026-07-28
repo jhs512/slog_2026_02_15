@@ -1,7 +1,5 @@
 const NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-const activeConnections = new Map<string, EventSource>();
-
 export interface SseSubscription {
   unsubscribe: () => void;
 }
@@ -28,12 +26,9 @@ export function subscribe(
     callback(event.data);
   });
 
-  activeConnections.set(channel, eventSource);
-
   return {
     unsubscribe: () => {
       eventSource.close();
-      activeConnections.delete(channel);
     },
   };
 }

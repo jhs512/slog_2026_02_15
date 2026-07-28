@@ -279,6 +279,19 @@ class ApiV1PostControllerTest {
     @Nested
     inner class GetItem {
         @Test
+        fun `실패 - 허용되지 않은 Origin의 상태 변경 요청은 403 (ADR-0001 CSRF 방어)`() {
+            val resultActions = mvc
+                .perform(
+                    post("/post/api/v1/posts/1/hit")
+                        .header("Origin", "https://evil.example.com")
+                )
+                .andDo(print())
+
+            resultActions
+                .andExpect(status().isForbidden)
+        }
+
+        @Test
         @WithUserDetails("user1")
         fun `실패 - 음수 id는 400`() {
             val resultActions = mvc

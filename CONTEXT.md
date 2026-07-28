@@ -8,6 +8,16 @@
 
 - **Raw** — Post의 `content` 마크다운 원문. `/p/{id}/raw` 가 `text/plain`으로 그대로 서빙한다.
 
+### 글 상태 (Post Status)
+
+`published` / `listed` / `title` 유무 조합으로 유도되는 3단계 표시 상태.
+
+- **임시저장** — `!published && !title`. 제목 없는 미공개 글.
+- **비공개** — `!published` (제목 있음). 작성자만 볼 수 있는 글.
+- **미노출** — `published && !listed`. 링크로는 열리지만 목록에는 나오지 않는 글.
+
+"비공개"라는 말을 `listed=false`에 쓰지 않는다 — 그건 **미노출**이다.
+
 ## PPT
 
 Post `content` 안에 임베드된 슬라이드 덱. `<details ppt-id="...">` 블록 하나가 하나의 PPT.

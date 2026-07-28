@@ -18,7 +18,7 @@ export function useNewPostNotification(
   onNewPost?: (post: PostNotification) => void,
 ) {
   const [latestPost, setLatestPost] = useState<PostNotification | null>(null);
-  const { loginMember, isPending } = useAuthContext();
+  const { loginMember, isPending, isLogin } = useAuthContext();
   const callbackRef = useRef(onNewPost);
   const loginMemberRef = useRef(loginMember);
 
@@ -47,7 +47,8 @@ export function useNewPostNotification(
     return () => {
       subscription.unsubscribe();
     };
-  }, [isPending]);
+    // 로그인 상태가 바뀌면 연결 시점 쿠키가 달라지므로 재구독한다
+  }, [isPending, isLogin]);
 
   return { latestPost };
 }

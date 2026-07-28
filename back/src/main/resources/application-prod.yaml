@@ -22,6 +22,10 @@ logging:
     org.hibernate.orm.jdbc.batch: INFO
     org.springframework.transaction.interceptor: INFO
 custom:
+  # dev 기본값이 prod로 새지 않도록 기본값 없이 재선언 — 미설정 시 기동이 명확히 실패한다
+  jwt:
+    secretKey: "${CUSTOM__JWT__SECRET_KEY}"
+  systemMemberApiKey: "${CUSTOM__SYSTEM_MEMBER_API_KEY}"
   site:
     cookieDomain: "${custom.prod.cookieDomain}"
     frontUrl: "${custom.prod.frontUrl}"
