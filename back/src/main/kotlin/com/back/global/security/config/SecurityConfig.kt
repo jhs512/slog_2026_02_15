@@ -129,6 +129,7 @@ class SecurityConfig(
 
         return UrlBasedCorsConfigurationSource().apply {
             registerCorsConfiguration("/*/api/**", configuration)
+            registerCorsConfiguration("/sse/**", configuration)
         }
     }
 }

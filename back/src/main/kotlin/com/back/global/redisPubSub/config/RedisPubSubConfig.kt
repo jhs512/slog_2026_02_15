@@ -1,5 +1,6 @@
 package com.back.global.redisPubSub.config
 
+import com.back.global.sse.app.SseService
 import com.back.global.websocket.app.StompService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -13,10 +14,12 @@ class RedisPubSubConfig {
     fun redisMessageListenerContainer(
         redisConnectionFactory: RedisConnectionFactory,
         stompService: StompService,
+        sseService: SseService,
     ): RedisMessageListenerContainer {
         val container = RedisMessageListenerContainer()
         container.setConnectionFactory(redisConnectionFactory)
         container.addMessageListener(stompService, ChannelTopic(StompService.CHANNEL))
+        container.addMessageListener(sseService, ChannelTopic(SseService.CHANNEL))
         return container
     }
 }

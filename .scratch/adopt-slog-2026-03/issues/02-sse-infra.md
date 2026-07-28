@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] SSE 구독 엔드포인트: 타임아웃 30분, 연결 직후 connect 이벤트, 죽은 emitter 자동 정리
 - [ ] 발행이 Redis pub/sub을 경유해 다중 인스턴스에서도 브로드캐스트됨
