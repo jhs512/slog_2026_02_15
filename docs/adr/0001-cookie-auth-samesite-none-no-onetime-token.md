@@ -1,0 +1,22 @@
+# ADR-0001: 쿠키 인증 SameSite=None + CORS 기반 CSRF 방어 (원타임토큰 불채택)
+
+날짜: 2026-07-28
+상태: 승인됨
+
+## 맥락
+
+EventSource(SSE)와 SockJS는 커스텀 헤더를 붙일 수 없어, 크로스오리진 실시간 연결의 인증이 문제였다. 참조 리포(slog_2026_03)는 Redis TTL 30초짜리 원타임토큰을 쿼리 파라미터로 붙이는 방식을 썼다.
+
+프로덕션 토폴로지는 `www.slog.gg`(front) ↔ `api.slog.gg`(back)로 same-site이며, 이 서비스에는 전통적 form POST가 전혀 없고 모든 상태 변경이 JSON 본문 fetch(CORS preflight 유발)로만 이루어진다.
+
+## 결정
+
+- 인증 쿠키(accessToken/apiKey)를 `SameSite=None; Secure`로 설정한다.
+- 실시간 연결(EventSource, SockJS)은 `withCredentials: true`로 쿠키를 실어 보낸다.
+- 원타임토큰 체계는 도입하지 않는다.
+- CSRF 방어는 CORS `allowedOrigins`(front URL 고정) + "상태 변경은 항상 JSON 본문"이라는 불변식이 담당한다.
+
+## 결과
+
+- SSE/WebSocket 인증에 별도 토큰 발급 왕복과 Redis 키가 필요 없다.
+- **불변식 유지 의무**: 상태를 변경하는 엔드포인트를 simple request(form-encoded POST, 인증 GET)로 만들면 CSRF에 노출된다. 이 전제가 깨지는 순간 이 ADR을 재검토해야 한다.
