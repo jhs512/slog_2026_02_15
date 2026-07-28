@@ -1,6 +1,7 @@
 package com.back
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession
@@ -8,6 +9,7 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 @SpringBootApplication
 @EnableJpaAuditing
 @EnableRedisHttpSession
+@ConfigurationPropertiesScan
 class BackApplication
 
 fun main(args: Array<String>) {

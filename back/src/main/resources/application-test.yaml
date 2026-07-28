@@ -16,3 +16,4 @@ custom:
     dbHost: "${custom.test.dbHost}"
     dbName: "${custom.test.dbName}"
     redisHost: "${custom.test.redisHost}"
+    redisDatabase: "${custom.test.redisDatabase}"

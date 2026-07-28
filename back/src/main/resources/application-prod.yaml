@@ -29,6 +29,7 @@ custom:
     dbHost: "${custom.prod.dbHost}"
     dbName: "${custom.prod.dbName}"
     redisHost: "${custom.prod.redisHost}"
+    redisDatabase: "${custom.prod.redisDatabase}"
   task:
     processor:
       fixedDelayMs: "#{1000*3}"

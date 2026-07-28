@@ -61,6 +61,7 @@ spring:
       host: ${custom.site.redisHost}
       port: 6379
       password: lldj123414
+      database: ${custom.site.redisDatabase}
   sql:
     init:
       mode: always
@@ -73,8 +74,6 @@ spring:
       auto-commit: false
   jpa:
     open-in-view: false
-    hibernate:
-      ddl-auto: create
     properties:
       hibernate:
         dialect: com.back.global.jpa.config.CustomPostgreSQLDialect
@@ -94,27 +93,32 @@ logging:
     org.hibernate.orm.jdbc.batch: TRACE
     org.springframework.transaction.interceptor: TRACE
 custom:
+  dbBaseName: slog
   dev:
     cookieDomain: localhost
     frontUrl: "http://${custom.dev.cookieDomain}:3000"
     backUrl: "http://${custom.dev.cookieDomain}:${server.port}"
     dbHost: localhost
-    dbName: slog_dev
+    dbName: "${custom.dbBaseName}_dev"
     redisHost: localhost
+    redisDatabase: 0
   test:
     cookieDomain: localhost
     frontUrl: "http://${custom.test.cookieDomain}:3000"
     backUrl: "http://${custom.test.cookieDomain}:${server.port}"
     dbHost: localhost
-    dbName: slog_test
+    dbName: "${custom.dbBaseName}_test"
     redisHost: localhost
+    # 로컬 테스트가 dev 세션/캐시를 지우지 않도록 DB 분리
+    redisDatabase: 1
   prod:
     cookieDomain: slog.gg
     frontUrl: "https://www.${custom.prod.cookieDomain}"
     backUrl: "https://api.${custom.prod.cookieDomain}"
     dbHost: pg_1
-    dbName: slog_prod
+    dbName: "${custom.dbBaseName}_prod"
     redisHost: redis_1
+    redisDatabase: 0
   site:
     cookieDomain: "${custom.dev.cookieDomain}"
     frontUrl: "${custom.dev.frontUrl}"
@@ -122,8 +126,9 @@ custom:
     dbHost: "${custom.dev.dbHost}"
     dbName: "${custom.dev.dbName}"
     redisHost: "${custom.dev.redisHost}"
+    redisDatabase: "${custom.dev.redisDatabase}"
   jwt:
-    secretKey: "${CUSTOM__JWT__SECRET_KEY}"
+    secretKey: "${CUSTOM__JWT__SECRET_KEY:12345678901234567890123456789012}"
   accessToken:
     expirationSeconds: "#{60*20}"
   notProdMembers:
@@ -131,7 +136,7 @@ custom:
       nickname: 장희성
       profileImgUrl: http://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg
       apiKey: KAKAO__3889999627
-  systemMemberApiKey: "${CUSTOM__SYSTEM_MEMBER_API_KEY}"
+  systemMemberApiKey: "${CUSTOM__SYSTEM_MEMBER_API_KEY:system}"
   task:
     processor:
       fixedDelayMs: "#{1000*60*60*24}"

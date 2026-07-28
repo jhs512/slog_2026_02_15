@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] `dbBaseName` 프로퍼티에서 dev/test DB명 파생
 - [ ] dev/test Redis database 분리 (dev 0 / test 1)

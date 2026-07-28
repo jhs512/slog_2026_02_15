@@ -1,13 +1,11 @@
 package com.back.global.app.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.stereotype.Component
 
-@Component
 @ConfigurationProperties("custom")
-class CustomConfigProperties {
-    var notProdMembers: MutableList<NotProdMember> = mutableListOf()
-
+class CustomConfigProperties(
+    val notProdMembers: List<NotProdMember> = emptyList(),
+) {
     data class NotProdMember(
         val username: String,
         val apiKey: String,
