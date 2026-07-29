@@ -88,4 +88,8 @@ hibernate {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    // CI 콘솔에서 실패 원인을 바로 볼 수 있게 전체 스택트레이스 출력
+    testLogging {
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
 }
