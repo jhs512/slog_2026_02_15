@@ -5,7 +5,7 @@ plugins {
     id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.jpa") version "2.2.21"
-    id("org.hibernate.orm") version "7.2.1.Final"
+    id("org.hibernate.orm") version "7.2.12.Final"
 }
 
 group = "com"
