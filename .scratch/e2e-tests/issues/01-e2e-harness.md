@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Playwright + Chromium 설치, `pnpm e2e`/`pnpm e2e:ui` 스크립트
 - [ ] 백엔드 e2e 프로필: DB slog_e2e, Redis database 2, ddl-auto create, NotProd 시드 계정 생성

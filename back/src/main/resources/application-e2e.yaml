@@ -1,0 +1,17 @@
+# E2E 전용 프로필 — Playwright가 자동 기동한다 (front/playwright.config.ts)
+# dev와 완전 격리: 전용 포트/DB/Redis database, 매 기동마다 스키마 재생성
+server:
+  port: 8091
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+custom:
+  site:
+    cookieDomain: localhost
+    frontUrl: "http://localhost:3001"
+    backUrl: "http://localhost:8091"
+    dbHost: localhost
+    dbName: "${custom.dbBaseName}_e2e"
+    redisHost: localhost
+    redisDatabase: 2
