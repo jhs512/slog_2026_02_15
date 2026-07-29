@@ -6,8 +6,8 @@
 
 **Status:** done
 
-- [ ] PPT: `<details ppt-id>` 블록이 있는 글을 API로 생성 → `/p/{id}/ppt/{pptId}`에서 슬라이드 렌더, `#2` 해시로 두 번째 슬라이드 이동
-- [ ] raw: ```json fenced 블록의 raw 아티팩트 생성 → `/p/{id}/raw/{rawId}` 응답이 `application/json` Content-Type + fence 없는 페이로드
-- [ ] 해시 앵커: `#제목` URL로 진입 시 해당 헤딩으로 스크롤되고 sticky 헤더에 가려지지 않음 (특수문자 제목 포함)
-- [ ] 리다이렉트: `/ken/{id}` → `/p/{id}` 이동 확인
-- [ ] 용어는 CONTEXT.md(Raw 아티팩트, ppt-id, 슬라이드) 그대로 사용
+- [x] PPT: `<details ppt-id>` 블록이 있는 글을 API로 생성 → `/p/{id}/ppt/{pptId}`에서 슬라이드 렌더, `#2` 해시로 두 번째 슬라이드 이동
+- [x] raw: ```json fenced 블록의 raw 아티팩트 생성 → `/p/{id}/raw/{rawId}` 응답이 `application/json` Content-Type + fence 없는 페이로드
+- [x] 해시 앵커: `#제목` URL로 진입 시 해당 헤딩으로 스크롤되고 sticky 헤더에 가려지지 않음 (특수문자 제목 포함)
+- [x] 리다이렉트: `/ken/{id}` → `/p/{id}` 이동 확인
+- [x] 용어는 CONTEXT.md(Raw 아티팩트, ppt-id, 슬라이드) 그대로 사용
