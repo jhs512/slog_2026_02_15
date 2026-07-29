@@ -5,8 +5,7 @@ plugins {
     id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.jpa") version "2.2.21"
-    id("org.hibernate.orm") version "7.2.12.Final"
-}
+    }
 
 group = "com"
 version = "0.0.1-SNAPSHOT"
@@ -78,13 +77,6 @@ allOpen {
     annotation("jakarta.persistence.Embeddable")
 }
 
-hibernate {
-    enhancement {
-        enableLazyInitialization = true
-        enableDirtyTracking = true
-        enableAssociationManagement = false
-    }
-}
 
 tasks.withType<Test> {
     useJUnitPlatform()
