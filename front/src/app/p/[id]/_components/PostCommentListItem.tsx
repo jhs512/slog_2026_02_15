@@ -140,6 +140,7 @@ export default function PostCommentListItem({
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label="댓글 수정"
                       onClick={toggleModifyMode}
                     >
                       <Pencil className="w-4 h-4" />
@@ -148,7 +149,11 @@ export default function PostCommentListItem({
                   {comment.actorCanDelete && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="댓글 삭제"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </AlertDialogTrigger>

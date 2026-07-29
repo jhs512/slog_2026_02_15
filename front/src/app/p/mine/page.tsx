@@ -122,7 +122,8 @@ function PageContent() {
   const totalElements = pageable?.totalElements ?? posts.length;
 
   const getStatusBadge = (post: PostDto) => {
-    if (!post.published && !post.title) {
+    // 백엔드 getOrCreateTemp는 임시글을 제목 "임시글"(sentinel)로 생성한다 (findTemp도 동일 기준)
+    if (!post.published && (!post.title || post.title === "임시글")) {
       return (
         <Badge variant="secondary" className="gap-1">
           <Lock className="w-3 h-3" />

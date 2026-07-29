@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — E2E 하네스 부트스트랩
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] SSE 알림: 글 생성(published) 후 비로그인 API 조회 10회 → 구독자 브라우저에 토스트(제목 포함) 표시, 9회까지는 미표시
 - [ ] 본인 제외: 작성자 브라우저에는 같은 이벤트에서 토스트가 뜨지 않음

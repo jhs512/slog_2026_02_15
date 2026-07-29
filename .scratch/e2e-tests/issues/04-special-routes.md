@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — E2E 하네스 부트스트랩
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] PPT: `<details ppt-id>` 블록이 있는 글을 API로 생성 → `/p/{id}/ppt/{pptId}`에서 슬라이드 렌더, `#2` 해시로 두 번째 슬라이드 이동
 - [ ] raw: ```json fenced 블록의 raw 아티팩트 생성 → `/p/{id}/raw/{rawId}` 응답이 `application/json` Content-Type + fence 없는 페이로드

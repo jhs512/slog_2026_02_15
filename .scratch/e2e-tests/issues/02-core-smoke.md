@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — E2E 하네스 부트스트랩
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] 목록→뷰어: API로 만든 글이 목록에 보이고 클릭하면 뷰어에 제목·본문 렌더
 - [ ] 관리자 로그인 UI: 로그인 페이지에서 admin 계정 입력 → 로그인 성공 (storageState 미사용 테스트)
