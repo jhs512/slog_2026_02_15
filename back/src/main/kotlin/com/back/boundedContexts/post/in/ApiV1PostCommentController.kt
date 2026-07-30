@@ -52,8 +52,8 @@ class ApiV1PostCommentController(
         val post = postFacade.findById(postId).getOrThrow()
         post.checkActorCanRead(rq.actorOrNull)
 
-        return post
-            .getComments()
+        return postFacade
+            .getComments(post)
             .map { makePostCommentDto(it) }
     }
 
@@ -67,7 +67,7 @@ class ApiV1PostCommentController(
         val post = postFacade.findById(postId).getOrThrow()
         post.checkActorCanRead(rq.actorOrNull)
 
-        val postComment = post.findCommentById(id).getOrThrow()
+        val postComment = postFacade.findCommentById(post, id).getOrThrow()
 
         return makePostCommentDto(postComment)
     }
@@ -81,7 +81,7 @@ class ApiV1PostCommentController(
     ): RsData<Void> {
         val post = postFacade.findById(postId).getOrThrow()
 
-        val postComment = post.findCommentById(id).getOrThrow()
+        val postComment = postFacade.findCommentById(post, id).getOrThrow()
 
         val actor = rq.actor
         postComment.checkActorCanDelete(actor)
@@ -110,7 +110,7 @@ class ApiV1PostCommentController(
     ): RsData<Void> {
         val post = postFacade.findById(postId).getOrThrow()
 
-        val postComment = post.findCommentById(id).getOrThrow()
+        val postComment = postFacade.findCommentById(post, id).getOrThrow()
 
         val actor = rq.actor
         postComment.checkActorCanModify(actor)

@@ -2,7 +2,7 @@
 
 티켓화되지 않은, 근본 해결이 필요한 항목들.
 
-## 1. post 도메인의 전역 레포지토리 홀더 제거 (우선순위 높음)
+## 1. post 도메인의 전역 레포지토리 홀더 제거 — ✅ 2026-07-30 완료
 
 `postExtensions/PostRepositories.kt`의 톱레벨 `lateinit var` 3개(`postAttrRepository`,
 `postCommentRepository`, `postLikeRepository`)와 `PostAppConfig`의 "첫 컨텍스트 승리" 가드.
@@ -15,8 +15,10 @@
 고쳤다(당시 PostSseServiceTest 실패 대응). 2026-07-30 이벤트 직렬화 테스트를 추가하자
 좋아요/댓글 경로에서 같은 증상이 재발해, 테스트를 순수 단위 테스트로 바꿔 우회했다.
 
-**해결 방향**: 남은 확장 함수들도 리포지토리를 파라미터로 받게 하고(`PostHitExtensions` 선례),
-`PostRepositories.kt`와 `PostAppConfig`를 삭제한다. 호출부는 대부분 `PostFacade` 한 곳이다.
+**해결(2026-07-30)**: PostCommentsExtensions·PostLikeExtensions의 함수들이 리포지토리를 파라미터로
+받도록 변경, 컨트롤러가 확장 함수를 직접 부르던 3곳은 파사드 경유로 정리,
+`PostRepositories.kt`·`PostAppConfig` 삭제. 검증: 홀더가 있을 때 13건을 실패시켰던
+@SpringBootTest 형태를 되돌려도 CI 동등 Docker 빌드가 통과함을 확인.
 
 ## 2. PROCESSING 상태로 영구히 멈추는 task 회수 로직 부재
 

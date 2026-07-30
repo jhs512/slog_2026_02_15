@@ -51,7 +51,7 @@ class ApiV1PostController(
         val actor = rq.actorOrNull
 
         return PostWithContentDto(post).apply {
-            actorHasLiked = post.isLikedBy(actor)
+            actorHasLiked = postFacade.isLikedBy(post, actor)
             actorCanModify = post.getCheckActorCanModifyRs(actor).isSuccess
             actorCanDelete = post.getCheckActorCanDeleteRs(actor).isSuccess
         }

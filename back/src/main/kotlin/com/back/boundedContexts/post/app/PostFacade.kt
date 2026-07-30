@@ -7,6 +7,9 @@ import com.back.boundedContexts.post.domain.PostComment
 import com.back.boundedContexts.post.domain.postExtensions.PostLikeToggleResult
 import com.back.boundedContexts.post.domain.postExtensions.addComment
 import com.back.boundedContexts.post.domain.postExtensions.deleteComment
+import com.back.boundedContexts.post.domain.postExtensions.findCommentById
+import com.back.boundedContexts.post.domain.postExtensions.getComments
+import com.back.boundedContexts.post.domain.postExtensions.isLikedBy
 import com.back.boundedContexts.post.domain.postExtensions.hitCount
 import com.back.boundedContexts.post.domain.postExtensions.incrementHitCount
 import com.back.boundedContexts.post.domain.postExtensions.toggleLike
@@ -155,9 +158,21 @@ class PostFacade(
     }
 
 
+    @Transactional(readOnly = true)
+    fun isLikedBy(post: Post, liker: Member?): Boolean =
+        post.isLikedBy(liker, postLikeRepository)
+
+    @Transactional(readOnly = true)
+    fun getComments(post: Post): List<PostComment> =
+        post.getComments(postCommentRepository)
+
+    @Transactional(readOnly = true)
+    fun findCommentById(post: Post, id: Int): PostComment? =
+        post.findCommentById(id, postCommentRepository)
+
     @Transactional
     fun writeComment(author: Member, post: Post, content: String): PostComment {
-        val postComment = post.addComment(author, content)
+        val postComment = post.addComment(author, content, postCommentRepository, postAttrRepository)
 
         postRepository.flush()
 
@@ -179,7 +194,7 @@ class PostFacade(
         val postCommentDto = PostCommentDto(postComment)
         val postDto = PostDto(post)
 
-        post.deleteComment(postComment)
+        post.deleteComment(postComment, postCommentRepository, postAttrRepository)
 
         eventPublisher.publish(
             PostCommentDeletedEvent(
@@ -238,7 +253,7 @@ class PostFacade(
 
     @Transactional
     fun toggleLike(post: Post, actor: Member): PostLikeToggleResult {
-        val likeResult = post.toggleLike(actor)
+        val likeResult = post.toggleLike(actor, postLikeRepository, postAttrRepository)
 
         postRepository.flush()
 

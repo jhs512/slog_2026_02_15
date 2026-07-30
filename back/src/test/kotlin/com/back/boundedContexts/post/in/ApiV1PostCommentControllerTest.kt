@@ -4,8 +4,6 @@ import com.back.boundedContexts.member.app.shared.ActorFacade
 import com.back.boundedContexts.post.app.PostFacade
 import com.back.boundedContexts.post.domain.Post
 import com.back.boundedContexts.post.domain.PostComment
-import com.back.boundedContexts.post.domain.postExtensions.findCommentById
-import com.back.boundedContexts.post.domain.postExtensions.getComments
 import com.back.standard.extensions.getOrThrow
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
@@ -69,7 +67,7 @@ class ApiV1PostCommentControllerTest {
                 .andDo(print())
 
             val post = postFacade.findById(postId).getOrThrow()
-            val comments = post.getComments()
+            val comments = postFacade.getComments(post)
 
             resultActions
                 .andExpect(handler().handlerType(ApiV1PostCommentController::class.java))
@@ -137,7 +135,7 @@ class ApiV1PostCommentControllerTest {
                 .andDo(print())
 
             val post = postFacade.findById(postId).getOrThrow()
-            val postComment = post.findCommentById(id).getOrThrow()
+            val postComment = postFacade.findCommentById(post, id).getOrThrow()
 
             resultActions
                 .andExpect(handler().handlerType(ApiV1PostCommentController::class.java))
@@ -207,7 +205,7 @@ class ApiV1PostCommentControllerTest {
                 .andDo(print())
 
             val post = postFacade.findById(postId).getOrThrow()
-            val postComment = post.getComments().first()
+            val postComment = postFacade.getComments(post).first()
 
             resultActions
                 .andExpect(handler().handlerType(ApiV1PostCommentController::class.java))
