@@ -119,3 +119,105 @@ test("글 상세를 열어둔 브라우저에 다른 컨텍스트의 수정이 �
   await expect(page.getByText(contentAfter)).toBeVisible();
   await expect(page.getByText(contentBefore)).not.toBeVisible();
 });
+
+// 비공개 글 구독은 STOMP 메시지 레벨 인가(PostWebSocketSecurityConfigurer)를 통과해야 한다.
+// 즉 핸드셰이크에 인증 쿠키가 실려 SecurityContext가 WebSocket 세션으로 전파되어야 성공한다.
+// 브라우저가 쿠키를 보내지 않으면 SUBSCRIBE가 거부되어 이 테스트가 실패한다.
+test("작성자는 비공개 글 상세에서도 수정이 실시간 반영된다 (핸드셰이크 쿠키 인증)", async ({
+  browser,
+}) => {
+  const title = uniqueTitle("e2e-rt-private");
+  const contentBefore = `비공개 수정 전 본문 ${title}`;
+  const contentAfter = `비공개 수정 후 본문 ${title}`;
+
+  const api = await apiAs("user1");
+  const id = await createPost(api, {
+    title,
+    content: contentBefore,
+    published: false,
+    listed: false,
+  });
+
+  const authorContext = await browser.newContext({
+    storageState: storageStatePath("user1"),
+  });
+
+  try {
+    const page = await authorContext.newPage();
+
+    // 구독 거부 시 서버는 ERROR 프레임을 보낸다 — 수신 여부를 기록해 원인을 명확히 한다
+    const stompErrors: string[] = [];
+    const stompSubscribed = new Promise<void>((resolve) => {
+      page.on("websocket", (ws) => {
+        ws.on("framesent", (frame) => {
+          if (
+            typeof frame.payload === "string" &&
+            frame.payload.includes("SUBSCRIBE") &&
+            frame.payload.includes(`/topic/posts/${id}/modified`)
+          ) {
+            resolve();
+          }
+        });
+        ws.on("framereceived", (frame) => {
+          if (
+            typeof frame.payload === "string" &&
+            frame.payload.startsWith("ERROR")
+          ) {
+            stompErrors.push(frame.payload.slice(0, 200));
+          }
+        });
+      });
+    });
+
+    await page.goto(`/p/${id}`);
+    await expect(page.getByText(contentBefore)).toBeVisible();
+    await stompSubscribed;
+
+    const res = await api.put(`/post/api/v1/posts/${id}`, {
+      data: { title, content: contentAfter, published: false, listed: false },
+    });
+    expect(res.ok(), await res.text()).toBeTruthy();
+
+    await expect(
+      page.getByText(contentAfter),
+      `비공개 글 실시간 반영 실패. STOMP ERROR 프레임: ${JSON.stringify(stompErrors)}`,
+    ).toBeVisible();
+    expect(stompErrors, "구독이 거부되었다").toEqual([]);
+  } finally {
+    await api.dispose();
+    await authorContext.close();
+  }
+});
+
+// STOMP 구독 거부 자체는 백엔드 PostWebSocketSecurityConfigTest가 커버한다
+// (타인은 상세 화면에 진입할 수 없어 브라우저로는 구독 시나리오가 성립하지 않는다).
+// 여기서는 그 앞단 — 타인에게 비공개 글 본문이 새지 않는지를 화면으로 검증한다.
+test("타인에게 비공개 글 본문이 노출되지 않는다", async ({ browser }) => {
+  const title = uniqueTitle("e2e-rt-private-deny");
+  const secretContent = `타인 노출 금지 본문 ${title}`;
+
+  const api = await apiAs("user1");
+  const id = await createPost(api, {
+    title,
+    content: secretContent,
+    published: false,
+    listed: false,
+  });
+  await api.dispose();
+
+  const otherContext = await browser.newContext({
+    storageState: storageStatePath("user2"),
+  });
+
+  try {
+    const page = await otherContext.newPage();
+    await page.goto(`/p/${id}`);
+
+    await expect(
+      page.getByText(secretContent),
+      "타인에게 비공개 글 본문이 노출되면 안 된다",
+    ).not.toBeVisible();
+  } finally {
+    await otherContext.close();
+  }
+});
