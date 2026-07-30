@@ -85,8 +85,10 @@ test.describe("관리자 회원 목록", () => {
     await searchInput.fill("user2");
     await searchInput.press("Enter");
 
+    // 절대 개수("총 1명")를 단언하지 않는다 — 회원이 늘면 깨지는 취약한 기대값이다.
+    // 검색어에 맞는 회원만 보이고 나머지는 안 보이는지로 필터링을 검증한다.
     await expect(page.getByText(/\d+ : user2 \/ 유저2/)).toBeVisible();
     await expect(page.getByText(/\d+ : user1 \//)).not.toBeVisible();
-    await expect(page.getByText("총 1명")).toBeVisible();
+    await expect(page.getByText(/\d+ : admin \//)).not.toBeVisible();
   });
 });

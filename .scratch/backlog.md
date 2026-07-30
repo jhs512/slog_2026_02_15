@@ -44,3 +44,16 @@ front build+start 경로가 필요하다. `.scratch/e2e-tests/spec.md`의 Out of
 
 `.scratch/adopt-slog-2026-03/spec.md`의 Out of Scope에 기록된 3건:
 소프트 삭제 전환, EntityAttr 값 컬럼 분리(intValue/strValue), 테스트 베이스 클래스 + Kotlin MockMvc DSL.
+
+## 6. member_attr 최초 생성 경합 (race condition)
+
+`member_attr`에는 `(subject_id, name)` 유니크 제약이 있는데, 해당 attr이 아직 없는 상태에서
+같은 회원에 대한 요청이 동시에 들어오면 각자 "없으면 생성" 경로를 타 중복 INSERT로 충돌한다
+(`duplicate key value violates unique constraint`). 실사용에서는 회원이 첫 글/첫 댓글을
+동시에 여러 개 만들 때만 드러나 잘 보이지 않는다.
+
+**발견 경위**: 2026-07-30 E2E 리셋이 카운터 attr을 DELETE하자 매 실행마다 이 조건이 만들어져
+병렬 테스트가 깨졌다. 리셋을 UPSERT(0 보장)로 바꿔 우회했지만 앱 코드의 결함은 남아 있다.
+
+**해결 방향**: attr 생성 지점을 `INSERT ... ON CONFLICT DO UPDATE`(upsert)로 바꾸거나,
+회원 가입 시점에 카운터 attr을 미리 만들어 두어 "생성" 경로 자체를 없앤다.

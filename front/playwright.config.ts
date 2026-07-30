@@ -7,6 +7,8 @@ const BACK_URL = "http://localhost:8091";
 
 export default defineConfig({
   testDir: "./e2e",
+  // 매 실행 전 콘텐츠를 비워 누적 데이터로 인한 비멱등을 막는다
+  globalSetup: "./e2e/global-setup.ts",
   fullyParallel: true,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
