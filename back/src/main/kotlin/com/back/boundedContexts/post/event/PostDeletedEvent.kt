@@ -13,8 +13,8 @@ data class PostDeletedEvent @JsonCreator constructor(
     override val uid: UUID,
     override val aggregateType: String,
     override val aggregateId: Int,
-    @field:JsonIgnore
-    @field:JsonProperty("postDto")
+    @param:JsonProperty("postDto")
+    @get:JsonIgnore
     val postDto: PostDto,
     val actorDto: MemberDto,
 ) : EventPayload {

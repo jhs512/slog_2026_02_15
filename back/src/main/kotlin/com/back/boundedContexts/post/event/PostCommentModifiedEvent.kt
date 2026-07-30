@@ -14,11 +14,11 @@ data class PostCommentModifiedEvent @JsonCreator constructor(
     override val uid: UUID,
     override val aggregateType: String,
     override val aggregateId: Int,
-    @field:JsonIgnore
-    @field:JsonProperty("postCommentDto")
+    @param:JsonProperty("postCommentDto")
+    @get:JsonIgnore
     val postCommentDto: PostCommentDto,
-    @field:JsonIgnore
-    @field:JsonProperty("postDto")
+    @param:JsonProperty("postDto")
+    @get:JsonIgnore
     val postDto: PostDto,
     val actorDto: MemberDto,
 ) : EventPayload {
