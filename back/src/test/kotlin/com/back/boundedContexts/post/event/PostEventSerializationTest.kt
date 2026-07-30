@@ -6,10 +6,7 @@ import com.back.boundedContexts.post.dto.PostDto
 import com.back.standard.dto.EventPayload
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
-import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import java.time.Instant
 import java.util.UUID
 
@@ -19,12 +16,11 @@ import java.util.UUID
  * 역직렬화 시 값이 채워지지 않아 non-nullable 파라미터에서 실패하고,
  * 해당 이벤트의 후속 처리(활동 로그 기록)가 영구히 실패한다.
  */
-@ActiveProfiles("test")
-@SpringBootTest
 class PostEventSerializationTest {
 
-    @Autowired
-    private lateinit var objectMapper: ObjectMapper
+    // Spring 컨텍스트 없이 도는 순수 단위 테스트.
+    // findAndAddModules로 Spring Boot와 동일하게 Kotlin/JavaTime 모듈을 등록한다.
+    private val objectMapper = JsonMapper.builder().findAndAddModules().build()
 
     private val now: Instant = Instant.parse("2026-01-01T00:00:00Z")
 
