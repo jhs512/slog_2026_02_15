@@ -23,6 +23,8 @@ class TaskProcessingScheduledJob(
     @Scheduled(fixedDelayString = "\${custom.task.processor.fixedDelayMs}")
     @SchedulerLock(name = "processTasks", lockAtLeastFor = "PT1M")
     fun processTasks() {
+        reclaimStaleTasks()
+
         val taskIds = transactionTemplate.execute {
             val pendingTasks = taskRepository.findPendingTasksWithLock(10)
             pendingTasks.forEach { it.markAsProcessing() }
@@ -32,6 +34,26 @@ class TaskProcessingScheduledJob(
         taskIds?.forEach { taskId ->
             executor.submit { executeTask(taskId) }
         }
+    }
+
+    /**
+     * 처리 중 프로세스가 죽어 PROCESSING에 멈춘 task를 PENDING으로 되돌린다.
+     * 되돌리지 않으면 조회 쿼리(PENDING만 봄)에 잡히지 않아 영구히 방치된다.
+     */
+    private fun reclaimStaleTasks() {
+        val reclaimed = transactionTemplate.execute {
+            taskRepository.reclaimStaleProcessingTasks(STALE_PROCESSING_MINUTES)
+        } ?: 0
+
+        if (reclaimed > 0) {
+            logger.warn("Reclaimed $reclaimed stale PROCESSING task(s) older than $STALE_PROCESSING_MINUTES minutes")
+        }
+    }
+
+    companion object {
+        // 이 시간 넘게 PROCESSING에 머문 task는 처리가 끊긴 것으로 보고 회수한다.
+        // 정상 처리는 수 초 안에 끝나므로 넉넉한 값이다.
+        private const val STALE_PROCESSING_MINUTES = 10
     }
 
     private fun executeTask(taskId: Int) = transactionTemplate.execute {

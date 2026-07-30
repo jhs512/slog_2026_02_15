@@ -20,13 +20,15 @@
 `PostRepositories.kt`·`PostAppConfig` 삭제. 검증: 홀더가 있을 때 13건을 실패시켰던
 @SpringBootTest 형태를 되돌려도 CI 동등 Docker 빌드가 통과함을 확인.
 
-## 2. PROCESSING 상태로 영구히 멈추는 task 회수 로직 부재
+## 2. PROCESSING 상태로 영구히 멈추는 task 회수 로직 부재 — ✅ 2026-07-31 완료
 
 `markAsProcessing()` 후 프로세스가 죽거나 예외가 삼켜지면 그 task를 다시 집는 주체가 없다.
 prod에서 task 4581이 2026-05-20부터 두 달 넘게 `PROCESSING`으로 방치됐다(2026-07-30 수동 재큐잉).
 
-**해결 방향**: `PROCESSING` 상태가 일정 시간(예: 10분) 이상 지속된 task를 `PENDING`으로
-되돌리는 회수 스케줄이나, 처리 시작 시각 컬럼 + 타임아웃 판정.
+**해결(2026-07-31)**: `TaskRepository.reclaimStaleProcessingTasks`가 modified_at 기준으로
+10분 넘게 PROCESSING에 머문 task를 PENDING으로 되돌린다. 스케줄러가 매 주기 PENDING을 집기 전에
+먼저 수행하고, 회수 시 warn 로그를 남긴다. 처리 시작 시각 컬럼은 두지 않고 modified_at을
+근사치로 쓴다(PROCESSING 중에는 다른 수정이 없어 사실상 동일). 경계 양쪽을 TaskReclaimTest로 고정.
 
 ## 3. 임시저장 판정의 센티널 문자열 의존
 
