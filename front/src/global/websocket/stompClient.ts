@@ -1,5 +1,4 @@
 import { Client, IMessage, StompSubscription } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
 
 const NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -28,7 +27,8 @@ export function getStompClient(): Client {
   if (stompClient) return stompClient;
 
   stompClient = new Client({
-    webSocketFactory: () => new SockJS(`${NEXT_PUBLIC_API_BASE_URL}/ws`),
+    // 네이티브 WebSocket만 사용 (SockJS fallback 미사용). 핸드셰이크에 인증 쿠키가 자동으로 실린다.
+    brokerURL: `${NEXT_PUBLIC_API_BASE_URL!.replace(/^http/, "ws")}/ws`,
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,

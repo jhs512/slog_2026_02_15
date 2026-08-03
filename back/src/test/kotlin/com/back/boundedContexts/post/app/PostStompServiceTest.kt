@@ -13,8 +13,6 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.socket.client.standard.StandardWebSocketClient
 import org.springframework.web.socket.messaging.WebSocketStompClient
-import org.springframework.web.socket.sockjs.client.SockJsClient
-import org.springframework.web.socket.sockjs.client.WebSocketTransport
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
@@ -37,12 +35,11 @@ class PostStompServiceTest {
         val post = postFacade.findById(1)!!
         val received = LinkedBlockingQueue<Map<*, *>>()
 
-        val stompClient = WebSocketStompClient(
-            SockJsClient(listOf(WebSocketTransport(StandardWebSocketClient())))
-        ).apply { messageConverter = JacksonJsonMessageConverter() }
+        val stompClient = WebSocketStompClient(StandardWebSocketClient())
+            .apply { messageConverter = JacksonJsonMessageConverter() }
 
         val session = stompClient.connectAsync(
-            "http://localhost:$port/ws",
+            "ws://localhost:$port/ws",
             object : StompSessionHandlerAdapter() {}
         ).get(10, TimeUnit.SECONDS)
 

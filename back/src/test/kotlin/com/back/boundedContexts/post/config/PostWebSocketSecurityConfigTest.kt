@@ -19,8 +19,6 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.web.socket.WebSocketHttpHeaders
 import org.springframework.web.socket.client.standard.StandardWebSocketClient
 import org.springframework.web.socket.messaging.WebSocketStompClient
-import org.springframework.web.socket.sockjs.client.SockJsClient
-import org.springframework.web.socket.sockjs.client.WebSocketTransport
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
@@ -46,15 +44,14 @@ class PostWebSocketSecurityConfigTest {
     private fun connect(member: Member): Pair<StompSession, CompletableFuture<Boolean>> {
         val errorFuture = CompletableFuture<Boolean>()
 
-        val stompClient = WebSocketStompClient(
-            SockJsClient(listOf(WebSocketTransport(StandardWebSocketClient())))
-        ).apply { messageConverter = JacksonJsonMessageConverter() }
+        val stompClient = WebSocketStompClient(StandardWebSocketClient())
+            .apply { messageConverter = JacksonJsonMessageConverter() }
 
         val headers = WebSocketHttpHeaders()
         headers.add("Cookie", "apiKey=${member.apiKey}")
 
         val session = stompClient.connectAsync(
-            "http://localhost:$port/ws",
+            "ws://localhost:$port/ws",
             headers,
             object : StompSessionHandlerAdapter() {
                 override fun handleTransportError(session: StompSession, exception: Throwable) {

@@ -20,8 +20,8 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer {
     }
 
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
+        // 네이티브 WebSocket만 지원한다. SockJS(xhr-streaming/xhr-polling) fallback은 쓰지 않는다.
         registry.addEndpoint("/ws")
             .setAllowedOrigins(AppFacade.siteFrontUrl)
-            .withSockJS()
     }
 }

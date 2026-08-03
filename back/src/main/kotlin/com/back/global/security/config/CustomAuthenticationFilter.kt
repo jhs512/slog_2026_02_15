@@ -37,11 +37,12 @@ class CustomAuthenticationFilter(
         Regex("/member/api/v1/members/\\d+/redirectToProfileImg")
     )
 
-    private val filteredPrefixes = listOf("/member/api/", "/post/api/", "/ws/", "/sse/")
+    private val filteredPrefixes = listOf("/member/api/", "/post/api/", "/sse/")
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         val uri = request.requestURI
-        if (filteredPrefixes.none { uri.startsWith(it) }) return true
+        // 네이티브 WebSocket 핸드셰이크는 정확히 /ws 로 들어온다 (SockJS 시절엔 /ws/... 하위 경로였음)
+        if (uri != "/ws" && filteredPrefixes.none { uri.startsWith(it) }) return true
         if (uri in publicApiPaths) return true
         if (publicApiPatterns.any { it.matches(uri) }) return true
         return false

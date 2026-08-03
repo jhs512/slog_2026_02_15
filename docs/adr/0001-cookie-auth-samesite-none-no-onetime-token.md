@@ -17,6 +17,7 @@ EventSource(SSE)와 SockJS는 커스텀 헤더를 붙일 수 없어, 크로스�
   인증 쿠키는 HttpOnly라 프론트가 읽을 수 없고 백엔드만 소비하므로 범위를 최소화.
   이관 기간 동안 `legacyCookieDomain` 설정으로 옛 `slog.gg` 쿠키를 만료시킨다.)
 - 실시간 연결(EventSource, SockJS)은 `withCredentials: true`로 쿠키를 실어 보낸다.
+  (2026-08-03: SockJS 및 xhr fallback 제거 — 네이티브 WebSocket만 사용. 핸드셰이크에 쿠키가 자동으로 실리므로 인증 방식은 동일.)
 - 원타임토큰 체계는 도입하지 않는다.
 - CSRF 방어는 CORS `allowedOrigins`(front URL 고정) + "상태 변경은 항상 JSON 본문"이라는 불변식이 담당한다.
 
