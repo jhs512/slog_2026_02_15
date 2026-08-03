@@ -99,7 +99,7 @@ class ApiV1AuthControllerTest {
         }
 
         @Test
-        fun `성공 - 로그인 쿠키는 SameSite=None과 Secure 속성으로 발급된다`() {
+        fun `성공 - 로그인 쿠키는 SameSite=None, Secure, Partitioned 속성으로 발급된다`() {
             val resultActions = mvc
                 .perform(
                     post("/member/api/v1/auth/login")
@@ -123,7 +123,7 @@ class ApiV1AuthControllerTest {
                         assertThat(cookie.getAttribute("SameSite")).describedAs("$name SameSite").isEqualTo("None")
                         assertThat(cookie.secure).describedAs("$name Secure").isTrue
                         assertThat(cookie.isHttpOnly).describedAs("$name HttpOnly").isTrue
-                        assertThat(cookie.getAttribute("Partitioned")).describedAs("$name Partitioned").isNull()
+                        assertThat(cookie.getAttribute("Partitioned")).describedAs("$name Partitioned").isNotNull
                     }
                 }
         }
