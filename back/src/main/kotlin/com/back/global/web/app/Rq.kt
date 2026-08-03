@@ -54,6 +54,27 @@ class Rq(
         }
 
         resp.addCookie(cookie)
+        expireLegacyDomainCookie(name)
+    }
+
+    // 쿠키 도메인 이관(slog.gg → api.slog.gg) 전에 발급된 쿠키를 만료시킨다. 남겨두면 옛 apiKey 쿠키가
+    // 계속 전송돼 로그아웃이 무력화된다. Partitioned 여부가 다르면 브라우저가 별개 쿠키로 취급하므로
+    // 두 변형을 모두 만료시킨다. 이관이 충분히 지나면 legacyCookieDomain 설정과 함께 제거할 것.
+    private fun expireLegacyDomainCookie(name: String) {
+        val legacyDomain = AppFacade.siteLegacyCookieDomain
+        if (legacyDomain.isBlank() || legacyDomain == cookieDomain()) return
+
+        listOf(false, true).forEach { partitioned ->
+            resp.addCookie(Cookie(name, "").apply {
+                path = "/"
+                isHttpOnly = true
+                domain = legacyDomain
+                secure = true
+                setAttribute("SameSite", "None")
+                if (partitioned) setAttribute("Partitioned", "")
+                maxAge = 0
+            })
+        }
     }
 
     fun deleteCookie(name: String) {

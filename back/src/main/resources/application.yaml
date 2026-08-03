@@ -112,15 +112,20 @@ custom:
     # 로컬 테스트가 dev 세션/캐시를 지우지 않도록 DB 분리
     redisDatabase: 1
   prod:
-    cookieDomain: slog.gg
-    frontUrl: "https://www.${custom.prod.cookieDomain}"
-    backUrl: "https://api.${custom.prod.cookieDomain}"
+    domain: slog.gg
+    # 인증 쿠키는 백엔드 호스트에만 필요하므로 api 서브도메인으로 한정한다.
+    cookieDomain: "api.${custom.prod.domain}"
+    # 이관 전(Domain=slog.gg)에 발급된 쿠키 정리용. 이관이 끝나면 제거.
+    legacyCookieDomain: "${custom.prod.domain}"
+    frontUrl: "https://www.${custom.prod.domain}"
+    backUrl: "https://api.${custom.prod.domain}"
     dbHost: pg_1
     dbName: "${custom.dbBaseName}_prod"
     redisHost: redis_1
     redisDatabase: 0
   site:
     cookieDomain: "${custom.dev.cookieDomain}"
+    legacyCookieDomain: ""
     frontUrl: "${custom.dev.frontUrl}"
     backUrl: "${custom.dev.backUrl}"
     dbHost: "${custom.dev.dbHost}"
