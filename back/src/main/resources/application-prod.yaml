@@ -34,7 +34,6 @@ custom:
   systemMemberApiKey: "${CUSTOM__SYSTEM_MEMBER_API_KEY}"
   site:
     cookieDomain: "${custom.prod.cookieDomain}"
-    legacyCookieDomain: "${custom.prod.legacyCookieDomain}"
     frontUrl: "${custom.prod.frontUrl}"
     backUrl: "${custom.prod.backUrl}"
     dbHost: "${custom.prod.dbHost}"

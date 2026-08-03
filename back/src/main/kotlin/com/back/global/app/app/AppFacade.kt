@@ -26,7 +26,6 @@ class AppFacade(
 
         // 사이트 도메인 설정
         val siteCookieDomain: String by lazy { environment.getProperty("custom.site.cookieDomain")!! }
-        val siteLegacyCookieDomain: String by lazy { environment.getProperty("custom.site.legacyCookieDomain", "") }
         val siteFrontUrl: String by lazy { environment.getProperty("custom.site.frontUrl")!! }
         val siteBackUrl: String by lazy { environment.getProperty("custom.site.backUrl")!! }
 

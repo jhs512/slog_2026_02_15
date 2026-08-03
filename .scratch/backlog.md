@@ -47,6 +47,11 @@ front build+start 경로가 필요하다. `.scratch/e2e-tests/spec.md`의 Out of
 `.scratch/adopt-slog-2026-03/spec.md`의 Out of Scope에 기록된 3건:
 소프트 삭제 전환, EntityAttr 값 컬럼 분리(intValue/strValue), 테스트 베이스 클래스 + Kotlin MockMvc DSL.
 
+## 7. WsCookieDebugFilter 제거 (임시 코드)
+
+2026-08-03 /ws 핸드셰이크 쿠키 확인용으로 넣은 디버그 필터(`global/web/app/WsCookieDebugFilter.kt`).
+인증 쿠키 값이 로그에 그대로 남으므로 확인이 끝나는 대로 파일을 통째로 삭제할 것.
+
 ## 6. member_attr 최초 생성 경합 (race condition)
 
 `member_attr`에는 `(subject_id, name)` 유니크 제약이 있는데, 해당 attr이 아직 없는 상태에서
