@@ -11,8 +11,9 @@ EventSource(SSE)와 SockJS는 커스텀 헤더를 붙일 수 없어, 크로스�
 
 ## 결정
 
-- 인증 쿠키(accessToken/apiKey)를 `SameSite=None; Secure; Partitioned`로 설정한다.
-  (Partitioned는 2026-08-03 추가 — 브라우저의 3자 쿠키 차단(CHIPS) 대비. front↔back은 same-site라 파티션 키가 동일해 동작 변화 없음.)
+- 인증 쿠키(accessToken/apiKey)를 `SameSite=None; Secure`로 설정한다.
+  (Partitioned(CHIPS)는 2026-08-03 추가했다가 같은 날 제거 — same-site 토폴로지에서는 파티셔닝 실익이 없고,
+  Partitioned 유/무가 별개 쿠키로 취급돼 속성 변경 때마다 이관 만료 처리가 필요해지는 비용이 더 컸다.)
 - 쿠키 Domain은 `api.slog.gg`(백엔드 호스트 한정)로 둔다. (2026-08-03 `slog.gg`에서 변경 —
   인증 쿠키는 HttpOnly라 프론트가 읽을 수 없고 백엔드만 소비하므로 범위를 최소화.
   옛 `slog.gg` 쿠키를 만료시키는 이관 코드는 잠시 운영 후 같은 날 제거했다.

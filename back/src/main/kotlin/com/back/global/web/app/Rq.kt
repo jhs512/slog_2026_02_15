@@ -48,8 +48,6 @@ class Rq(
             secure = true
             // ADR-0001: 실시간 연결(withCredentials)에 쿠키를 실기 위해 None. CSRF 방어는 CORS + JSON 본문 불변식이 담당.
             setAttribute("SameSite", "None")
-            // CHIPS: SameSite=None 쿠키의 3자 컨텍스트 차단 대비. front↔back은 same-site라 파티션 키가 동일해 영향 없다.
-            setAttribute("Partitioned", "")
             maxAge = if (value.isNullOrBlank()) 0 else 60 * 60 * 24 * 365
         }
 
