@@ -11,7 +11,8 @@ EventSource(SSE)와 SockJS는 커스텀 헤더를 붙일 수 없어, 크로스�
 
 ## 결정
 
-- 인증 쿠키(accessToken/apiKey)를 `SameSite=None; Secure`로 설정한다.
+- 인증 쿠키(accessToken/apiKey)를 `SameSite=None; Secure; Partitioned`로 설정한다.
+  (Partitioned는 2026-08-03 추가 — 브라우저의 3자 쿠키 차단(CHIPS) 대비. front↔back은 same-site라 파티션 키가 동일해 동작 변화 없음.)
 - 실시간 연결(EventSource, SockJS)은 `withCredentials: true`로 쿠키를 실어 보낸다.
 - 원타임토큰 체계는 도입하지 않는다.
 - CSRF 방어는 CORS `allowedOrigins`(front URL 고정) + "상태 변경은 항상 JSON 본문"이라는 불변식이 담당한다.
