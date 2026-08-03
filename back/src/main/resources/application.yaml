@@ -147,4 +147,5 @@ custom:
       fixedDelayMs: "#{1000*60*60*24}"
   cache:
     ttl-seconds: 3600
-    ttl-overrides: { }
+    # ttl-overrides는 캐시별로 필요할 때만 지정 (예: post:list: 60). 빈 맵 리터럴({ })은
+    # Boot 4.1 바인더가 빈 문자열로 취급해 바인딩에 실패하므로 키 자체를 생략한다.

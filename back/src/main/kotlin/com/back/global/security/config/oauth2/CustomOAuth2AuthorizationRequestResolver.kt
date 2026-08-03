@@ -22,7 +22,7 @@ class CustomOAuth2AuthorizationRequestResolver(
     override fun resolve(request: HttpServletRequest): OAuth2AuthorizationRequest? =
         delegate.resolve(request)?.let { customizeState(it, request) }
 
-    override fun resolve(request: HttpServletRequest, clientRegistrationId: String?): OAuth2AuthorizationRequest? =
+    override fun resolve(request: HttpServletRequest, clientRegistrationId: String): OAuth2AuthorizationRequest? =
         delegate.resolve(request, clientRegistrationId)?.let { customizeState(it, request) }
 
     private fun customizeState(

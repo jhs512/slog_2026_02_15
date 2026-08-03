@@ -1,10 +1,10 @@
 plugins {
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.spring") version "2.2.21"
-    kotlin("kapt") version "2.2.21"
-    id("org.springframework.boot") version "4.0.6"
+    kotlin("jvm") version "2.3.21"
+    kotlin("plugin.spring") version "2.3.21"
+    kotlin("kapt") version "2.3.21"
+    id("org.springframework.boot") version "4.1.0"
     id("io.spring.dependency-management") version "1.1.7"
-    kotlin("plugin.jpa") version "2.2.21"
+    kotlin("plugin.jpa") version "2.3.21"
     }
 
 group = "com"
@@ -13,7 +13,7 @@ description = "back"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(24)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -42,7 +42,7 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0")
     implementation("org.springframework:spring-test") // InternalRestClient에서 사용
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-security-oauth2-client")

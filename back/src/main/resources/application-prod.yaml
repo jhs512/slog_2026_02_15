@@ -14,6 +14,12 @@ spring:
         highlight_sql: false
         use_sql_comments: false
     show-sql: false
+# API 문서 엔드포인트는 운영에 노출하지 않는다
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 logging:
   level:
     com.back: INFO
