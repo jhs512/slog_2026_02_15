@@ -47,6 +47,14 @@ front build+start 경로가 필요하다. `.scratch/e2e-tests/spec.md`의 Out of
 `.scratch/adopt-slog-2026-03/spec.md`의 Out of Scope에 기록된 3건:
 소프트 삭제 전환, EntityAttr 값 컬럼 분리(intValue/strValue), 테스트 베이스 클래스 + Kotlin MockMvc DSL.
 
+## 7. 비공개 글 SSR 인증 사각지대 잔여 경로
+
+쿠키가 Domain=api.slog.gg라 Next 서버(www)에는 인증 쿠키가 실리지 않는다.
+`/p/[id]`는 2026-08-04 브라우저 재조회 폴백으로 해결했지만, 같은 패턴의
+ppt 페이지(`/p/[id]/ppt`)와 raw 라우트(`/p/[id]/raw`)는 여전히 비공개 글을
+작성자에게도 403으로 응답한다. 또 비공개 글의 SSR 메타데이터(title)는 에러 문구가 들어간다.
+근본 해결은 쿠키 도메인 slog.gg 복귀 또는 해당 경로의 클라이언트 전환.
+
 ## 6. member_attr 최초 생성 경합 (race condition)
 
 `member_attr`에는 `(subject_id, name)` 유니크 제약이 있는데, 해당 attr이 아직 없는 상태에서
