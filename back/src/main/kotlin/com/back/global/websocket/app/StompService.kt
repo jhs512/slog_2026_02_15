@@ -34,7 +34,7 @@ class StompService(
     override fun onMessage(message: Message, pattern: ByteArray?) {
         val node = objectMapper.readTree(message.body)
 
-        val destination = node.get("destination").textValue()!!
+        val destination = node.get("destination").stringValue()!!
         val payload = objectMapper.treeToValue(node.get("payload"), Any::class.java)
 
         messagingTemplate.convertAndSend(destination, payload)

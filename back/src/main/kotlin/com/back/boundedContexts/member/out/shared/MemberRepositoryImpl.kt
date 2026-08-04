@@ -9,6 +9,7 @@ import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import org.hibernate.KeyType
 import org.hibernate.Session
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -23,9 +24,7 @@ class MemberRepositoryImpl(
 
     override fun findByUsername(username: String): Member? {
         return entityManager.unwrap(Session::class.java)
-            .byNaturalId(Member::class.java)
-            .using(Member::username.name, username)
-            .load()
+            .find(Member::class.java, username, KeyType.NATURAL)
     }
 
     override fun findQPagedByKw(
