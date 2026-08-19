@@ -150,6 +150,7 @@ export default function Page() {
               "Google LLC",
               "Google Tag Manager 및 웹 분석 도구를 통한 서비스 이용 통계 수집·분석",
             ],
+            ["Google LLC (Google AdSense)", "광고 게재와 게재 성과 측정"],
             [
               "클라우드 인프라 제공자",
               "서비스 운영을 위한 서버 및 데이터 보관",
@@ -207,8 +208,27 @@ export default function Page() {
               "방문자 수·페이지 이용 현황 등 통계 분석",
               "각 도구의 정책에 따름",
             ],
+            [
+              "광고 쿠키",
+              "Google 및 협력 업체가 광고를 게재하고 게재 성과를 측정",
+              "각 업체의 정책에 따름",
+            ],
           ]}
         />
+        <p>
+          서비스는 Google AdSense를 통해 광고를 게재합니다. Google을 포함한
+          제3자 공급업체는 쿠키를 사용하여 이용자가 이 사이트나 다른 사이트를
+          방문한 기록을 바탕으로 광고를 게재할 수 있습니다.
+        </p>
+        <p>
+          이용자는{" "}
+          <span className="text-foreground">
+            Google 광고 설정(myadcenter.google.com)
+          </span>
+          에서 개인 맞춤 광고를 사용 중지할 수 있고, 그 밖의 제3자 공급업체의
+          쿠키 사용은 <span className="text-foreground">www.aboutads.info</span>{" "}
+          에서 거부할 수 있습니다.
+        </p>
         <p>
           이용자는 브라우저 설정에서 쿠키 저장을 거부할 수 있습니다. 다만 인증
           쿠키를 거부하면 로그인이 필요한 기능을 이용할 수 없습니다.
