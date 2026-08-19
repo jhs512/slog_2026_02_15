@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// 값이 없으면 애드센스 스크립트를 아예 붙이지 않는다
+const ADSENSE_CLIENT_ID = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+
 export const metadata: Metadata = {
   title: "슬로그",
   description: "슬로그는 당신을 위한 기술 블로그 입니다.",
@@ -48,6 +51,15 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 style={{ display: "none", visibility: "hidden" }}
               />
             </noscript>
+            {ADSENSE_CLIENT_ID && (
+              <Script
+                id="adsense-script"
+                strategy="afterInteractive"
+                async
+                crossOrigin="anonymous"
+                src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
+              />
+            )}
           </>
         )}
         <ThemeProvider

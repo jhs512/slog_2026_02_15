@@ -5,6 +5,7 @@ import Link from "next/link";
 import PostWriteButton from "@/domain/post/components/PostWriteButton";
 import { useAuthContext } from "@/global/auth/hooks/useAuth";
 
+import AdSenseUnit from "@/lib/business/components/AdSenseUnit";
 import LoginButton from "@/lib/business/components/LoginButton";
 
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,11 @@ export default function Page() {
             </div>
           </CardContent>
         </Card>
+
+        <AdSenseUnit
+          slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_MAIN}
+          className="mt-8"
+        />
       </div>
     </div>
   );
