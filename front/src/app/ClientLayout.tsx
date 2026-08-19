@@ -11,7 +11,13 @@ import WideHeaderContent from "@/lib/business/components/WideHeaderContent";
 
 import { Button } from "@/components/ui/button";
 
-import { Copyright, LogIn, MonitorCog } from "lucide-react";
+import {
+  Copyright,
+  FileText,
+  LogIn,
+  MonitorCog,
+  ShieldCheck,
+} from "lucide-react";
 
 export default function ClientLayout({
   children,
@@ -39,10 +45,20 @@ export default function ClientLayout({
       <main className="flex-1 flex flex-col bg-background">{children}</main>
       {!isEditPage && (
         <footer className="border-t border-border bg-card">
-          <div className="container mx-auto px-4 py-4 flex justify-center gap-4">
+          <div className="container mx-auto px-4 py-4 flex flex-wrap justify-center gap-x-4 gap-y-1">
             <Button variant="link" asChild>
               <Link href="/">
                 <Copyright /> 2026 슬로그
+              </Link>
+            </Button>
+            <Button variant="link" asChild>
+              <Link href="/terms">
+                <FileText /> 이용약관
+              </Link>
+            </Button>
+            <Button variant="link" asChild>
+              <Link href="/privacy">
+                <ShieldCheck /> 개인정보처리방침
               </Link>
             </Button>
             <Button variant="link" asChild>
