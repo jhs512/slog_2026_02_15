@@ -17,6 +17,7 @@ import { Viewer } from "@toast-ui/react-editor";
 
 import {
   convertCodeBlocksToDiagramSyntax,
+  escapeHtml,
   processMarkdownContent,
 } from "../markdownUtils";
 import { filterObjectKeys, getParamsFromUrl, isExternalUrl } from "../utils";
@@ -355,6 +356,37 @@ function configPlugin() {
   return { toHTMLRenderers };
 }
 
+// ─── 플러그인: 코드 하이라이트 (비하이라이팅 펜스 이스케이프 보강) ──
+// 공식 code-syntax-highlight 플러그인은 Prism에 등록되지 않은 언어(```text, 언어
+// 없는 ```)일 때 코드 원문을 이스케이프 없이 `type: "html"` 로 내보낸다.
+// 그래서 펜스 안의 `<s>` 같은 문자열이 진짜 태그로 파싱돼 문서 뒷부분 전체를
+// 오염시킨다. 하이라이팅을 타지 않은 경우(출력 === 원문)에만 이스케이프한다.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function codeSyntaxHighlightEscaped(context: any, options: any) {
+  const plugin = codeSyntaxHighlight(context, options);
+  const originalCodeBlock = plugin?.toHTMLRenderers?.codeBlock;
+
+  if (!originalCodeBlock) return plugin;
+
+  return {
+    ...plugin,
+    toHTMLRenderers: {
+      ...plugin.toHTMLRenderers,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      codeBlock(node: any, rendererContext: any) {
+        const tokens = originalCodeBlock(node, rendererContext);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return tokens.map((token: any) =>
+          token.type === "html" && token.content === node.literal
+            ? { ...token, content: escapeHtml(node.literal) }
+            : token,
+        );
+      },
+    },
+  };
+}
+
 // ─── 컴포넌트 ───────────────────────────────────────────
 
 export interface ToastUIEditorViewerCoreProps {
@@ -428,7 +460,7 @@ const ToastUIEditorViewerCore = forwardRef<any, ToastUIEditorViewerCoreProps>(
               maxHeight: 400,
             },
           ],
-          codeSyntaxHighlight,
+          codeSyntaxHighlightEscaped,
           tableMergedCell,
         ]}
         ref={ref}

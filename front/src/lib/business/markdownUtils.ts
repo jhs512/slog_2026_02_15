@@ -128,3 +128,19 @@ export function getSummaryFromContent(content: string): string {
 
   return "";
 }
+
+/**
+ * 코드 블록 원문을 HTML 이스케이프
+ *
+ * Toast UI 코드 하이라이트 플러그인은 Prism에 등록되지 않은 언어(```text,
+ * 언어 없는 ```)일 때 원문을 그대로 `type: "html"` 로 내보낸다.
+ * 그 결과 코드펜스 안의 `<s>` 같은 문자열이 실제 태그로 파싱된다.
+ */
+export function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
