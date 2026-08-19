@@ -57,7 +57,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
               못 볼 수 있어, React가 head로 끌어올리는 평범한 async 스크립트를 쓴다.
             */}
             {ADSENSE_CLIENT_ID && (
-              // eslint-disable-next-line @next/next/no-sync-scripts
               <script
                 async
                 crossOrigin="anonymous"
