@@ -42,11 +42,56 @@ function extractRawBlock(content: string, rawId: string): string | null {
   return match ? match[1] : null;
 }
 
+interface CodeBlock {
+  lang: string;
+  body: string;
+}
+
 // 블록 안 첫 fenced code block의 언어 + 안쪽 내용 (fence 제거)
-function extractFence(block: string): { lang: string; body: string } | null {
+function extractFence(block: string): CodeBlock | null {
   const match = block.match(/```([a-zA-Z0-9]*)[^\n]*\n([\s\S]*?)\n```/);
   if (!match) return null;
   return { lang: match[1].toLowerCase(), body: match[2] };
+}
+
+function decodeHtmlEntities(input: string): string {
+  return input
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#0*39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&"); // 이중 디코딩을 피하려면 반드시 마지막
+}
+
+// 블록 안 첫 <pre><code> 원시 HTML 코드 블록
+// (```펜스는 <details> 안에서 접힘·서식을 동시에 만족시키기 어려워 원시 HTML로
+//  쓰는 경우가 있다. 그 경우도 raw 서빙 대상으로 인정한다.)
+function extractPreCode(block: string): CodeBlock | null {
+  const match = block.match(
+    /<pre[^>]*>\s*<code([^>]*)>([\s\S]*?)<\/code>\s*<\/pre>/i,
+  );
+  if (!match) return null;
+
+  const [, attrs, rawBody] = match;
+  const lang =
+    attrs.match(/\bdata-language\s*=\s*["']([^"']+)["']/i)?.[1] ??
+    attrs.match(
+      /\bclass\s*=\s*["'][^"']*\b(?:language|lang)-([a-zA-Z0-9]+)/i,
+    )?.[1] ??
+    "";
+
+  const body = decodeHtmlEntities(rawBody)
+    .replace(/^\r?\n/, "")
+    .replace(/\r?\n$/, "");
+
+  return { lang: lang.toLowerCase(), body };
+}
+
+// 펜스 우선, 없으면 <pre><code>
+function extractCodeBlock(block: string): CodeBlock | null {
+  return extractFence(block) ?? extractPreCode(block);
 }
 
 // fenced 블록 언어 → Content-Type
@@ -81,11 +126,11 @@ export async function GET(
     );
   }
 
-  const fence = extractFence(block);
+  const fence = extractCodeBlock(block);
 
   if (!fence) {
     return NextResponse.json(
-      { error: `No fenced code block in raw block: ${rawId}` },
+      { error: `No code block in raw block: ${rawId}` },
       { status: 404 },
     );
   }

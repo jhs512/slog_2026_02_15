@@ -144,3 +144,89 @@ export function escapeHtml(input: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+// ─── <details> 구간을 $$details 커스텀 블록으로 감싸기 ───────
+
+const RE_CODE_FENCE = /^ {0,3}(`{3,}|~{3,})/;
+const RE_DETAILS_OPEN = /^ {0,3}<details\b[^>]*>\s*$/i;
+const RE_DETAILS_CLOSE = /^ {0,3}<\/details>\s*$/i;
+
+/**
+ * `<details> ... </details>` 구간을 `$$details` 커스텀 블록 하나로 감싼다.
+ *
+ * CommonMark에서 원시 HTML 블록은 빈 줄을 만나면 끝난다. 그래서 `<summary>` 뒤에
+ * 빈 줄을 두면 그 뒤 마크다운이 `<details>` 의 자식이 아니라 형제 노드가 되고,
+ * Toast UI 뷰어는 루트 노드마다 `<div data-nodeid>` 로 감싸므로 `<details>` 가
+ * 거기서 닫혀버린다. 결과적으로 내용이 토글 밖으로 빠져나간다.
+ *
+ * 구간 전체를 커스텀 블록 하나로 만들면 루트 노드가 하나가 되어 중첩이 유지된다.
+ * 커스텀 블록은 `$$` 만 있는 줄에서 닫히는데, 안쪽 `$$mermaid ... $$` 같은
+ * 블록이 먼저 닫아버리는 것을 막기 위해 원문을 URI 인코딩해 한 줄로 넣는다.
+ *
+ * 코드펜스 안의 `<details>` 는 건드리지 않고, 닫히지 않은 `<details>` 는
+ * 원문을 그대로 둔다.
+ */
+export function wrapDetailsBlocks(content: string): string {
+  const lines = content.split("\n");
+  const regions: [number, number][] = [];
+
+  let fence: string | null = null;
+  let depth = 0;
+  let start = -1;
+
+  lines.forEach((line, index) => {
+    const fenceMatch = line.match(RE_CODE_FENCE);
+
+    if (fence) {
+      const marker = fenceMatch?.[1];
+      if (marker && marker[0] === fence[0] && marker.length >= fence.length) {
+        fence = null;
+      }
+      return;
+    }
+
+    if (fenceMatch) {
+      fence = fenceMatch[1];
+      return;
+    }
+
+    if (RE_DETAILS_OPEN.test(line)) {
+      if (depth === 0) start = index;
+      depth++;
+      return;
+    }
+
+    if (depth > 0 && RE_DETAILS_CLOSE.test(line)) {
+      depth--;
+      if (depth === 0) regions.push([start, index]);
+    }
+  });
+
+  if (regions.length === 0) return content;
+
+  const result: string[] = [];
+  let cursor = 0;
+
+  for (const [regionStart, regionEnd] of regions) {
+    result.push(...lines.slice(cursor, regionStart));
+    result.push("$$details");
+    result.push(
+      encodeURIComponent(lines.slice(regionStart, regionEnd + 1).join("\n")),
+    );
+    result.push("$$");
+    cursor = regionEnd + 1;
+  }
+
+  result.push(...lines.slice(cursor));
+
+  return result.join("\n");
+}
+
+/** `$$details` 커스텀 블록 본문(URI 인코딩된 원문)을 되돌린다. */
+export function decodeDetailsBlock(literal: string): string {
+  try {
+    return decodeURIComponent(literal.trim());
+  } catch {
+    return literal;
+  }
+}

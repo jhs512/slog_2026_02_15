@@ -13,12 +13,17 @@ import "@toast-ui/editor-plugin-table-merged-cell/dist/toastui-editor-plugin-tab
 
 import { forwardRef, useEffect, useMemo, useRef } from "react";
 
+// @ts-expect-error - 타입 정보 없음. <details> 안쪽 마크다운을 별도 렌더할 때 쓰는
+// Viewer 클래스 본체 (@toast-ui/react-editor 의 Viewer 가 감싸고 있는 것과 동일)
+import ViewerClass from "@toast-ui/editor/dist/toastui-editor-viewer";
 import { Viewer } from "@toast-ui/react-editor";
 
 import {
   convertCodeBlocksToDiagramSyntax,
+  decodeDetailsBlock,
   escapeHtml,
   processMarkdownContent,
+  wrapDetailsBlocks,
 } from "../markdownUtils";
 import { filterObjectKeys, getParamsFromUrl, isExternalUrl } from "../utils";
 
@@ -387,6 +392,139 @@ function codeSyntaxHighlightEscaped(context: any, options: any) {
   };
 }
 
+// ─── 플러그인: $$details ... $$ → 접이식 블록 ──────────
+// wrapDetailsBlocks 가 감싼 구간을 받아, 안쪽 마크다운을 별도 Viewer 로 렌더한 뒤
+// <details> 하나로 합친다. <summary> 는 직접 자식이어야 토글이 동작하므로
+// 중첩 렌더에 맡기지 않고 원문에서 떼어내 그대로 붙인다.
+function renderMarkdownFragment(markdown: string): string {
+  if (typeof document === "undefined") return "";
+
+  // 화면 밖에 붙였다 떼는 이유: chart 처럼 레이아웃을 재는 플러그인이
+  // 문서에 붙지 않은 노드에서는 크기를 0으로 계산한다.
+  const host = document.createElement("div");
+  host.style.cssText = "position:absolute;left:-9999px;top:0;width:800px;";
+  document.body.appendChild(host);
+
+  try {
+    new ViewerClass({
+      el: host,
+      initialValue: markdown,
+      plugins: viewerPlugins,
+      customHTMLRenderer: viewerCustomHTMLRenderer,
+    });
+    return host.querySelector(".toastui-editor-contents")?.innerHTML ?? "";
+  } finally {
+    host.remove();
+  }
+}
+
+function renderDetailsBlock(literal: string): string {
+  const source = decodeDetailsBlock(literal);
+  const match = source.match(
+    /^\s*<details([^>]*)>\s*\n?([\s\S]*?)\n?\s*<\/details>\s*$/i,
+  );
+
+  if (!match) return escapeHtml(source);
+
+  const [, attributes, body] = match;
+  const summaryMatch = body.match(
+    /^\s*(<summary[^>]*>[\s\S]*?<\/summary>)\s*/i,
+  );
+  const summary = summaryMatch ? summaryMatch[1] : "";
+  const inner = summaryMatch ? body.slice(summaryMatch[0].length) : body;
+  // 안쪽에 또 <details> 가 있으면 같은 처리를 재귀로 받게 한다
+  const innerHTML = renderMarkdownFragment(wrapDetailsBlocks(inner));
+
+  return `<details${attributes}>${summary}${innerHTML}</details>`;
+}
+
+function detailsPlugin() {
+  const toHTMLRenderers = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    details(node: any) {
+      return [{ type: "html", content: renderDetailsBlock(node.literal) }];
+    },
+  };
+
+  return { toHTMLRenderers };
+}
+
+// ─── Viewer 공통 설정 ───────────────────────────────────
+// 중첩 렌더(renderMarkdownFragment)도 같은 설정을 써야 하므로 모듈 스코프에 둔다.
+
+const viewerCustomHTMLRenderer = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  heading(node: any, { entering, getChildrenText }: any) {
+    return {
+      type: entering ? "openTag" : "closeTag",
+      tagName: `h${node.level}`,
+      attributes: {
+        id: getChildrenText(node).trim().replaceAll(" ", "-"),
+      },
+    };
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  link(node: any, { entering }: any) {
+    return {
+      type: entering ? "openTag" : "closeTag",
+      tagName: `a`,
+      attributes: {
+        href: node.destination,
+        target: isExternalUrl(node.destination) ? "_blank" : "_self",
+      },
+    };
+  },
+  htmlBlock: {
+    // iframe 속성 필터링 (보안)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    iframe(node: any) {
+      const newAttrs = filterObjectKeys(node.attrs, [
+        "src",
+        "width",
+        "height",
+        "allow",
+        "allowfullscreen",
+        "frameborder",
+        "scrolling",
+        "class",
+      ]);
+      return [
+        {
+          type: "openTag",
+          tagName: "iframe",
+          outerNewLine: true,
+          attributes: newAttrs,
+        },
+        { type: "html", content: node.childrenHTML },
+        { type: "closeTag", tagName: "iframe", outerNewLine: false },
+      ];
+    },
+  },
+};
+
+const viewerPlugins = [
+  youtubePlugin,
+  codepenPlugin,
+  katexPlugin,
+  umlPlugin,
+  mermaidPlugin,
+  hidePlugin,
+  pptPlugin,
+  configPlugin,
+  detailsPlugin,
+  [
+    chartPlugin,
+    {
+      minWidth: 100,
+      maxWidth: 800,
+      minHeight: 100,
+      maxHeight: 400,
+    },
+  ],
+  codeSyntaxHighlightEscaped,
+  tableMergedCell,
+];
+
 // ─── 컴포넌트 ───────────────────────────────────────────
 
 export interface ToastUIEditorViewerCoreProps {
@@ -400,12 +538,13 @@ const ToastUIEditorViewerCore = forwardRef<any, ToastUIEditorViewerCoreProps>(
   (props, ref) => {
     // 1. 코드 블록 다이어그램 문법 변환 (```uml -> $$uml$$, ```youtube -> $$youtube$$ 등)
     // 2. surl: 링크 처리
+    // 3. <details> 구간을 $$details 커스텀 블록 하나로 묶기
     const processedContent = useMemo(() => {
       let content = convertCodeBlocksToDiagramSyntax(props.initialValue);
       if (props.postId) {
         content = processMarkdownContent(content, props.postId);
       }
-      return content;
+      return wrapDetailsBlocks(content);
     }, [props.initialValue, props.postId]);
 
     // Mermaid SVG에 PNG 기반 실제 너비 세팅
@@ -442,78 +581,10 @@ const ToastUIEditorViewerCore = forwardRef<any, ToastUIEditorViewerCoreProps>(
     return (
       <Viewer
         theme={props.theme}
-        plugins={[
-          youtubePlugin,
-          codepenPlugin,
-          katexPlugin,
-          umlPlugin,
-          mermaidPlugin,
-          hidePlugin,
-          pptPlugin,
-          configPlugin,
-          [
-            chartPlugin,
-            {
-              minWidth: 100,
-              maxWidth: 800,
-              minHeight: 100,
-              maxHeight: 400,
-            },
-          ],
-          codeSyntaxHighlightEscaped,
-          tableMergedCell,
-        ]}
+        plugins={viewerPlugins}
         ref={ref}
         initialValue={processedContent}
-        customHTMLRenderer={{
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          heading(node: any, { entering, getChildrenText }: any) {
-            return {
-              type: entering ? "openTag" : "closeTag",
-              tagName: `h${node.level}`,
-              attributes: {
-                id: getChildrenText(node).trim().replaceAll(" ", "-"),
-              },
-            };
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          link(node: any, { entering }: any) {
-            return {
-              type: entering ? "openTag" : "closeTag",
-              tagName: `a`,
-              attributes: {
-                href: node.destination,
-                target: isExternalUrl(node.destination) ? "_blank" : "_self",
-              },
-            };
-          },
-          htmlBlock: {
-            // iframe 속성 필터링 (보안)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            iframe(node: any) {
-              const newAttrs = filterObjectKeys(node.attrs, [
-                "src",
-                "width",
-                "height",
-                "allow",
-                "allowfullscreen",
-                "frameborder",
-                "scrolling",
-                "class",
-              ]);
-              return [
-                {
-                  type: "openTag",
-                  tagName: "iframe",
-                  outerNewLine: true,
-                  attributes: newAttrs,
-                },
-                { type: "html", content: node.childrenHTML },
-                { type: "closeTag", tagName: "iframe", outerNewLine: false },
-              ];
-            },
-          },
-        }}
+        customHTMLRenderer={viewerCustomHTMLRenderer}
       />
     );
   },
