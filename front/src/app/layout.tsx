@@ -51,10 +51,14 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 style={{ display: "none", visibility: "hidden" }}
               />
             </noscript>
+            {/*
+              next/script 의 afterInteractive 는 HTML에 preload 링크만 남기고 실제
+              <script> 는 런타임에 주입한다. 애드센스 소유권 확인 크롤러가 그것을
+              못 볼 수 있어, React가 head로 끌어올리는 평범한 async 스크립트를 쓴다.
+            */}
             {ADSENSE_CLIENT_ID && (
-              <Script
-                id="adsense-script"
-                strategy="afterInteractive"
+              // eslint-disable-next-line @next/next/no-sync-scripts
+              <script
                 async
                 crossOrigin="anonymous"
                 src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
