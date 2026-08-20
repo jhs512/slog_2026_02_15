@@ -4,3 +4,10 @@
 .agents/
 .claude/
 skills-lock.json
+
+# KMP
+kmp/.gradle/
+kmp/build/
+kmp/composeApp/build/
+kmp/.kotlin/
+kmp/local.properties
