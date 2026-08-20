@@ -5,7 +5,7 @@ plugins {
     id("org.springframework.boot") version "4.1.0"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.jpa") version "2.3.21"
-    }
+}
 
 group = "com"
 version = "0.0.1-SNAPSHOT"

@@ -16,6 +16,7 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
+        maven("https://devrepo.kakao.com/nexus/content/groups/public")
         google {
             content {
                 includeGroupByRegex("com[.]android.*")

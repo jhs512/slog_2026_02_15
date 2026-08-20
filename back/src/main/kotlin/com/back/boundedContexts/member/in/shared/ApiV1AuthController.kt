@@ -4,6 +4,7 @@ import com.back.boundedContexts.member.app.MemberFacade
 import com.back.boundedContexts.member.dto.MemberDto
 import com.back.boundedContexts.member.dto.MemberWithUsernameDto
 import com.back.global.dto.RsData
+import com.back.global.security.config.oauth2.app.KakaoApiClient
 import com.back.global.exception.app.BusinessException
 import com.back.global.web.app.Rq
 import io.swagger.v3.oas.annotations.Operation
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*
 @SecurityRequirement(name = "bearerAuth")
 class ApiV1AuthController(
     private val memberFacade: MemberFacade,
+    private val kakaoApiClient: KakaoApiClient,
     private val rq: Rq
 ) {
     data class MemberLoginRequest(
@@ -50,6 +52,50 @@ class ApiV1AuthController(
             member,
             reqBody.password
         )
+
+        val accessToken = memberFacade.genAccessToken(member)
+
+        rq.setCookie("apiKey", member.apiKey)
+        rq.setCookie("accessToken", accessToken)
+
+        return RsData(
+            "200-1",
+            "${member.name}님 환영합니다.",
+            MemberLoginResBody(
+                MemberDto(member),
+                member.apiKey,
+                accessToken
+            )
+        )
+    }
+
+
+    data class SocialLoginRequest(
+        @field:NotBlank
+        val accessToken: String,
+    )
+
+    /**
+     * 네이티브 앱용 카카오 로그인.
+     *
+     * 웹은 /oauth2/authorization/kakao 리다이렉트를 쓰지만, 앱은 카카오 SDK 로 받은
+     * 액세스 토큰을 들고 온다. 그 토큰이 우리 앱에서 발급된 것인지 확인한 뒤
+     * 웹 로그인과 같은 규칙(username = "KAKAO__{id}")으로 회원을 찾거나 만든다.
+     */
+    @PostMapping("/social/kakao")
+    @Transactional
+    @Operation(summary = "카카오 네이티브 로그인")
+    fun loginWithKakao(
+        @RequestBody @Valid reqBody: SocialLoginRequest
+    ): RsData<MemberLoginResBody> {
+        val profile = kakaoApiClient.fetchProfile(reqBody.accessToken)
+
+        val member = memberFacade.modifyOrJoin(
+            "KAKAO__${profile.oauthUserId}",
+            "",
+            profile.nickname,
+            profile.profileImgUrl
+        ).data
 
         val accessToken = memberFacade.genAccessToken(member)
 

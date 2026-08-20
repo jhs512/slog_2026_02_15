@@ -5,11 +5,12 @@ agp = "9.3.1"
 ktor = "3.5.2"
 coroutines = "1.11.0"
 serialization = "1.11.0"
-lifecycle = "2.11.0"
+lifecycle = "2.10.0"
 androidxActivityCompose = "1.9.3"
+kakaoSdk = "2.24.0"
 androidMinSdk = "24"
-androidTargetSdk = "35"
-androidCompileSdk = "35"
+androidTargetSdk = "36"
+androidCompileSdk = "36"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -23,6 +24,7 @@ ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negoti
 ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivityCompose" }
+kakao-user = { module = "com.kakao.sdk:v2-user", version.ref = "kakaoSdk" }
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

@@ -9,6 +9,8 @@ class AuthSecurityConfigurer {
         authorize.apply {
             authorize("/member/api/*/auth/login", permitAll)
             authorize("/member/api/*/auth/logout", permitAll)
+            // 네이티브 앱 카카오 로그인 — 로그인 전이므로 인증 없이 열어둔다
+            authorize("/member/api/*/auth/social/*", permitAll)
         }
     }
 }

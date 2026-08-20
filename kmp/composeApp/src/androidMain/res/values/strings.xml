@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      카카오 개발자 콘솔 > 내 애플리케이션 > 앱 키 > 네이티브 앱 키.
+      비워두면 카카오 SDK 를 초기화하지 않고 로그인 버튼이 안내 메시지를 낸다.
+    -->
+    <string name="kakao_native_app_key"></string>
+    <!-- 카카오톡 앱으로 로그인할 때 돌아오는 스킴: kakao{네이티브앱키} -->
+    <string name="kakao_redirect_scheme">kakao</string>
+</resources>
