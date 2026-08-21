@@ -14,8 +14,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 object SlogUrls {
-    const val API_BASE = "https://api.slog.gg"
-    const val WEB_BASE = "https://www.slog.gg"
+    // 디버그 빌드에서 로컬 백엔드를 보도록 런타임에 바꿀 수 있게 둔다
+    var API_BASE: String = "https://api.slog.gg"
+    var WEB_BASE: String = "https://www.slog.gg"
 
     /** 글 본문을 웹뷰로 띄울 때 쓰는 주소 */
     fun postPage(postId: Int) = "$WEB_BASE/p/$postId"

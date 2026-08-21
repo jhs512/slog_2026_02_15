@@ -1,6 +1,9 @@
 package gg.slog.app.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,7 +20,7 @@ import gg.slog.app.platform.DocumentWebView
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostDetailScreen(post: PostDto, onBack: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxSize()) {
+    Column(modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
         TopAppBar(
             title = { Text(post.title, maxLines = 1) },
             navigationIcon = { IconButton(onClick = onBack) { Text("←") } },

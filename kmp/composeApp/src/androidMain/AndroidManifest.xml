@@ -12,6 +12,7 @@
         android:allowBackup="true"
         android:label="슬로그"
         android:supportsRtl="true"
+        android:theme="@style/Theme.Slog"
         android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"
