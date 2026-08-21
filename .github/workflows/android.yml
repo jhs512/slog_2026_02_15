@@ -1,0 +1,104 @@
+name: android
+
+# KMP 안드로이드 앱 빌드.
+# - kmp/ 변경 시:  APK 를 아티팩트로 올려 빌드가 깨지지 않는지 확인
+# - 릴리즈 발행 시: APK 를 그 릴리즈에 첨부
+#
+# push.tags 를 쓰지 않는 이유: paths 필터가 태그 푸시에도 적용돼
+# kmp/ 를 건드리지 않은 커밋에 태그를 달면 빌드가 아예 돌지 않는다.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "kmp/**"
+      - ".github/workflows/android.yml"
+  release:
+    types: [published]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write # 릴리즈에 파일 첨부
+
+defaults:
+  run:
+    shell: bash
+    working-directory: kmp
+
+jobs:
+  build:
+    name: APK 빌드
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: JDK 설치
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Android SDK 설치
+        uses: android-actions/setup-android@v3
+
+      - name: Gradle 설정
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: kmp
+
+      # 러너는 매번 새 디버그 키스토어를 만든다. 그대로 두면 서명이 로컬과 달라져
+      # 카카오에 등록한 키 해시와 어긋나고 네이티브 로그인이 실패한다.
+      - name: 디버그 키스토어 복원
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_DEBUG_KEYSTORE_B64 }}
+        run: |
+          if [ -z "${KEYSTORE_B64}" ]; then
+            echo "::warning::ANDROID_DEBUG_KEYSTORE_B64 가 없어 러너 기본 키로 서명됩니다. 카카오 로그인이 동작하지 않습니다."
+            exit 0
+          fi
+          mkdir -p "${HOME}/.android"
+          printf '%s' "${KEYSTORE_B64}" | base64 -d > "${HOME}/.android/debug.keystore"
+          echo "키 해시: $(keytool -exportcert -alias androiddebugkey \
+            -keystore "${HOME}/.android/debug.keystore" \
+            -storepass android -keypass android 2>/dev/null \
+            | openssl sha1 -binary | openssl base64)"
+
+      - name: 공용 테스트
+        run: ./gradlew :composeApp:testDebugUnitTest --no-daemon
+
+      - name: APK 빌드
+        run: ./gradlew :composeApp:assembleDebug --no-daemon
+
+      - name: 파일명 정리
+        id: apk
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          SRC=composeApp/build/outputs/apk/debug/composeApp-debug.apk
+          if [ -n "${RELEASE_TAG}" ]; then
+            VERSION="${RELEASE_TAG#android-v}"
+          else
+            VERSION="${GITHUB_SHA::7}"
+          fi
+          NAME="slog-android-${VERSION}-debug.apk"
+          cp "${SRC}" "${NAME}"
+          echo "name=${NAME}" >> "${GITHUB_OUTPUT}"
+          echo "path=kmp/${NAME}" >> "${GITHUB_OUTPUT}"
+          ls -la "${NAME}"
+
+      - name: 아티팩트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.name }}
+          path: ${{ steps.apk.outputs.path }}
+          retention-days: 30
+
+      - name: 릴리즈에 첨부
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "${RELEASE_TAG}" "${{ steps.apk.outputs.name }}" --clobber
