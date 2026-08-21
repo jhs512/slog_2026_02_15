@@ -266,10 +266,13 @@ jobs:
             # ---------------------------------------------------------
             docker rm -f "${GREEN}" >/dev/null 2>&1 || true
             echo "🚀 run new container → ${GREEN}"
+            # DOT_ENV 에 없는 설정은 여기서 개별 주입한다. OS 환경변수가
+            # /app/.env 보다 우선순위가 높아 덮어쓰기도 된다.
             docker run -d --name "${GREEN}" \
               --restart unless-stopped \
               --network "${NET}" \
               -e TZ=Asia/Seoul \
+              -e CUSTOM__KAKAO__APP_ID="${{ secrets.CUSTOM__KAKAO__APP_ID }}" \
               -v /tmp/.env:/app/.env:ro \
               "${IMAGE}"
 
