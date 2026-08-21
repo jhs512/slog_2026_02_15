@@ -98,7 +98,7 @@ custom:
     # 카카오 개발자 콘솔 > 내 애플리케이션 > 앱 설정 > 요약 정보의 "앱 ID"(숫자).
     # 네이티브 앱이 보낸 액세스 토큰이 우리 앱에서 발급된 것인지 확인하는 데 쓴다.
     # 비워두면 네이티브 카카오 로그인을 거부한다(fail-closed).
-    appId: ${CUSTOM__KAKAO__APP_ID:}
+    appId: ${CUSTOM__KAKAO__APP_ID:978807}
   dev:
     cookieDomain: localhost
     frontUrl: "http://${custom.dev.cookieDomain}:3000"
